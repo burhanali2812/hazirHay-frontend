@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from "react-router-dom";
-
+import login from "../images/login.png"
 function Login() {
   const navigate = useNavigate();
 
@@ -12,11 +12,16 @@ function Login() {
         onClick={() => navigate("/")}
       ></i>
 
-    <div style={{marginTop: "85px"}}>
+
+
+    <div style={{marginTop: "25px"}}>
           <h1 className='mt-4 mx-3 fw-bold' style={{letterSpacing: "1px"}}>Let's Sign You In</h1>
       <h3 className='mx-3 fw-bold' style={{color: '#ff6600'}}>Welcome back!</h3>
      <p className='mx-3 '>You've been missed. Let’s get you signed in to continue your journey.</p>
- <div className="form-floating  mx-3 mt-4">
+     <div className="text-center">
+  <img src={login} style={{ width: "230px", height: "230px" }} />
+</div>
+ <div className="form-floating  mx-3 ">
         <input 
           type="email" 
           className="form-control" 
@@ -44,7 +49,7 @@ function Login() {
 
       <div class="dropdown">
   <button
-    class="btn btn-primary dropdown-toggle mx-3 mt-2"
+    class="btn btn-primary dropdown-toggle mx-3 "
     type="button"
     id="dropdownMenuButton"
     data-bs-toggle="dropdown"
@@ -60,10 +65,10 @@ function Login() {
     <li><a class="dropdown-item" href="#">User</a></li>
   </ul>
 </div>
-<div style={{marginTop: "50px"}}>
+<div style={{marginTop: "20px"}}>
     <p className=' text-center'>Don't have an account? <strong className='text-primary' style={{cursor: "pointer"}}>Register</strong></p>
 </div>
-<button type='button' className='btn btn-dark rounded mt- mx-3' style={{ width: "90%", height: "45px" }} onClick={()=>navigate("/login")}>
+<button type='button' className='btn btn-dark rounded  mx-3' style={{ width: "90%", height: "45px" }} onClick={()=>navigate("/login")}>
       <i className="fa-solid fa-right-to-bracket me-2"></i>
       Login
     </button>
