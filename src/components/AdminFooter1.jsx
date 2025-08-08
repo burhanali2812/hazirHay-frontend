@@ -14,18 +14,31 @@ function AdminFooter1() {
   return (
     <>
       <div
-        className="card fixed-bottom shadow"
-       style={{
-    background: "	#262525ff"
-  }}
-
+        className="card fixed-top shadow"
+        style={{
+          background: "	#262525ff",
+          height: "55px",
+            zIndex: 1030,
+        }}
       >
-        <div className="card-body d-flex justify-content-around p-2">
+        <div className="card-body">
+          <h5 className="text-light">Burhan Ali</h5>
+        </div>
+      </div>
+      <div
+        className="card fixed-bottom shadow"
+        style={{
+          background: "	#262525ff",
+        }}
+      >
+        <div className="card-body d-flex  p-2">
           <span
             className={`text-center flex-fill ${
               active === "home" ? "text-light zoom" : "text-secondary"
             }`}
-            onClick={() => handleClick("home", () => navigate("/driver/dashboard"))}
+            onClick={() =>
+              handleClick("home", () => navigate("/driver/dashboard"))
+            }
           >
             <i className="fas fa-home d-block mb-0 mt-2"></i>
             <small>Home</small>
@@ -48,21 +61,9 @@ function AdminFooter1() {
             }`}
             onClick={() => handleClick("complaints", () => alert("Complaints"))}
           >
-           
             <i className="fas fa-frown d-block mb-0 mt-2"></i>
-            <small>Complaints</small>
-          </span>
 
-          <span
-            className={`text-center flex-fill ${
-              active === "customer" ? "text-light zoom" : "text-secondary"
-            }`}
-            onClick={() =>
-              handleClick("customer", () => alert("Customer List"))
-            }
-          >
-            <i className="fas fa-bell d-block mb-0 mt-2"></i>
-            <small>Notifications</small>
+            <small>Complaints</small>
           </span>
 
           <span
@@ -74,11 +75,10 @@ function AdminFooter1() {
             <i className="fas fa-cog d-block mb-0 mt-2"></i>
             <small>Setting</small>
           </span>
-
         </div>
       </div>
 
-      <div className="flex-grow-1 p-3" style={{ paddingBottom: "80px" }}>
+      <div className="flex-grow-1 p-3" style={{ paddingTop: "60px", paddingBottom: "80px" }}>
         <Outlet />
       </div>
       <div style={{ height: "60px" }}></div>
