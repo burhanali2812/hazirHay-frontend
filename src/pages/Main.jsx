@@ -6,7 +6,7 @@ import { useNavigate} from "react-router-dom";
 function Main() {
       const navigate = useNavigate();
   return (
-  <div className='container text-center animate__animated animate__fadeInDown' style={{ marginTop: "140px" }}>
+  <div className='container text-center animate__animated animate__fadeInDown' style={{ marginTop: "130px" }}>
   <div className="py-4 px- animate__animated animate__zoomIn">
     <img 
       src={logo2} 

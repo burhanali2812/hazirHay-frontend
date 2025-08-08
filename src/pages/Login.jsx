@@ -8,11 +8,11 @@ function Login() {
     <div className='container'>
       <i 
         className="fa-solid fa-arrow-left-long mt-3 mx-3" 
-        style={{ fontSize: "1.8rem", cursor: "pointer" }} 
+        style={{ fontSize: "1.6rem", cursor: "pointer" }} 
         onClick={() => navigate("/")}
       ></i>
 
-    <div style={{marginTop: "70px"}}>
+    <div style={{marginTop: "85px"}}>
           <h1 className='mt-4 mx-3 fw-bold' style={{letterSpacing: "1px"}}>Let's Sign You In</h1>
       <h3 className='mx-3 fw-bold' style={{color: '#ff6600'}}>Welcome back!</h3>
      <p className='mx-3 '>You've been missed. Let’s get you signed in to continue your journey.</p>
