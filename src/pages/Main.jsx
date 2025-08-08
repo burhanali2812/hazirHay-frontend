@@ -32,7 +32,7 @@ function Main() {
       Login
     </button>
 
-    <button type='button' className='btn btn-info rounded mt-2 animate__animated animate__fadeInUp animate__delay-2s' style={{ width: "90%", height: "45px" }}>
+    <button type='button' className='btn btn-info rounded mt-2 animate__animated animate__fadeInUp animate__delay-1s' style={{ width: "90%", height: "45px" }}>
       <i className="fa-solid fa-user-plus me-2"></i>
       Register
     </button>
