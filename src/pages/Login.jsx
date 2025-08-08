@@ -9,7 +9,7 @@ function Login() {
   
 
   return ( 
-    <div className="container  animate__animated animate__fadeInRight animate__delay-0s">
+    <div className="container  animate__animated animate__fadeInDown animate__delay-0s">
       <i
         className="fa-solid fa-arrow-left-long mt-3 mx-2"
         style={{ fontSize: "1.6rem", cursor: "pointer" }}
@@ -17,7 +17,7 @@ function Login() {
       ></i>
 
       <div style={{ marginTop: "10px" }}>
-        <h1 className=" mx-3 fw-bold " style={{ letterSpacing: "1px" }}>
+        <h1 className=" mx-3 fw-bold ">
           Let's Sign You In
         </h1>
         <h3 className="mx-3 fw-bold" style={{ color: "#ff6600" }}>
@@ -104,7 +104,7 @@ function Login() {
         </div>
         <button
           type="button"
-          className="btn btn-dark rounded  mx-3 animate__animated animate__fadeInUp  animate__delay-0s"
+          className="btn btn-dark rounded w-90 mx-3 animate__animated animate__fadeInUp  animate__delay-0s"
           style={{ width: "90%", height: "45px" }}
           onClick={() => navigate("/login")}
         >
