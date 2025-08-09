@@ -2,14 +2,82 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import login from "../images/login.png";
 import 'animate.css';
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import axios from "axios";
 function Login() {
   const navigate = useNavigate();
   const[role,setRole] = useState("Choose Your Role");
+  const[email,setEmail] = useState("");
+  const[password,setPassword] = useState("");
+  const[loading,setLoading] = useState(false);
+
+const handleLogin = async () => {
+  try {
+    setLoading(true);
+    if (email.trim() === "") {
+      toast.warning("Email field cannot be empty!");
+      setLoading(false);
+      return;
+    }
+    if (!/\S+@\S+\.\S+/.test(email)) {
+      toast.warning("Valid Email is required!");
+      setLoading(false);
+      return;
+    }
+    if (password.trim() === "") {
+      toast.warning("Password cannot be empty!");
+      setLoading(false);
+      return;
+    }
+    if(role === ""){
+      toast.warning("Choose a role");
+      setLoading(false);
+      return;
+    }
+
+    // Payload
+    const loginPayload = {
+      email,
+      password,
+      role : role.toLowerCase()
+    };
+
+    // API request
+    const response = await axios.post(
+      "https://hazir-hay-backend.vercel.app/admin/",
+      loginPayload
+    );
+
+    // If login is successful
+    if (response.status === 200) {
+      toast.success(response.data.message || "Login successful!");
+      localStorage.setItem("token", response.data.token);
+      localStorage.setItem("user", JSON.stringify(response.data.user));
+      setTimeout(()=>{
+        navigate("/admin/dashboard")
+      }, 1500)
+    }
+  } catch (error) {
+  
+    if (error.response) {
+      toast.error(error.response.data.message || "Login failed!");
+    } else {
+      toast.error("Something went wrong! Please try again.");
+    }
+  } finally {
+    setLoading(false);
+  }
+};
+
+  
 
   
 
   return ( 
+   
     <div className="container  animate__animated animate__fadeInDown animate__delay-0s">
+       <ToastContainer/>
       <i
         className="fa-solid fa-arrow-left-long mt-3 mx-2"
         style={{ fontSize: "1.6rem", cursor: "pointer" }}
@@ -35,7 +103,9 @@ function Login() {
             className="form-control"
             id="floatingEmail"
             placeholder="name@example.com"
+            value={email}
             style={{ width: "99%" }}
+            onChange={(e)=> setEmail(e.target.value)}
           />
           <label htmlFor="floatingEmail">Email address</label>
         </div>
@@ -47,6 +117,8 @@ function Login() {
             className="form-control"
             id="floatingPassword"
             placeholder="Password"
+            value={password}
+            onChange={(e)=>setPassword(e.target.value)}
             style={{ width: "99%" }}
           />
           <label htmlFor="floatingPassword">Password</label>
@@ -106,10 +178,23 @@ function Login() {
           type="button"
           className="btn btn-dark rounded w-90 mx-3 animate__animated animate__fadeInUp  animate__delay-0s"
           style={{ width: "90%", height: "45px" }}
-          onClick={() => navigate("/login")}
+          onClick={handleLogin}
         >
-          <i className="fa-solid fa-right-to-bracket me-2"></i>
+          {loading === false ? (
+                    <>
+                       <i className="fa-solid fa-right-to-bracket me-2"></i>
           Login
+                    </>
+                  ) : ( 
+                    <>
+                      Verifying you...
+                      <div
+                        className="spinner-border spinner-border-sm text-light ms-2"
+                        role="status"
+                      ></div>
+                    </>
+                  )}
+         
         </button>
       </div>
     </div>

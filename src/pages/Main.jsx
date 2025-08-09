@@ -15,11 +15,11 @@ function Main() {
       style={{ height: "230px", width: "230px" }} 
     />
 
-    <h1 className="fw-bolder mb-0 animate__animated animate__fadeInUp" style={{ fontSize: '2.2rem', color: '#001b35', marginTop: "-30px",  }}>
+    <h1 className="fw-bolder mb-0 animate__animated animate__fadeInUp" style={{ fontSize: '2.2rem', color: '#001b35', marginTop: "-30px",  fontFamily : "Josefin Sans"}}>
       WELCOME TO
     </h1>
 
-    <h2 className="fw-bold mt-0 animate__animated animate__fadeInUp animate__delay-0s" style={{ fontSize: '1.9rem', color: '#ff6600',  }}>
+    <h2 className="fw-bold mt-0 animate__animated animate__fadeInUp animate__delay-0s" style={{ fontSize: '1.9rem', color: '#ff6600',  fontFamily : "Josefin Sans" }}>
       HAZIRHAY
     </h2>
 
