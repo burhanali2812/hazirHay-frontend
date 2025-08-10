@@ -104,11 +104,7 @@ const handleSubmit = async (e) => {
   return (
     <div className="container  animate__animated animate__fadeInLeft animate__delay-0s">
         <ToastContainer/>
-      <i
-        className="fa-solid fa-arrow-left-long mt-3 mx-1"
-        style={{ fontSize: "1.6rem", cursor: "pointer" }}
-        onClick={() => navigate("/signup")}
-      ></i>
+   
 
       <h1 className="mx-3 fw-bold mt-3">Your Shop’s Journey Starts Here</h1>
       <h3 className="mx-3 fw-bold" style={{ color: "#ff6600" }}>
