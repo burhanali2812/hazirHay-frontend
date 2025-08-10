@@ -4,6 +4,7 @@ import "animate.css";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
+import imageCompression from "browser-image-compression";
 function Signup() {
   const role = localStorage.getItem("role");
   const navigate = useNavigate();
@@ -19,15 +20,31 @@ function Signup() {
   const [isChecked, setIsChecked] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const handleChange = (e) => {
-    const { name, value, files } = e.target;
-    if (name === "profilePicture") {
-      const file = files[0];
-      setFormData({ ...formData1, profilePicture: file });
-    } else {
-      setFormData({ ...formData1, [name]: value });
+    const handleChange = async (e) => {
+  const { name, files, value } = e.target;
+
+  if (name === "profilePicture") {
+    const file = files[0];
+    if (file) {
+      try {
+        const options = {
+          maxSizeMB: 0.6,
+          maxWidthOrHeight: 800,
+          useWebWorker: true,
+        };
+
+        const compressedFile = await imageCompression(file, options);
+
+        // Directly set compressed file into formData
+        setFormData({ ...formData1, profilePicture: compressedFile });
+      } catch (error) {
+        console.error("Compression failed:", error);
+      }
     }
-  };
+  } else {
+    setFormData({ ...formData1, [name]: value });
+  }
+};
 
   const handleSubmit = async (e) => {
     setLoading(true);
