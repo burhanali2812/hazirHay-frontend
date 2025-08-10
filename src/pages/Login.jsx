@@ -1,94 +1,86 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import login from "../images/login.png";
-import 'animate.css';
+import "animate.css";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
 import "../components/adminFooter.css";
 function Login() {
   const navigate = useNavigate();
-  const[role,setRole] = useState("Choose Your Role");
-  const[email,setEmail] = useState("");
-  const[password,setPassword] = useState("");
-  const[loading,setLoading] = useState(false);
+  const [role, setRole] = useState("Choose Your Role");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [isChecked, setIsChecked] = useState(false);
 
-const handleLogin = async () => {
-  try {
-    setLoading(true);
-    if (email.trim() === "") {
-      toast.warning("Email field cannot be empty!");
+  const handleLogin = async () => {
+    try {
+      setLoading(true);
+      if (email.trim() === "") {
+        toast.warning("Email field cannot be empty!");
+        setLoading(false);
+        return;
+      }
+      if (!/\S+@\S+\.\S+/.test(email)) {
+        toast.warning("Valid Email is required!");
+        setLoading(false);
+        return;
+      }
+      if (password.trim() === "") {
+        toast.warning("Password cannot be empty!");
+        setLoading(false);
+        return;
+      }
+      if (role === "") {
+        toast.warning("Choose a role");
+        setLoading(false);
+        return;
+      }
+
+      // Payload
+      const loginPayload = {
+        email,
+        password,
+        role: role.toLowerCase(),
+      };
+
+      const response = await axios.post(
+        "https://hazir-hay-backend.vercel.app/admin/",
+        loginPayload
+      );
+
+      // If login is successful
+      if (response.status === 200) {
+        toast.success(response.data.message || "Login successful!");
+        localStorage.setItem("token", response.data.token);
+        localStorage.setItem("user", JSON.stringify(response.data.user));
+        setTimeout(() => {
+          navigate("/admin/dashboard");
+        }, 1500);
+      }
+    } catch (error) {
+      if (error.response) {
+        toast.error(error.response.data.message || "Login failed!");
+      } else {
+        toast.error("Something went wrong! Please try again.");
+      }
+    } finally {
       setLoading(false);
-      return;
     }
-    if (!/\S+@\S+\.\S+/.test(email)) {
-      toast.warning("Valid Email is required!");
-      setLoading(false);
-      return;
-    }
-    if (password.trim() === "") {
-      toast.warning("Password cannot be empty!");
-      setLoading(false);
-      return;
-    }
-    if(role === ""){
-      toast.warning("Choose a role");
-      setLoading(false);
-      return;
-    }
+  };
 
-    // Payload
-    const loginPayload = {
-      email,
-      password,
-      role : role.toLowerCase()
-    };
-
-  
-    const response = await axios.post(
-      "https://hazir-hay-backend.vercel.app/admin/",
-      loginPayload
-    );
-
-    // If login is successful
-    if (response.status === 200) {
-      toast.success(response.data.message || "Login successful!");
-      localStorage.setItem("token", response.data.token);
-      localStorage.setItem("user", JSON.stringify(response.data.user));
-      setTimeout(()=>{
-        navigate("/admin/dashboard")
-      }, 1500)
-    }
-  } catch (error) {
-  
-    if (error.response) {
-      toast.error(error.response.data.message || "Login failed!");
-    } else {
-      toast.error("Something went wrong! Please try again.");
-    }
-  } finally {
-    setLoading(false);
-  }
-};
-
-  
-
-  
-
-  return ( 
-   
+  return (
     <div className="container  animate__animated animate__fadeInDown animate__delay-0s">
-       <ToastContainer/>
+      <ToastContainer />
       <i
-        className="fa-solid fa-arrow-left-long mt-3 mx-2"
+        className="fa-solid fa-arrow-left-long mt-3 mx-1"
         style={{ fontSize: "1.6rem", cursor: "pointer" }}
         onClick={() => navigate("/")}
       ></i>
 
       <div style={{ marginTop: "10px" }}>
-        <h1 className=" mx-3 fw-bold ">
-          Let's Sign You In
-        </h1>
+        <h1 className=" mx-3 fw-bold mt-3">Let's Sign You In</h1>
         <h3 className="mx-3 fw-bold" style={{ color: "#ff6600" }}>
           Welcome back!
         </h3>
@@ -106,30 +98,42 @@ const handleLogin = async () => {
             placeholder="name@example.com"
             value={email}
             style={{ width: "99%" }}
-            onChange={(e)=> setEmail(e.target.value)}
+            onChange={(e) => setEmail(e.target.value)}
           />
           <label htmlFor="floatingEmail">Email address</label>
         </div>
 
-        {/* Floating Password Input */}
+   
         <div className="form-floating mt-3 mx-3 animate__animated animate__fadeInUp">
           <input
-            type="password"
+            type={isChecked ? ("text"):("password")}
             className="form-control"
             id="floatingPassword"
             placeholder="Password"
             value={password}
-            onChange={(e)=>setPassword(e.target.value)}
+            onChange={(e) => setPassword(e.target.value)}
             style={{ width: "99%" }}
           />
           <label htmlFor="floatingPassword">Password</label>
         </div>
-        <div>
-          <p
-            className="d-flex justify-content-end mx-3 mt-2  text-secondary"
-            style={{ cursor: "pointer" }}
-          >
-            Forgot Password ?
+        <div className="d-flex justify-content-between align-items-center mb-3 mx-3 mt-2">
+         
+          <div className="form-check m-0">
+            <input
+              type="checkbox"
+              className="form-check-input"
+              id="exampleCheck"
+              checked={isChecked}
+              onChange={(e) => setIsChecked(e.target.checked)}
+            />
+            <label className="form-check-label" htmlFor="exampleCheck">
+              Show Password
+            </label>
+          </div>
+
+          {/* Forgot Password */}
+          <p className="m-0 text-secondary" style={{ cursor: "pointer" }}>
+            Forgot Password?
           </p>
         </div>
 
@@ -151,19 +155,31 @@ const handleLogin = async () => {
             style={{ width: "90%" }}
           >
             <li>
-              <a class="dropdown-item" href="#" onClick={()=>setRole("Admin")}>
+              <a
+                class="dropdown-item"
+                href="#"
+                onClick={() => setRole("Admin")}
+              >
                 <i class="fa-solid fa-user-shield me-2"></i>
                 Admin
               </a>
             </li>
             <li>
-              <a class="dropdown-item mt-2" href="#" onClick={()=>setRole("Shop Kepper")}>
+              <a
+                class="dropdown-item mt-2"
+                href="#"
+                onClick={() => setRole("Shop Kepper")}
+              >
                 <i class="fa-solid fa-screwdriver-wrench me-2"></i>
                 Service Provider
               </a>
             </li>
             <li>
-              <a class="dropdown-item mt-2" href="#" onClick={()=>setRole("User")}>
+              <a
+                class="dropdown-item mt-2"
+                href="#"
+                onClick={() => setRole("User")}
+              >
                 <i class="fa-solid fa-user me-2"></i>
                 User
               </a>
@@ -173,7 +189,11 @@ const handleLogin = async () => {
         <div style={{ marginTop: "20px" }}>
           <p className=" text-center">
             Don't have an account?{" "}
-            <strong className="text-primary" style={{ cursor: "pointer" }}  onClick={() => navigate("/")}>
+            <strong
+              className="text-primary"
+              style={{ cursor: "pointer" }}
+              onClick={() => navigate("/")}
+            >
               Register
             </strong>
           </p>
@@ -185,20 +205,19 @@ const handleLogin = async () => {
           onClick={handleLogin}
         >
           {loading === false ? (
-                    <>
-                       <i className="fa-solid fa-right-to-bracket me-2"></i>
-          Login
-                    </>
-                  ) : ( 
-                    <>
-                      Verifying you...
-                      <div
-                        className="spinner-border spinner-border-sm text-light ms-2"
-                        role="status"
-                      ></div>
-                    </>
-                  )}
-         
+            <>
+              <i className="fa-solid fa-right-to-bracket me-2"></i>
+              Login
+            </>
+          ) : (
+            <>
+              Verifying you...
+              <div
+                className="spinner-border spinner-border-sm text-light ms-2"
+                role="status"
+              ></div>
+            </>
+          )}
         </button>
       </div>
     </div>
