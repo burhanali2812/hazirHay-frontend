@@ -5,6 +5,7 @@ import 'animate.css';
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
+import "../components/adminFooter.css";
 function Login() {
   const navigate = useNavigate();
   const[role,setRole] = useState("Choose Your Role");
@@ -43,7 +44,7 @@ const handleLogin = async () => {
       role : role.toLowerCase()
     };
 
-    // API request
+  
     const response = await axios.post(
       "https://hazir-hay-backend.vercel.app/admin/",
       loginPayload
@@ -145,22 +146,25 @@ const handleLogin = async () => {
           </button>
 
           <ul
-            class="dropdown-menu"
+            class="dropdown-menu "
             aria-labelledby="dropdownMenuButton"
             style={{ width: "90%" }}
           >
             <li>
               <a class="dropdown-item" href="#" onClick={()=>setRole("Admin")}>
+                <i class="fa-solid fa-user-shield me-2"></i>
                 Admin
               </a>
             </li>
             <li>
-              <a class="dropdown-item" href="#" onClick={()=>setRole("Shop Kepper")}>
-                Shop Kepper
+              <a class="dropdown-item mt-2" href="#" onClick={()=>setRole("Shop Kepper")}>
+                <i class="fa-solid fa-screwdriver-wrench me-2"></i>
+                Service Provider
               </a>
             </li>
             <li>
-              <a class="dropdown-item" href="#" onClick={()=>setRole("User")}>
+              <a class="dropdown-item mt-2" href="#" onClick={()=>setRole("User")}>
+                <i class="fa-solid fa-user me-2"></i>
                 User
               </a>
             </li>
@@ -169,7 +173,7 @@ const handleLogin = async () => {
         <div style={{ marginTop: "20px" }}>
           <p className=" text-center">
             Don't have an account?{" "}
-            <strong className="text-primary" style={{ cursor: "pointer" }}>
+            <strong className="text-primary" style={{ cursor: "pointer" }}  onClick={() => navigate("/")}>
               Register
             </strong>
           </p>
