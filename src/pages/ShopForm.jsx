@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import shop from "../images/shop.png";
 import { toast, ToastContainer } from "react-toastify";
+import imageCompression from "browser-image-compression";
 import "react-toastify/dist/ReactToastify.css";
 import "animate.css";
 import axios from "axios";
