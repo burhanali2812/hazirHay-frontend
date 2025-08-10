@@ -84,15 +84,16 @@ const handleSubmit = async (e) => {
 
     toast.success(response.data.message || "Shop information saved successfully");
     setLoading(false)
-    setFormData({
+  
+    setTimeout(() => {
+        navigate("/login")
+    }, 1500);
+      setFormData({
       shopName: "",
       shopAddress: "",
       license: "",
       shopPicture: null,
     });
-    setTimeout(() => {
-        navigate("/login")
-    }, 1500);
   } catch (error) {
     setLoading(false)
     console.error("Error submitting shop information:", error);
@@ -211,7 +212,7 @@ const handleSubmit = async (e) => {
 
 
        
-          <button type="submit" className="btn btn-primary w-100 fw-bold" onClick={handleSubmit}>
+          <button type="submit" className="btn btn-primary w-100 fw-bold" onClick={handleSubmit} disabled={loading}>
             {loading ? (
               <>
                 

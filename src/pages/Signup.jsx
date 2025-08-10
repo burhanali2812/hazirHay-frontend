@@ -136,7 +136,14 @@ function Signup() {
       console.warn("No user ID returned from backend");
     }
 
-    setFormData({
+ 
+
+    if (role === "user") {
+      setTimeout(() => navigate("/login"), 1500);
+    } else {
+      setTimeout(() => navigate("/shop"), 1500);
+    }
+       setFormData({
       profilePicture: null,
       name: "",
       email: "",
@@ -145,12 +152,6 @@ function Signup() {
       password: "",
       confirmPassword: "",
     });
-
-    if (role === "user") {
-      setTimeout(() => navigate("/login"), 1500);
-    } else {
-      setTimeout(() => navigate("/shop"), 1500);
-    }
   }
 } catch (error) {
   console.error("Signup failed:", error.response?.data || error.message);
