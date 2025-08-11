@@ -6,6 +6,8 @@ import imageCompression from "browser-image-compression";
 import "react-toastify/dist/ReactToastify.css";
 import "animate.css";
 import axios from "axios";
+import Swal from "sweetalert2";
+
 function ShopForm() {
   const services = [
     {
@@ -522,8 +524,9 @@ function ShopForm() {
   const [latitude, setLatitude] = useState(null);
   const [longitude, setLongitude] = useState(null);
   const [areaName, setAreaName] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState([]);
-  const [selectedSubCategory, setSelectedSubCategory] = useState([]);
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [selectedSubCategory, setSelectedSubCategory] = useState("");
+  const [selectedServices, setSelectedServices] = useState([]);
   const handleChange = async (e) => {
     const { name, files, value } = e.target;
 
@@ -589,6 +592,30 @@ function ShopForm() {
 
     fetchLocation();
   }, []);
+
+  const handleSelectSubCat = (subCat)=>{
+    setSelectedServices((pre) => [...pre , { category: selectedCategory, subCategory: subCat }])
+    console.log(subCat);
+    console.log(selectedCategory);
+  }
+
+ const handleDeleteService = async(service) => {
+  const result = await Swal.fire({
+              title: "Are you sure?",
+  html: `Are you sure to delete category :- <strong>${service.category}</strong> and subCategory :- <strong>${service.subCategory}</strong>`,
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#d33",
+            cancelButtonColor: "#3085d6",
+            confirmButtonText: "Yes, delete it!"
+        });
+
+        if (!result.isConfirmed) return;
+  setSelectedServices((prev) =>
+    prev.filter((item) => item.subCategory !== service.subCategory)
+  );
+};
+
 
   const handleSubmit = async (e) => {
     const id = localStorage.getItem("userId");
@@ -796,14 +823,14 @@ function ShopForm() {
           <select
             className="form-select mb-3"
             value={selectedSubCategory}
-            onChange={(e) => setSelectedSubCategory(e.target.value)}
+            onChange={(e) => {setSelectedSubCategory(e.target.value); handleSelectSubCat(e.target.value);}}
             disabled={!selectedCategory}
           >
             <option value="">Select Sub-category</option>
             {services
               .find((cat) => cat.category === selectedCategory)
               ?.subcategories.map((sub, index) => (
-                <option key={index} value={sub}>
+                <option key={index} value={sub} >
                   {sub}
                 </option>
               ))}
@@ -822,21 +849,22 @@ function ShopForm() {
             </tr>
           </thead>
           <tbody>
-            <tr>
-              <th scope="row">1</th>
-              <td>Mark</td>
-              <td>Otto</td>
-            </tr>
-            <tr>
-              <th scope="row">2</th>
-              <td>Jacob</td>
-              <td>Thornton</td>
-            </tr>
-            <tr>
-              <th scope="row">3</th>
-              <td>John</td>
-              <td>Doe</td>
-            </tr>
+            {selectedServices.length > 0 ? (
+              selectedServices.map((sub,index)=>(
+                <tr key={sub.id} onClick={()=>handleDeleteService(sub)}>
+                  <td>{index + 1}</td>
+                  <td>{sub.category}</td>
+                  <td>{sub.subCategory}</td>
+
+                </tr>
+              ))
+            ):(
+               <tr>
+                <td colSpan="4" className="text-center">
+                  No services  found
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
 
