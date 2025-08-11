@@ -139,9 +139,9 @@ function Signup() {
  
 
     if (role === "user") {
-      setTimeout(() => navigate("/login"), 1000);
+      navigate("/login")
     } else {
-      setTimeout(() => navigate("/shop"), 1000);
+      navigate("/shop")
     }
        
   }
