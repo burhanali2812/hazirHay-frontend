@@ -675,13 +675,12 @@ function ShopForm() {
       if (response.status === 200 ) {
         toast.success(
           response.data.message || "Shop information saved successfully"
-          
         );
         setLoading(false);
 
         setTimeout(() => {
           navigate("/login");
-        }, 300);
+        }, 1000);
       }
     } catch (error) {
       setLoading(false);
