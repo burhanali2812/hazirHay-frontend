@@ -858,6 +858,14 @@ function ShopForm() {
         <h4 className="fw-bold text-center mb-2" style={{ color: "#ff6600" }}>
           Services Summary
         </h4>
+       {
+        selectedServices.length !== 0 &&(
+          <p class="note-text mt-2">
+  <strong>Note:</strong> Tap on any data entry below to <span class="text-danger fw-bold">delete</span> it from the summary table.
+</p>
+        )
+       }
+
       <div style={{maxHeight : "200px" , overflowY : "auto"}}>
           <table class="table table-striped table-hover table-responsive">
           <thead>
