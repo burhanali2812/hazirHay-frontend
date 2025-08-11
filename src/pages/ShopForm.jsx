@@ -81,19 +81,23 @@ const handleSubmit = async (e) => {
         headers: { "Content-Type": "multipart/form-data" },
       }
     );
+    if(response.status === 200){
+        setFormData({
+      shopName: "",
+      shopAddress: "",
+      license: "",
+      shopPicture: null,
+    });
 
     toast.success(response.data.message || "Shop information saved successfully");
     setLoading(false)
   
     setTimeout(() => {
         navigate("/login")
-    }, 1500);
-      setFormData({
-      shopName: "",
-      shopAddress: "",
-      license: "",
-      shopPicture: null,
-    });
+    }, 1000);
+    }
+     
+     
   } catch (error) {
     setLoading(false)
     console.error("Error submitting shop information:", error);
