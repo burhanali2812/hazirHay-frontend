@@ -7,6 +7,7 @@ import "react-toastify/dist/ReactToastify.css";
 import "animate.css";
 import axios from "axios";
 import Swal from "sweetalert2";
+import { jsx } from "react/jsx-runtime";
 
 function ShopForm() {
   const services = [
@@ -527,6 +528,7 @@ function ShopForm() {
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedSubCategory, setSelectedSubCategory] = useState("");
   const [selectedServices, setSelectedServices] = useState([]);
+  const [coordinates, setCoordinates] = useState([]);
   const handleChange = async (e) => {
     const { name, files, value } = e.target;
 
@@ -560,6 +562,7 @@ function ShopForm() {
 
           setLatitude(lat);
           setLongitude(lon);
+          setCoordinates(lat,lon)
 
           try {
             const response = await axios.get(
@@ -593,29 +596,33 @@ function ShopForm() {
     fetchLocation();
   }, []);
 
-  const handleSelectSubCat = (subCat)=>{
-    setSelectedServices((pre) => [...pre , { category: selectedCategory, subCategory: subCat }])
+  const handleSelectSubCat = (subCat) => {
+    setSelectedServices((pre) => [
+      ...pre,
+      { category: selectedCategory, subCategory: subCat },
+    ]);
     console.log(subCat);
     console.log(selectedCategory);
-  }
+   
+    
+  };
 
- const handleDeleteService = async(service) => {
-  const result = await Swal.fire({
-              title: "Are you sure?",
-  html: `Are you sure to delete category :- <strong>${service.category}</strong> and subCategory :- <strong>${service.subCategory}</strong>`,
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonColor: "#d33",
-            cancelButtonColor: "#3085d6",
-            confirmButtonText: "Yes, delete it!"
-        });
+  const handleDeleteService = async (service) => {
+    const result = await Swal.fire({
+      title: "Are you sure?",
+      html: `Are you sure to delete category :- <strong>${service.category}</strong> and subCategory :- <strong>${service.subCategory}</strong>`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Yes, delete it!",
+    });
 
-        if (!result.isConfirmed) return;
-  setSelectedServices((prev) =>
-    prev.filter((item) => item.subCategory !== service.subCategory)
-  );
-};
-
+    if (!result.isConfirmed) return;
+    setSelectedServices((prev) =>
+      prev.filter((item) => item.subCategory !== service.subCategory)
+    );
+  };
 
   const handleSubmit = async (e) => {
     const id = localStorage.getItem("userId");
@@ -642,6 +649,11 @@ function ShopForm() {
       setLoading(false);
       return;
     }
+    if(selectedServices.length === 0){
+       toast.error("Please Provide Service");
+      setLoading(false);
+      return;
+    }
 
     try {
       const formData = new FormData();
@@ -649,6 +661,9 @@ function ShopForm() {
       formData.append("shopAddress", formData1.shopAddress);
       formData.append("license", formData1.license);
       formData.append("shopPicture", formData1.shopPicture);
+      formData.append("coordinates", JSON.stringify([latitude,longitude]));
+      formData.append("area", areaName);
+      formData.append("services", JSON.stringify(selectedServices));
 
       const response = await axios.post(
         `https://hazir-hay-backend.vercel.app/admin/shopInformation/${id}`,
@@ -657,9 +672,10 @@ function ShopForm() {
           headers: { "Content-Type": "multipart/form-data" },
         }
       );
-      if (response.status === 200) {
+      if (response.status === 200 ) {
         toast.success(
           response.data.message || "Shop information saved successfully"
+          
         );
         setLoading(false);
 
@@ -823,14 +839,17 @@ function ShopForm() {
           <select
             className="form-select mb-3"
             value={selectedSubCategory}
-            onChange={(e) => {setSelectedSubCategory(e.target.value); handleSelectSubCat(e.target.value);}}
+            onChange={(e) => {
+              setSelectedSubCategory(e.target.value);
+              handleSelectSubCat(e.target.value);
+            }}
             disabled={!selectedCategory}
           >
             <option value="">Select Sub-category</option>
             {services
               .find((cat) => cat.category === selectedCategory)
               ?.subcategories.map((sub, index) => (
-                <option key={index} value={sub} >
+                <option key={index} value={sub}>
                   {sub}
                 </option>
               ))}
@@ -840,7 +859,8 @@ function ShopForm() {
         <h4 className="fw-bold text-center mb-2" style={{ color: "#ff6600" }}>
           Services Summary
         </h4>
-        <table class="table table-striped table-hover table-responsive">
+      <div style={{maxHeight : "200px" , overflowY : "auto"}}>
+          <table class="table table-striped table-hover table-responsive">
           <thead>
             <tr>
               <th scope="col">#</th>
@@ -850,23 +870,23 @@ function ShopForm() {
           </thead>
           <tbody>
             {selectedServices.length > 0 ? (
-              selectedServices.map((sub,index)=>(
-                <tr key={sub.id} onClick={()=>handleDeleteService(sub)}>
+              selectedServices.map((sub, index) => (
+                <tr key={sub.id} onClick={() => handleDeleteService(sub)} style={{fontSize : "0.8rem"}}>
                   <td>{index + 1}</td>
                   <td>{sub.category}</td>
                   <td>{sub.subCategory}</td>
-
                 </tr>
               ))
-            ):(
-               <tr>
+            ) : (
+              <tr>
                 <td colSpan="4" className="text-center">
-                  No services  found
+                  No services found
                 </td>
               </tr>
             )}
           </tbody>
         </table>
+      </div>
 
         <button
           type="submit"
