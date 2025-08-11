@@ -127,16 +127,6 @@ function Signup() {
   );
 
   if (response.status === 200) {
-    setFormData({
-      profilePicture: null,
-      name: "",
-      email: "",
-      contact: "",
-      address: "",
-      password: "",
-      confirmPassword: "",
-    });
-  }
     toast.success(response.data.message || "Signup successful!");
     console.log("Signup response:", response.data);
 
@@ -154,6 +144,7 @@ function Signup() {
       setTimeout(() => navigate("/shop"), 1000);
     }
        
+  }
 } catch (error) {
   console.error("Signup failed:", error.response?.data || error.message);
   toast.error("Something went wrong. Please try again.");
