@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState , useEffect} from "react";
 import { useNavigate } from "react-router-dom";
 import shop from "../images/shop.png";
 import { toast, ToastContainer } from "react-toastify";
@@ -13,8 +13,12 @@ function ShopForm() {
       shopName: "",
       shopAddress: "",
       license: "",
+      currentLocation: "",
     });
     const [loading, setLoading] = useState(false);
+      const [latitude, setLatitude] = useState(null);
+      const [longitude, setLongitude] = useState(null);
+      const [areaName, setAreaName] = useState("");
   const handleChange = async (e) => {
   const { name, files, value } = e.target;
 
@@ -39,6 +43,50 @@ function ShopForm() {
     setFormData({ ...formData1, [name]: value });
   }
 };
+useEffect(() => {
+  const fetchLocation = async () => {
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const lat = position.coords.latitude;
+        const lon = position.coords.longitude; 
+
+        setLatitude(lat);
+        setLongitude(lon);
+
+        try {
+          const response = await axios.get(
+            "https://hazir-hay-backend.vercel.app/admin/reverse-geocode",
+            { params: { lat: lat, lon: lon } } 
+          );
+
+          const name =
+          
+            response.data?.display_name ||
+            response.data.address?.city ||
+            response.data.address?.town ||
+            response.data.address?.village ||
+            response.data.address?.suburb ||
+            "Unknown Area";
+
+          setAreaName(name);
+          setFormData((prev) => ({
+            ...prev,
+            currentLocation: `${lat}, ${lon}, ${name}`,
+          }));
+        } catch (error) {
+          console.error("Error fetching area name:", error);
+        }
+      },
+      (error) => {
+        console.error("Error getting location:", error);
+      }
+    );
+  };
+
+  fetchLocation();
+}, []);
+
+
 
 const handleSubmit = async (e) => {
     const id = localStorage.getItem("userId")
@@ -89,7 +137,7 @@ const handleSubmit = async (e) => {
   
     setTimeout(() => {
         navigate("/login")
-    }, 1000);
+    }, 300);
     }
      
      
@@ -208,6 +256,21 @@ const handleSubmit = async (e) => {
           ></textarea>
           <label htmlFor="shopAddressInput">Shop Address</label>
         </div>
+       <div className="form-floating mb-3">
+  <textarea
+    className="form-control"
+    name="currentLocation"
+    id="currentLocationInput"
+    placeholder="Your Current Location"
+    value={formData1.currentLocation}
+    onChange={handleChange}
+    style={{ height: "100px" }}
+    disabled={true}
+  ></textarea>
+  <label htmlFor="currentLocationInput">Current Location</label>
+</div>
+
+        
 
 
        

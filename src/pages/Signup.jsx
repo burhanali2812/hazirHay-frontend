@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "animate.css";
 import { toast, ToastContainer } from "react-toastify";
@@ -19,32 +19,78 @@ function Signup() {
   });
   const [isChecked, setIsChecked] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [latitude, setLatitude] = useState(null);
+  const [longitude, setLongitude] = useState(null);
+  const [areaName, setAreaName] = useState("");
 
-    const handleChange = async (e) => {
-  const { name, files, value } = e.target;
+  useEffect(() => {
+    const fetchLocation = async () => {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
 
-  if (name === "profilePicture") {
-    const file = files[0];
-    if (file) {
-      try {
-        const options = {
-          maxSizeMB: 0.6,
-          maxWidthOrHeight: 800,
-          useWebWorker: true,
-        };
+          setLatitude(lat);
+          setLongitude(lng);
 
-        const compressedFile = await imageCompression(file, options);
+          try {
+            const response = await axios.get(
+              "https://nominatim.openstreetmap.org/reverse",
+              {
+                params: {
+                  lat: lat,
+                  lon: lng,
+                  format: "json",
+                },
+              }
+            );
 
-        // Directly set compressed file into formData
-        setFormData({ ...formData1, profilePicture: compressedFile });
-      } catch (error) {
-        console.error("Compression failed:", error);
+            const name =
+              response.data.address.city ||
+              response.data.address.town ||
+              response.data.address.village ||
+              response.data.address.suburb ||
+              "Unknown Area";
+
+            setAreaName(name);
+          } catch (error) {
+            console.error("Error fetching area name:", error);
+          }
+        },
+        (error) => {
+          console.error("Error getting location:", error);
+        }
+      );
+    };
+
+    fetchLocation();
+  }, []);
+
+  const handleChange = async (e) => {
+    const { name, files, value } = e.target;
+
+    if (name === "profilePicture") {
+      const file = files[0];
+      if (file) {
+        try {
+          const options = {
+            maxSizeMB: 0.6,
+            maxWidthOrHeight: 800,
+            useWebWorker: true,
+          };
+
+          const compressedFile = await imageCompression(file, options);
+
+          // Directly set compressed file into formData
+          setFormData({ ...formData1, profilePicture: compressedFile });
+        } catch (error) {
+          console.error("Compression failed:", error);
+        }
       }
+    } else {
+      setFormData({ ...formData1, [name]: value });
     }
-  } else {
-    setFormData({ ...formData1, [name]: value });
-  }
-};
+  };
 
   const handleSubmit = async (e) => {
     setLoading(true);
@@ -119,39 +165,35 @@ function Signup() {
     formData.append("role", finalRole);
     formData.append("profilePicture", formData1.profilePicture);
 
-   try {
-  const response = await axios.post(
-    "https://hazir-hay-backend.vercel.app/admin/saveUser",
-    formData,
-    { headers: { "Content-Type": "multipart/form-data" } }
-  );
+    try {
+      const response = await axios.post(
+        "https://hazir-hay-backend.vercel.app/admin/saveUser",
+        formData,
+        { headers: { "Content-Type": "multipart/form-data" } }
+      );
 
-  if (response.status === 200) {
-    toast.success(response.data.message || "Signup successful!");
-    console.log("Signup response:", response.data);
+      if (response.status === 200) {
+        toast.success(response.data.message || "Signup successful!");
+        console.log("Signup response:", response.data);
 
-    if (response.data?.user?.id) {
-      localStorage.setItem("userId", response.data.user.id);
-    } else {
-      console.warn("No user ID returned from backend");
+        if (response.data?.user?.id) {
+          localStorage.setItem("userId", response.data.user.id);
+        } else {
+          console.warn("No user ID returned from backend");
+        }
+
+        if (role === "user") {
+          setTimeout(() => navigate("/login"), 300);
+        } else {
+          setTimeout(() => navigate("/shop"), 300);
+        }
+      }
+    } catch (error) {
+      console.error("Signup failed:", error.response?.data || error.message);
+      toast.error("Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
     }
-
- 
-
-    if (role === "user") {
-      navigate("/login")
-    } else {
-      navigate("/shop")
-    }
-       
-  }
-} catch (error) {
-  console.error("Signup failed:", error.response?.data || error.message);
-  toast.error("Something went wrong. Please try again.");
-} finally {
-  setLoading(false);
-}
-
   };
 
   return (
