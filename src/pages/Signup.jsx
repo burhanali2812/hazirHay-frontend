@@ -92,6 +92,7 @@ function Signup() {
   };
 
   const handleSubmit = async (e) => {
+    navigate("/shop") // for just testing data
     setLoading(true);
     e.preventDefault();
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

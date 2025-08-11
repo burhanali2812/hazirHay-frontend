@@ -770,13 +770,12 @@ function ShopForm() {
           ></textarea>
           <label htmlFor="currentLocationInput">Shop Current Location</label>
         </div>
-     
 
         <hr style={{ borderTop: "3px solid black", borderRadius: "5px" }} />
-        <h2 className="mx-3 fw-bold" style={{ color: "#ff6600" }}>
+        <h2 className="fw-bold" style={{ color: "#ff6600" }}>
           Which Services Do You Offer?
         </h2>
-        <p className="text-muted mx-3">
+        <p className="text-muted">
           Tip: You can select multiple options to match all the services you
           provide.
         </p>
@@ -810,40 +809,36 @@ function ShopForm() {
               ))}
           </select>
         </div>
-        <div className="card shadow p-3 rounded bg-white">
-             <h4 className="fw-bold text-center mb-2" style={{ color: "#ff6600" }}>
+
+        <h4 className="fw-bold text-center mb-2" style={{ color: "#ff6600" }}>
           Services Summary
         </h4>
-              <table class="table table-striped table-hover table-responsive">
-  <thead>
-    <tr>
-      <th scope="col">#</th>
-      <th scope="col">Category</th>
-      <th scope="col">Sub Category</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th scope="row">1</th>
-      <td>Mark</td>
-      <td>Otto</td>
-
-    </tr>
-    <tr>
-      <th scope="row">2</th>
-      <td>Jacob</td>
-      <td>Thornton</td>
-
-    </tr>
-    <tr>
-      <th scope="row">3</th>
-      <td>John</td>
-      <td>Doe</td>
-
-    </tr>
-  </tbody>
-</table>
-        </div>
+        <table class="table table-striped table-hover table-responsive">
+          <thead>
+            <tr>
+              <th scope="col">#</th>
+              <th scope="col">Category</th>
+              <th scope="col">Sub Category</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row">1</th>
+              <td>Mark</td>
+              <td>Otto</td>
+            </tr>
+            <tr>
+              <th scope="row">2</th>
+              <td>Jacob</td>
+              <td>Thornton</td>
+            </tr>
+            <tr>
+              <th scope="row">3</th>
+              <td>John</td>
+              <td>Doe</td>
+            </tr>
+          </tbody>
+        </table>
 
         <button
           type="submit"

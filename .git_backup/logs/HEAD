@@ -1,0 +1,24 @@
+0000000000000000000000000000000000000000 ddce11d132a555f1200d475317750d43eed719dd burhanali2812 <syedburhanali830@gmail.com> 1754601032 +0500	commit (initial): Initialize project using Create React App
+ddce11d132a555f1200d475317750d43eed719dd 0c199416bca2b46e4a218e4151b3b488b3a83c66 burhanali2812 <syedburhanali830@gmail.com> 1754601769 +0500	commit: my first commit
+0c199416bca2b46e4a218e4151b3b488b3a83c66 0000000000000000000000000000000000000000 burhanali2812 <syedburhanali830@gmail.com> 1754601782 +0500	Branch: renamed refs/heads/master to refs/heads/main
+0000000000000000000000000000000000000000 0c199416bca2b46e4a218e4151b3b488b3a83c66 burhanali2812 <syedburhanali830@gmail.com> 1754601782 +0500	Branch: renamed refs/heads/master to refs/heads/main
+0c199416bca2b46e4a218e4151b3b488b3a83c66 ace69f3db22b9914a6b750cb3d5f53f8bf96050e burhanali2812 <syedburhanali830@gmail.com> 1754608877 +0500	commit: add footer
+ace69f3db22b9914a6b750cb3d5f53f8bf96050e eb9a7c09355d8b349f06acc490b2edb815cef05e burhanali2812 <syedburhanali830@gmail.com> 1754652859 +0500	commit: add login
+eb9a7c09355d8b349f06acc490b2edb815cef05e dda3c69cfde8ea2421377a769cb1be558afe4a6e burhanali2812 <syedburhanali830@gmail.com> 1754657312 +0500	commit: update login
+dda3c69cfde8ea2421377a769cb1be558afe4a6e c55af9fc3fffc0ef49177fbe3037a9caccee03e5 burhanali2812 <syedburhanali830@gmail.com> 1754657505 +0500	commit: update login
+c55af9fc3fffc0ef49177fbe3037a9caccee03e5 87421749087191d4eeac839771cbaf80be25c6fd burhanali2812 <syedburhanali830@gmail.com> 1754658035 +0500	commit: update login
+87421749087191d4eeac839771cbaf80be25c6fd 12543bcf7368c77b48a18af6a463c948aae9a5c3 burhanali2812 <syedburhanali830@gmail.com> 1754659193 +0500	commit: update login
+12543bcf7368c77b48a18af6a463c948aae9a5c3 8af4115b0e90cf99101aff3f5ff6dd71bbc32dc9 burhanali2812 <syedburhanali830@gmail.com> 1754681954 +0500	commit: update login
+8af4115b0e90cf99101aff3f5ff6dd71bbc32dc9 c615656fb5829f2ab5610ba258b95b0ffd8616e8 burhanali2812 <syedburhanali830@gmail.com> 1754771050 +0500	commit: update font
+c615656fb5829f2ab5610ba258b95b0ffd8616e8 7c112b3b4e78417a341e6909f81abc18edbfd764 burhanali2812 <syedburhanali830@gmail.com> 1754851248 +0500	commit: add signup page
+7c112b3b4e78417a341e6909f81abc18edbfd764 647802b024784dcf128bef18633f771dae19d856 burhanali2812 <syedburhanali830@gmail.com> 1754867068 +0500	commit: add frontend
+647802b024784dcf128bef18633f771dae19d856 dda79cac57eaaff52e6f377d3196e17dd13130fa burhanali2812 <syedburhanali830@gmail.com> 1754867847 +0500	commit: add frontend pic compression
+dda79cac57eaaff52e6f377d3196e17dd13130fa 8b91b096b469fcc4fefd487b8c739cc618d5ea12 burhanali2812 <syedburhanali830@gmail.com> 1754868282 +0500	commit: remove back
+8b91b096b469fcc4fefd487b8c739cc618d5ea12 31b93ae6f4048a6fc812b8c0902616a2e73b4839 burhanali2812 <syedburhanali830@gmail.com> 1754868385 +0500	commit: add image compression
+31b93ae6f4048a6fc812b8c0902616a2e73b4839 02a02e8382be25a8b0c84c5ea874a0a86d8414a1 burhanali2812 <syedburhanali830@gmail.com> 1754869585 +0500	commit: add image compression
+02a02e8382be25a8b0c84c5ea874a0a86d8414a1 b2c2dbcccbed59dc72db9f0dad26d5c8fbda2539 burhanali2812 <syedburhanali830@gmail.com> 1754871158 +0500	commit: add reset fields
+b2c2dbcccbed59dc72db9f0dad26d5c8fbda2539 72255d0b45b8f59e34859a9e712eea726ac62ef5 burhanali2812 <syedburhanali830@gmail.com> 1754871472 +0500	commit: add reset fields
+72255d0b45b8f59e34859a9e712eea726ac62ef5 91c73ad1788d91c00ec7bf13083631465c64c724 burhanali2812 <syedburhanali830@gmail.com> 1754871970 +0500	commit: remove setTimeout
+91c73ad1788d91c00ec7bf13083631465c64c724 686244ebb9daeed176acf2886a80094b0f900640 burhanali2812 <syedburhanali830@gmail.com> 1754901743 +0500	commit: add map and current location
+686244ebb9daeed176acf2886a80094b0f900640 e7be4b65148b3c1e4966b2b9198f68d92762e632 burhanali2812 <syedburhanali830@gmail.com> 1754901849 +0500	commit: add map and current location
+e7be4b65148b3c1e4966b2b9198f68d92762e632 b731b142c96ae16a53aa40e12f6ca3b96e1ff704 burhanali2812 <syedburhanali830@gmail.com> 1754922231 +0500	commit: add table
