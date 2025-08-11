@@ -1,4 +1,4 @@
-import React, { useState , useEffect} from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import shop from "../images/shop.png";
 import { toast, ToastContainer } from "react-toastify";
@@ -7,153 +7,655 @@ import "react-toastify/dist/ReactToastify.css";
 import "animate.css";
 import axios from "axios";
 function ShopForm() {
+  const services = [
+    {
+      category: "Electrician",
+      subcategories: [
+        "General Electrical Repairs",
+        "AC Repair and Installation",
+        "Electrical Panel Upgrades",
+        "Smart Home Wiring",
+        "Emergency Electrical Services",
+        "Solar Panel Installation",
+        "Generator Installation",
+        "Home Theater Wiring",
+        "Electrical Safety Inspection",
+        "Circuit Breaker Installation",
+        "Lighting Installation",
+        "Outlet and Switch Installation",
+        "Ceiling Fan Installation",
+        "Wiring and Rewiring",
+        "Electrical Appliance Repair",
+      ],
+    },
+    {
+      category: "Plumber",
+      subcategories: [
+        "Leak Detection and Repair",
+        "Pipe Replacement",
+        "Bathroom Plumbing Fixtures",
+        "Water Tank Installation",
+        "Septic Tank Cleaning",
+        "Gas Pipe Installation",
+        "Sump Pump Installation",
+        "Hydro Jetting",
+        "Bathroom Waterproofing",
+        "Drain Cleaning",
+        "Toilet Repair",
+        "Faucet Repair",
+        "Sewer Line Services",
+        "Water Heater Repair",
+        "Pipe Insulation",
+      ],
+    },
+    {
+      category: "Carpenter",
+      subcategories: [
+        "Custom Furniture Design",
+        "Kitchen Cabinet Installation",
+        "Wooden Flooring Installation",
+        "Deck Construction",
+        "Door Frame Repair",
+        "Staircase Installation",
+        "Wood Paneling",
+        "Shelving Installation",
+        "Furniture Restoration",
+        "Wardrobe Installation",
+        "Furniture Assembly",
+        "Window Frame Repair",
+        "Furniture Repair",
+        "Wooden Fence Installation",
+        "Office Furniture Installation",
+      ],
+    },
+    {
+      category: "Painter",
+      subcategories: [
+        "Interior Painting",
+        "Exterior Painting",
+        "Wall Texturing",
+        "Wallpaper Installation",
+        "Spray Painting",
+        "Fence Painting",
+        "Decorative Painting",
+        "Epoxy Floor Coating",
+        "Commercial Painting",
+        "Faux Finishing",
+        "Paint Removal",
+        "Graffiti Removal",
+        "Rust Proofing",
+        "Eco-Friendly Painting",
+        "Industrial Coatings",
+      ],
+    },
+    {
+      category: "Cleaning Services",
+      subcategories: [
+        "Home Deep Cleaning",
+        "Carpet Cleaning",
+        "Sofa Cleaning",
+        "Office Cleaning",
+        "Window Cleaning",
+        "Pest Control",
+        "Post-Construction Cleaning",
+        "Move-in/Move-out Cleaning",
+        "Pressure Washing",
+        "Air Duct Cleaning",
+        "Mattress Cleaning",
+        "Pool Cleaning",
+        "Curtain Cleaning",
+        "Hoarding Cleanup",
+        "Solar Panel Cleaning",
+      ],
+    },
+    {
+      category: "AC Technician",
+      subcategories: [
+        "AC Installation",
+        "AC Repair",
+        "AC Gas Refilling",
+        "AC Maintenance",
+        "Split AC Servicing",
+        "Window AC Repair",
+        "Thermostat Repair",
+        "Ductless Mini-Split Installation",
+        "Commercial AC Servicing",
+        "Refrigerant Charging",
+        "AC Filter Replacement",
+        "AC Compressor Repair",
+        "Emergency AC Repair",
+        "AC Duct Cleaning",
+        "AC Insulation Services",
+      ],
+    },
+    {
+      category: "Home Appliance Repair",
+      subcategories: [
+        "Refrigerator Repair",
+        "Washing Machine Repair",
+        "Microwave Repair",
+        "Oven Repair",
+        "Dishwasher Repair",
+        "Dryer Repair",
+        "Vacuum Cleaner Repair",
+        "Coffee Machine Repair",
+        "Blender Repair",
+        "Toaster Repair",
+        "Ice Maker Repair",
+        "Home Theater Repair",
+        "Fan Repair",
+        "Water Purifier Repair",
+        "Stove Repair",
+      ],
+    },
+    {
+      category: "Gardening & Landscaping",
+      subcategories: [
+        "Lawn Mowing",
+        "Hedge Trimming",
+        "Garden Design",
+        "Tree Trimming",
+        "Irrigation System Installation",
+        "Planting Services",
+        "Garden Pest Control",
+        "Soil Fertilizing",
+        "Garden Lighting",
+        "Water Feature Installation",
+        "Garden Pathway Construction",
+        "Seasonal Planting",
+        "Garden Waste Removal",
+        "Garden Cleanup",
+        "Landscape Consultation",
+      ],
+    },
+    {
+      category: "Roofing & Waterproofing",
+      subcategories: [
+        "Roof Repair",
+        "Roof Replacement",
+        "Waterproofing Services",
+        "Gutter Cleaning",
+        "Chimney Repair",
+        "Skylight Installation",
+        "Flashing Repair",
+        "Balcony Waterproofing",
+        "Flat Roof Repair",
+        "Shingle Replacement",
+        "Roof Inspection",
+        "Roof Cleaning",
+        "Insulation Installation",
+        "Leak Repair",
+        "Roof Coating",
+      ],
+    },
+    {
+      category: "Security Services",
+      subcategories: [
+        "CCTV Installation",
+        "Alarm System Installation",
+        "Security Guard Services",
+        "Access Control Systems",
+        "Biometric Systems",
+        "Fire Alarm Installation",
+        "Security Patrol Services",
+        "Intercom Systems",
+        "Motion Detector Installation",
+        "Video Door Phone Installation",
+        "Security System Maintenance",
+        "Security Consultancy",
+        "Security System Repair",
+        "Access Card Setup",
+        "Security Lighting Installation",
+      ],
+    },
+    {
+      category: "Laundry & Dry Cleaning",
+      subcategories: [
+        "Clothes Washing",
+        "Dry Cleaning",
+        "Ironing and Pressing",
+        "Shoe Cleaning",
+        "Curtain Cleaning",
+        "Carpet Cleaning",
+        "Leather Cleaning",
+        "Blanket Cleaning",
+        "Uniform Cleaning",
+        "Stain Removal",
+        "Delicate Fabric Care",
+        "Alterations & Repairs",
+        "Pick-up and Delivery",
+        "Wedding Dress Cleaning",
+        "Upholstery Cleaning",
+      ],
+    },
+    {
+      category: "Moving & Packing",
+      subcategories: [
+        "Local Moving",
+        "Long-distance Moving",
+        "Packing Services",
+        "Unpacking Services",
+        "Furniture Disassembly",
+        "Furniture Assembly",
+        "Storage Services",
+        "Vehicle Transport",
+        "Office Moving",
+        "Fragile Item Handling",
+        "Heavy Lifting",
+        "Loading and Unloading",
+        "International Moving",
+        "Moving Supplies",
+        "Disposal Services",
+      ],
+    },
+    {
+      category: "Pest Control",
+      subcategories: [
+        "Termite Treatment",
+        "Bed Bug Extermination",
+        "Mosquito Control",
+        "Rodent Control",
+        "Cockroach Treatment",
+        "Ant Control",
+        "Flea Control",
+        "Spider Control",
+        "Bee Removal",
+        "Bird Control",
+        "Pest Inspection",
+        "Commercial Pest Control",
+        "Organic Pest Control",
+        "Pest Prevention",
+        "Wasp Nest Removal",
+      ],
+    },
+    {
+      category: "Home Remodeling & Renovation",
+      subcategories: [
+        "Kitchen Remodeling",
+        "Bathroom Renovation",
+        "Flooring Installation",
+        "Wall Partition",
+        "False Ceiling",
+        "Plumbing Renovation",
+        "Electrical Renovation",
+        "Painting and Decorating",
+        "Tile Installation",
+        "Cabinet Installation",
+        "Door Replacement",
+        "Window Replacement",
+        "Basement Renovation",
+        "Room Additions",
+        "Outdoor Patio Construction",
+      ],
+    },
+    {
+      category: "HVAC Services",
+      subcategories: [
+        "Heating System Installation",
+        "Heating System Repair",
+        "Ventilation Cleaning",
+        "Duct Installation",
+        "Duct Repair",
+        "HVAC Maintenance",
+        "Thermostat Installation",
+        "Furnace Repair",
+        "Heat Pump Services",
+        "Boiler Repair",
+        "Indoor Air Quality Testing",
+        "Energy Efficient Upgrades",
+        "Commercial HVAC Services",
+        "HVAC System Replacement",
+        "Air Purifier Installation",
+      ],
+    },
+    {
+      category: "Interior Designing",
+      subcategories: [
+        "Space Planning",
+        "Furniture Selection",
+        "Lighting Design",
+        "Color Consultation",
+        "Window Treatments",
+        "Flooring Selection",
+        "Wall Decor",
+        "Kitchen Design",
+        "Bathroom Design",
+        "Home Office Design",
+        "Custom Furniture Design",
+        "Storage Solutions",
+        "Children's Room Design",
+        "Home Staging",
+        "Outdoor Living Space Design",
+      ],
+    },
+    {
+      category: "Appliance Installation",
+      subcategories: [
+        "Water Heater Installation",
+        "Dishwasher Installation",
+        "Oven Installation",
+        "Ceiling Fan Installation",
+        "Exhaust Fan Installation",
+        "Washing Machine Installation",
+        "Refrigerator Installation",
+        "Microwave Installation",
+        "Garbage Disposal Installation",
+        "Dryer Installation",
+        "Air Conditioner Installation",
+        "Home Theater Setup",
+        "Security Device Installation",
+        "Smart Home Device Setup",
+        "Solar Water Heater Installation",
+      ],
+    },
+    {
+      category: "Fitness & Health at Home",
+      subcategories: [
+        "Personal Training",
+        "Yoga Instruction",
+        "Massage Therapy",
+        "Physiotherapy",
+        "Nutrition Consultation",
+        "Pilates Instruction",
+        "Meditation Coaching",
+        "Home Gym Setup",
+        "Posture Correction",
+        "Weight Loss Coaching",
+        "Strength Training",
+        "Cardio Training",
+        "Injury Rehabilitation",
+        "Senior Fitness",
+        "Sports Coaching",
+      ],
+    },
+    {
+      category: "Technology & IT Support",
+      subcategories: [
+        "Computer Repair",
+        "Printer Setup",
+        "Network Setup",
+        "Virus Removal",
+        "Data Recovery",
+        "Software Installation",
+        "Hardware Upgrade",
+        "Wi-Fi Optimization",
+        "Smart Home Installation",
+        "TV Mounting",
+        "Home Theater Setup",
+        "Security Software Setup",
+        "Cloud Backup Setup",
+        "Email Setup",
+        "IT Consultation",
+      ],
+    },
+    {
+      category: "Pet Care",
+      subcategories: [
+        "Pet Grooming",
+        "Veterinary Services",
+        "Pet Sitting",
+        "Dog Walking",
+        "Pet Training",
+        "Pet Boarding",
+        "Pet Vaccination",
+        "Pet Nutrition Consultation",
+        "Pet Taxi",
+        "Pet Bathing",
+        "Pet Dental Care",
+        "Pet Behavior Counseling",
+        "Exotic Pet Care",
+        "Pet Adoption Services",
+        "Emergency Pet Care",
+      ],
+    },
+    {
+      category: "Event & Party Services",
+      subcategories: [
+        "Catering",
+        "Photography",
+        "Decoration",
+        "DJ Services",
+        "Tent Rental",
+        "Chair and Table Rental",
+        "Event Planning",
+        "Sound System Setup",
+        "Lighting Setup",
+        "Video Recording",
+        "Cake Design",
+        "Invitation Design",
+        "Security for Events",
+        "Cleaning After Events",
+        "Makeup and Hair Styling",
+      ],
+    },
+    {
+      category: "Automotive Services at Home",
+      subcategories: [
+        "Car Wash",
+        "Car Detailing",
+        "Minor Repairs",
+        "Battery Replacement",
+        "Tire Change",
+        "Oil Change",
+        "Car Polishing",
+        "Engine Diagnostics",
+        "Windshield Repair",
+        "Headlight Restoration",
+        "Brake Service",
+        "Air Conditioning Service",
+        "Car Interior Cleaning",
+        "Fluid Top-Up",
+        "Vehicle Inspection",
+      ],
+    },
+    {
+      category: "Tutoring & Education",
+      subcategories: [
+        "Language Tutoring",
+        "Music Lessons",
+        "Math Tutoring",
+        "Science Tutoring",
+        "Computer Lessons",
+        "Exam Preparation",
+        "Reading and Writing",
+        "Art Lessons",
+        "Dance Lessons",
+        "Homework Help",
+        "Test Taking Strategies",
+        "Study Skills Coaching",
+        "College Admissions Counseling",
+        "Special Needs Tutoring",
+        "Online Tutoring",
+      ],
+    },
+    {
+      category: "Legal & Financial Services",
+      subcategories: [
+        "Notary Services",
+        "Tax Consultation",
+        "Legal Advice",
+        "Insurance Consulting",
+        "Will Preparation",
+        "Contract Drafting",
+        "Business Registration",
+        "Property Law Services",
+        "Family Law Services",
+        "Immigration Assistance",
+        "Debt Counseling",
+        "Investment Advice",
+        "Loan Consulting",
+        "Audit Services",
+        "Mediation Services",
+      ],
+    },
+    {
+      category: "Miscellaneous",
+      subcategories: [
+        "Courier & Delivery",
+        "Errand Running",
+        "Personal Shopping",
+        "Handyman Services",
+        "Appliance Recycling",
+        "Furniture Disposal",
+        "Key Cutting",
+        "Locksmith Services",
+        "Custom Gifts",
+        "Language Translation",
+        "Meditation Coaching",
+        "Personal Assistant",
+        "Mobile Car Wash",
+        "Recycling Pickup",
+        "Volunteer Coordination",
+      ],
+    },
+  ];
+
   const navigate = useNavigate();
-   const [formData1, setFormData] = useState({
-      shopPicture: null,
-      shopName: "",
-      shopAddress: "",
-      license: "",
-      currentLocation: "",
-    });
-    const [loading, setLoading] = useState(false);
-      const [latitude, setLatitude] = useState(null);
-      const [longitude, setLongitude] = useState(null);
-      const [areaName, setAreaName] = useState("");
+  const [formData1, setFormData] = useState({
+    shopPicture: null,
+    shopName: "",
+    shopAddress: "",
+    license: "",
+    currentLocation: "",
+  });
+  const [loading, setLoading] = useState(false);
+  const [latitude, setLatitude] = useState(null);
+  const [longitude, setLongitude] = useState(null);
+  const [areaName, setAreaName] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState([]);
+  const [selectedSubCategory, setSelectedSubCategory] = useState([]);
   const handleChange = async (e) => {
-  const { name, files, value } = e.target;
+    const { name, files, value } = e.target;
 
-  if (name === "shopPicture") {
-    const file = files[0];
-    if (file) {
-      try {
-        const options = {
-          maxSizeMB: 0.6,
-          maxWidthOrHeight: 800,
-          useWebWorker: true,
-        };
-
-        const compressedFile = await imageCompression(file, options);
-
-        setFormData({ ...formData1, shopPicture: compressedFile });
-      } catch (error) {
-        console.error("Compression failed:", error);
-      }
-    }
-  } else {
-    setFormData({ ...formData1, [name]: value });
-  }
-};
-useEffect(() => {
-  const fetchLocation = async () => {
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        const lat = position.coords.latitude;
-        const lon = position.coords.longitude; 
-
-        setLatitude(lat);
-        setLongitude(lon);
-
+    if (name === "shopPicture") {
+      const file = files[0];
+      if (file) {
         try {
-          const response = await axios.get(
-            "https://hazir-hay-backend.vercel.app/admin/reverse-geocode",
-            { params: { lat: lat, lon: lon } } 
-          );
+          const options = {
+            maxSizeMB: 0.6,
+            maxWidthOrHeight: 800,
+            useWebWorker: true,
+          };
 
-          const name =
-          
-            response.data?.display_name ||
-            response.data.address?.city ||
-            response.data.address?.town ||
-            response.data.address?.village ||
-            response.data.address?.suburb ||
-            "Unknown Area";
+          const compressedFile = await imageCompression(file, options);
 
-          setAreaName(name);
-          setFormData((prev) => ({
-            ...prev,
-            currentLocation: `${lat}, ${lon}, ${name}`,
-          }));
+          setFormData({ ...formData1, shopPicture: compressedFile });
         } catch (error) {
-          console.error("Error fetching area name:", error);
+          console.error("Compression failed:", error);
         }
-      },
-      (error) => {
-        console.error("Error getting location:", error);
       }
-    );
-  };
-
-  fetchLocation();
-}, []);
-
-
-
-const handleSubmit = async (e) => {
-    const id = localStorage.getItem("userId")
-    setLoading(true)
-  e.preventDefault();
-
-
-  if (!formData1.shopPicture) {
-    toast.error("Please upload a Shop picture");
-     setLoading(false)
-    return;
-  }
-  if (!formData1.shopName.trim()) {
-    toast.error("Shop Name cannot be empty");
-    setLoading(false)
-    return;
-  }
-  if (!formData1.shopAddress.trim()) {
-    toast.error("Shop address cannot be empty");
-    setLoading(false)
-    return;
-  }
-  if (!formData1.license.trim()) {
-    toast.error("License cannot be empty");
-    setLoading(false)
-    return;
-  }
-
-  try {
-    const formData = new FormData();
-    formData.append("shopName", formData1.shopName);
-    formData.append("shopAddress", formData1.shopAddress);
-    formData.append("license", formData1.license);
-    formData.append("shopPicture", formData1.shopPicture);
-
-    const response = await axios.post(
-      `https://hazir-hay-backend.vercel.app/admin/shopInformation/${id}`,
-      formData,
-      {
-        headers: { "Content-Type": "multipart/form-data" },
-      }
-    );
-    if(response.status === 200){
-       
-
-    toast.success(response.data.message || "Shop information saved successfully");
-    setLoading(false)
-  
-    setTimeout(() => {
-        navigate("/login")
-    }, 300);
+    } else {
+      setFormData({ ...formData1, [name]: value });
     }
-     
-     
-  } catch (error) {
-    setLoading(false)
-    console.error("Error submitting shop information:", error);
-    toast.error(
-      error.response?.data?.message || "Failed to store shop information"
-    );
-  }
-};
+  };
+  useEffect(() => {
+    const fetchLocation = async () => {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const lat = position.coords.latitude;
+          const lon = position.coords.longitude;
+
+          setLatitude(lat);
+          setLongitude(lon);
+
+          try {
+            const response = await axios.get(
+              "https://hazir-hay-backend.vercel.app/admin/reverse-geocode",
+              { params: { lat: lat, lon: lon } }
+            );
+
+            const name =
+              response.data?.display_name ||
+              response.data.address?.city ||
+              response.data.address?.town ||
+              response.data.address?.village ||
+              response.data.address?.suburb ||
+              "Unknown Area";
+
+            setAreaName(name);
+            setFormData((prev) => ({
+              ...prev,
+              currentLocation: `${lat}, ${lon}, ${name}`,
+            }));
+          } catch (error) {
+            console.error("Error fetching area name:", error);
+          }
+        },
+        (error) => {
+          console.error("Error getting location:", error);
+        }
+      );
+    };
+
+    fetchLocation();
+  }, []);
+
+  const handleSubmit = async (e) => {
+    const id = localStorage.getItem("userId");
+    setLoading(true);
+    e.preventDefault();
+
+    if (!formData1.shopPicture) {
+      toast.error("Please upload a Shop picture");
+      setLoading(false);
+      return;
+    }
+    if (!formData1.shopName.trim()) {
+      toast.error("Shop Name cannot be empty");
+      setLoading(false);
+      return;
+    }
+    if (!formData1.shopAddress.trim()) {
+      toast.error("Shop address cannot be empty");
+      setLoading(false);
+      return;
+    }
+    if (!formData1.license.trim()) {
+      toast.error("License cannot be empty");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append("shopName", formData1.shopName);
+      formData.append("shopAddress", formData1.shopAddress);
+      formData.append("license", formData1.license);
+      formData.append("shopPicture", formData1.shopPicture);
+
+      const response = await axios.post(
+        `https://hazir-hay-backend.vercel.app/admin/shopInformation/${id}`,
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        }
+      );
+      if (response.status === 200) {
+        toast.success(
+          response.data.message || "Shop information saved successfully"
+        );
+        setLoading(false);
+
+        setTimeout(() => {
+          navigate("/login");
+        }, 300);
+      }
+    } catch (error) {
+      setLoading(false);
+      console.error("Error submitting shop information:", error);
+      toast.error(
+        error.response?.data?.message || "Failed to store shop information"
+      );
+    }
+  };
+  const handleCategoryChange = (e) => {
+    setSelectedCategory(e.target.value);
+    setSelectedSubCategory("");
+  };
 
   return (
     <div className="container  animate__animated animate__fadeInLeft animate__delay-0s">
-        <ToastContainer/>
-   
+      <ToastContainer />
 
       <h1 className="mx-3 fw-bold mt-3">Your Shop’s Journey Starts Here</h1>
       <h3 className="mx-3 fw-bold" style={{ color: "#ff6600" }}>
@@ -199,7 +701,6 @@ const handleSubmit = async (e) => {
                 />
               ) : (
                 <i
-               
                   className="fa-solid fa-shop"
                   style={{ fontSize: "68px", color: "#aaa" }}
                 ></i>
@@ -256,41 +757,115 @@ const handleSubmit = async (e) => {
           ></textarea>
           <label htmlFor="shopAddressInput">Shop Address</label>
         </div>
-       <div className="form-floating mb-3">
-  <textarea
-    className="form-control"
-    name="currentLocation"
-    id="currentLocationInput"
-    placeholder="Your Current Location"
-    value={formData1.currentLocation}
-    onChange={handleChange}
-    style={{ height: "100px" }}
-    disabled={true}
-  ></textarea>
-  <label htmlFor="currentLocationInput">Current Location</label>
-</div>
+        <div className="form-floating mb-3">
+          <textarea
+            className="form-control"
+            name="currentLocation"
+            id="currentLocationInput"
+            placeholder="Your Current Location"
+            value={formData1.currentLocation}
+            onChange={handleChange}
+            style={{ height: "100px" }}
+            disabled={true}
+          ></textarea>
+          <label htmlFor="currentLocationInput">Shop Current Location</label>
+        </div>
+     
 
-        
+        <hr style={{ borderTop: "3px solid black", borderRadius: "5px" }} />
+        <h2 className="mx-3 fw-bold" style={{ color: "#ff6600" }}>
+          Which Services Do You Offer?
+        </h2>
+        <p className="text-muted mx-3">
+          Tip: You can select multiple options to match all the services you
+          provide.
+        </p>
 
+        <div>
+          <select
+            className="form-select mb-3"
+            value={selectedCategory}
+            onChange={handleCategoryChange}
+          >
+            <option value="">Select Category</option>
+            {services.map((cat, index) => (
+              <option key={index} value={cat.category}>
+                {cat.category}
+              </option>
+            ))}
+          </select>
+          <select
+            className="form-select mb-3"
+            value={selectedSubCategory}
+            onChange={(e) => setSelectedSubCategory(e.target.value)}
+            disabled={!selectedCategory}
+          >
+            <option value="">Select Sub-category</option>
+            {services
+              .find((cat) => cat.category === selectedCategory)
+              ?.subcategories.map((sub, index) => (
+                <option key={index} value={sub}>
+                  {sub}
+                </option>
+              ))}
+          </select>
+        </div>
+        <div className="card shadow p-3 rounded bg-white">
+             <h4 className="fw-bold text-center mb-2" style={{ color: "#ff6600" }}>
+          Services Summary
+        </h4>
+              <table class="table table-striped table-hover table-responsive">
+  <thead>
+    <tr>
+      <th scope="col">#</th>
+      <th scope="col">Category</th>
+      <th scope="col">Sub Category</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th scope="row">1</th>
+      <td>Mark</td>
+      <td>Otto</td>
 
-       
-          <button type="submit" className="btn btn-primary w-100 fw-bold" onClick={handleSubmit} disabled={loading}>
-            {loading ? (
-              <>
-                
-                <span role="status">Please Wait Saving your Shop...</span>
-                <span
-                  className="spinner-grow spinner-grow-sm ms-2"
-                  aria-hidden="true"
-                ></span>
-              </>
-            ) : (
-              <>
-                <i class="fa-solid fa-shop me-2"></i>
-               Save Shop
-              </>
-            )}
-          </button>
+    </tr>
+    <tr>
+      <th scope="row">2</th>
+      <td>Jacob</td>
+      <td>Thornton</td>
+
+    </tr>
+    <tr>
+      <th scope="row">3</th>
+      <td>John</td>
+      <td>Doe</td>
+
+    </tr>
+  </tbody>
+</table>
+        </div>
+
+        <button
+          type="submit"
+          className="btn btn-primary w-100 fw-bold mt-3"
+          onClick={handleSubmit}
+          disabled={loading}
+        >
+          {loading ? (
+            <>
+              <span role="status">Please Wait Saving your Shop...</span>
+              <span
+                className="spinner-grow spinner-grow-sm ms-2"
+                aria-hidden="true"
+              ></span>
+            </>
+          ) : (
+            <>
+              <i class="fa-solid fa-shop me-2"></i>
+              Save Shop
+            </>
+          )}
+        </button>
       </form>
     </div>
   );
