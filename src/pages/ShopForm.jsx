@@ -7,8 +7,9 @@ import "react-toastify/dist/ReactToastify.css";
 import "animate.css";
 import axios from "axios";
 import Swal from "sweetalert2";
-import { jsx } from "react/jsx-runtime";
-
+import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
+import "leaflet/dist/leaflet.css";
+import L from "leaflet";
 function ShopForm() {
   const services = [
     {
@@ -529,6 +530,24 @@ function ShopForm() {
   const [selectedSubCategory, setSelectedSubCategory] = useState("");
   const [selectedServices, setSelectedServices] = useState([]);
   const [coordinates, setCoordinates] = useState([]);
+  const [locationName, setLocationName] = useState("");
+  const [position, setPosition] = useState([33.6844, 73.0479]);
+  const [showModal, setShowModal] = useState(false);
+  const customIcon = L.divIcon({
+    className: "custom-div-icon",
+    html: `<div style="color: red; font-size: 24px;"><i class="fas fa-map-marker-alt"></i></div>`,
+    iconSize: [30, 42],
+    iconAnchor: [15, 42],
+  });
+
+  const handleSaveLocation = ()=>{
+    setFormData((pre)=>({
+      ...pre, 
+      currentLocation : locationName
+    }))
+
+    setShowModal(false)
+  }
   const handleChange = async (e) => {
     const { name, files, value } = e.target;
 
@@ -562,7 +581,7 @@ function ShopForm() {
 
           setLatitude(lat);
           setLongitude(lon);
-          setCoordinates(lat,lon)
+          setCoordinates(lat, lon);
 
           try {
             const response = await axios.get(
@@ -603,8 +622,6 @@ function ShopForm() {
     ]);
     console.log(subCat);
     console.log(selectedCategory);
-   
-    
   };
 
   const handleDeleteService = async (service) => {
@@ -649,8 +666,8 @@ function ShopForm() {
       setLoading(false);
       return;
     }
-    if(selectedServices.length === 0){
-       toast.error("Please Provide Service");
+    if (selectedServices.length === 0) {
+      toast.error("Please Provide Service");
       setLoading(false);
       return;
     }
@@ -661,7 +678,7 @@ function ShopForm() {
       formData.append("shopAddress", formData1.shopAddress);
       formData.append("license", formData1.license);
       formData.append("shopPicture", formData1.shopPicture);
-      formData.append("coordinates", JSON.stringify([latitude,longitude]));
+      formData.append("coordinates", JSON.stringify([latitude, longitude]));
       formData.append("area", areaName);
       formData.append("services", JSON.stringify(selectedServices));
 
@@ -672,7 +689,7 @@ function ShopForm() {
           headers: { "Content-Type": "multipart/form-data" },
         }
       );
-      if (response.status === 200 ) {
+      if (response.status === 200) {
         toast.success(
           response.data.message || "Shop information saved successfully"
         );
@@ -693,6 +710,44 @@ function ShopForm() {
   const handleCategoryChange = (e) => {
     setSelectedCategory(e.target.value);
     setSelectedSubCategory("");
+  };
+  function LocationPicker({ onLocationSelect }) {
+    useMapEvents({
+      click(e) {
+        const { lat, lng } = e.latlng;
+         setPosition([lat, lng]);
+        onLocationSelect(lat, lng);
+       
+        console.log(lat, lng);
+        
+      },
+    });
+    return null;
+  }
+  const fetchAreaName = async (lat, lon) => {
+    try {
+      const response = await axios.get(
+        "https://hazir-hay-backend.vercel.app/admin/reverse-geocode",
+        { params: { lat: lat, lon: lon } }
+      );
+
+      const name =
+        response.data?.display_name ||
+        response.data.address?.city ||
+        response.data.address?.town ||
+        response.data.address?.village ||
+        response.data.address?.suburb ||
+        "Unknown Area";
+      setLocationName(name);
+      return name;
+    } catch (error) {
+      console.error("Error fetching area name:", error);
+    }
+  };
+
+  const handleLocationSelect = async (lat, lon) => {
+    const name = await fetchAreaName(lat, lon);
+    setLocationName(name);
   };
 
   return (
@@ -813,8 +868,36 @@ function ShopForm() {
           <label htmlFor="currentLocationInput">Shop Current Location</label>
         </div>
 
-        <hr style={{ borderTop: "3px solid black", borderRadius: "5px" }} />
-        <h2 className="fw-bold" style={{ color: "#ff6600" }}>
+        <div className="d-flex align-items-center my-3">
+          <hr
+            className="flex-grow-1"
+            style={{
+              borderTop: "3px solid black",
+              borderRadius: "5px",
+              margin: 0,
+            }}
+          />
+          <span className="fw-bold mx-3" style={{ color: "#ff6600" }}>
+            OR
+          </span>
+          <hr
+            className="flex-grow-1"
+            style={{
+              borderTop: "3px solid black",
+              borderRadius: "5px",
+              margin: 0,
+            }}
+          />
+        </div>
+        <button
+          className="btn btn-primary w-100 fw-bold mb-2"
+          onClick={() => setShowModal(true)}
+        >
+          Choose From Map
+          <i class="fa-solid fa-map-location-dot ms-2"></i>
+        </button>
+
+        <h2 className="fw-bold mt-4" style={{ color: "#ff6600" }}>
           Which Services Do You Offer?
         </h2>
         <p className="text-muted">
@@ -858,42 +941,46 @@ function ShopForm() {
         <h4 className="fw-bold text-center mb-2" style={{ color: "#ff6600" }}>
           Services Summary
         </h4>
-       {
-        selectedServices.length !== 0 &&(
+        {selectedServices.length !== 0 && (
           <p class="note-text mt-2">
-  <strong>Note:</strong> Tap on any data entry below to <span class="text-danger fw-bold">delete</span> it from the summary table.
-</p>
-        )
-       }
+            <strong>Note:</strong> Tap on any data entry below to{" "}
+            <span class="text-danger fw-bold">delete</span> it from the summary
+            table.
+          </p>
+        )}
 
-      <div style={{maxHeight : "200px" , overflowY : "auto"}}>
+        <div style={{ maxHeight: "200px", overflowY: "auto" }}>
           <table class="table table-striped table-hover table-responsive">
-          <thead>
-            <tr>
-              <th scope="col">#</th>
-              <th scope="col">Category</th>
-              <th scope="col">Sub Category</th>
-            </tr>
-          </thead>
-          <tbody>
-            {selectedServices.length > 0 ? (
-              selectedServices.map((sub, index) => (
-                <tr key={sub.id} onClick={() => handleDeleteService(sub)} style={{fontSize : "0.8rem"}}>
-                  <td>{index + 1}</td>
-                  <td>{sub.category}</td>
-                  <td>{sub.subCategory}</td>
-                </tr>
-              ))
-            ) : (
+            <thead>
               <tr>
-                <td colSpan="4" className="text-center">
-                  No services found
-                </td>
+                <th scope="col">#</th>
+                <th scope="col">Category</th>
+                <th scope="col">Sub Category</th>
               </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {selectedServices.length > 0 ? (
+                selectedServices.map((sub, index) => (
+                  <tr
+                    key={sub.id}
+                    onClick={() => handleDeleteService(sub)}
+                    style={{ fontSize: "0.8rem" }}
+                  >
+                    <td>{index + 1}</td>
+                    <td>{sub.category}</td>
+                    <td>{sub.subCategory}</td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="4" className="text-center">
+                    No services found
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
 
         <button
           type="submit"
@@ -917,6 +1004,72 @@ function ShopForm() {
           )}
         </button>
       </form>
+
+      {showModal && (
+        <div
+          className="modal fade show d-block"
+          tabIndex="-1"
+          style={{ backgroundColor: "rgba(0,0,0,0.5)"}}
+        >
+          <div className="modal-dialog modal-lg modal-dialog-centered">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">Select Location</h5>
+                <button
+                  type="button"
+                  className="btn-close"
+                  onClick={() => setShowModal(false)}
+                ></button>
+              </div>
+              <div className="modal-body" style={{ height: "600px" }}>
+                <div className="form-floating mb-3">
+                  <textarea
+                    className="form-control"
+                    name="currentLocation"
+                    id="currentLocationInput"
+                    placeholder="Your Current Location"
+                    value={locationName}
+                    style={{ height: "100px" }}
+                    disabled={true}
+                  ></textarea>
+                  <label htmlFor="currentLocationInput">
+                    Selected Current Location
+                  </label>
+                </div>
+                <div style={{ height: "460px", width: "100%" }}>
+                   <MapContainer
+                  center={[33.6844, 73.0479]} // Default center (Islamabad)
+                  zoom={13}
+                  style={{ height: "100%", width: "100%" }}
+                >
+                  <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                  <LocationPicker onLocationSelect={handleLocationSelect} />
+                   <Marker position={position} icon={customIcon}></Marker>
+                </MapContainer>
+                </div>
+               
+               
+              </div>
+              <div className="modal-footer">
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => setShowModal(false)}
+                >
+                  Close
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-success"
+                  onClick={handleSaveLocation}
+                >
+                  Save Location
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
