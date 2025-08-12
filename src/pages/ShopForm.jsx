@@ -582,6 +582,7 @@ function ShopForm() {
           setLatitude(lat);
           setLongitude(lon);
           setCoordinates(lat, lon);
+            setPosition([lat, lon]);
 
           try {
             const response = await axios.get(
@@ -679,7 +680,7 @@ function ShopForm() {
       formData.append("license", formData1.license);
       formData.append("shopPicture", formData1.shopPicture);
       formData.append("coordinates", JSON.stringify([latitude, longitude]));
-      formData.append("area", areaName);
+      formData.append("area", locationName);
       formData.append("services", JSON.stringify(selectedServices));
 
       const response = await axios.post(
@@ -822,7 +823,7 @@ function ShopForm() {
             placeholder="Enter your Shop name"
             value={formData1.shopName}
             onChange={handleChange}
-            required
+    
           />
           <label htmlFor="nameInput"> Shop Name</label>
         </div>
@@ -836,7 +837,7 @@ function ShopForm() {
             placeholder="Enter your email"
             value={formData1.license}
             onChange={handleChange}
-            required
+     
           />
           <label htmlFor="licenseInput">License Number</label>
         </div>
@@ -850,7 +851,7 @@ function ShopForm() {
             value={formData1.shopAddress}
             onChange={handleChange}
             style={{ height: "100px" }}
-            required
+  
           ></textarea>
           <label htmlFor="shopAddressInput">Shop Address</label>
         </div>
@@ -890,6 +891,7 @@ function ShopForm() {
           />
         </div>
         <button
+        type="button"
           className="btn btn-primary w-100 fw-bold mb-2"
           onClick={() => setShowModal(true)}
         >

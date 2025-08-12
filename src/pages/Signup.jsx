@@ -13,62 +13,19 @@ function Signup() {
     name: "",
     email: "",
     contact: "",
+    cnic: "",
     address: "",
     password: "",
     confirmPassword: "",
+    verificationDocument: null,
   });
   const [isChecked, setIsChecked] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [latitude, setLatitude] = useState(null);
-  const [longitude, setLongitude] = useState(null);
-  const [areaName, setAreaName] = useState("");
-
-  useEffect(() => {
-    const fetchLocation = async () => {
-      navigator.geolocation.getCurrentPosition(
-        async (position) => {
-          const lat = position.coords.latitude;
-          const lon = position.coords.longitude;
-
-          setLatitude(lat);
-          setLongitude(lon);
-
-          try {
-            const response = await axios.get(
-              "https://hazir-hay-backend.vercel.app/admin/reverse-geocode",
-              { params: { lat: lat, lon: lon } }
-            );
-
-            const name =
-              response.data?.display_name ||
-              response.data.address?.city ||
-              response.data.address?.town ||
-              response.data.address?.village ||
-              response.data.address?.suburb ||
-              "Unknown Area";
-
-            setAreaName(name);
-            setFormData((prev) => ({
-              ...prev,
-              currentLocation: `${lat}, ${lon}, ${name}`,
-            }));
-          } catch (error) {
-            console.error("Error fetching area name:", error);
-          }
-        },
-        (error) => {
-          console.error("Error getting location:", error);
-        }
-      );
-    };
-
-    fetchLocation();
-  }, []);
 
   const handleChange = async (e) => {
     const { name, files, value } = e.target;
 
-    if (name === "profilePicture") {
+    if (name === "profilePicture" || name === "verificationDocument") {
       const file = files[0];
       if (file) {
         try {
@@ -80,8 +37,10 @@ function Signup() {
 
           const compressedFile = await imageCompression(file, options);
 
-          // Directly set compressed file into formData
-          setFormData({ ...formData1, profilePicture: compressedFile });
+          setFormData({
+            ...formData1,
+            [name]: compressedFile,
+          });
         } catch (error) {
           console.error("Compression failed:", error);
         }
@@ -92,7 +51,6 @@ function Signup() {
   };
 
   const handleSubmit = async (e) => {
-    // navigate("/shop") // for just testing data
     setLoading(true);
     e.preventDefault();
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -128,6 +86,23 @@ function Signup() {
       setLoading(false);
       return;
     }
+    if (!formData1.cnic.trim() && role !== "user") {
+      toast.error("CNIC cannot be empty");
+      setLoading(false);
+      return;
+    }
+
+    if (formData1.cnic.trim().length !== 13 && role !== "user") {
+      toast.error("Please enter a valid 13-digit CNIC without dashes");
+      setLoading(false);
+      return;
+    }
+    if (formData1.verificationDocument === null && role !== "user") {
+      toast.error("Please upload a verification document");
+      setLoading(false);
+      return;
+    }
+
     if (!formData1.address.trim()) {
       toast.error("Address cannot be empty");
       setLoading(false);
@@ -161,9 +136,11 @@ function Signup() {
     formData.append("email", formData1.email);
     formData.append("password", formData1.password);
     formData.append("phone", formData1.contact);
+    formData.append("cnic", formData1.cnic);
     formData.append("address", formData1.address);
     formData.append("role", finalRole);
     formData.append("profilePicture", formData1.profilePicture);
+    formData.append("verificationDocument", formData1.verificationDocument);
 
     try {
       const response = await axios.post(
@@ -173,7 +150,7 @@ function Signup() {
       );
 
       if (response.status === 200) {
-        if(role === "user"){
+        if (role === "user") {
           toast.success(response.data.message || "Signup successful!");
         }
 
@@ -320,6 +297,23 @@ function Signup() {
           />
           <label htmlFor="contactInput">Contact</label>
         </div>
+        {role === "service" ? (
+          <div className="form-floating mb-3">
+            <input
+              type="tel"
+              className="form-control"
+              name="cnic"
+              id="cnicInput"
+              placeholder="Enter your cnic number"
+              value={formData1.cnic}
+              onChange={handleChange}
+              required
+            />
+            <label htmlFor="cnicInput">CNIC# (without dashes)</label>
+          </div>
+        ) : (
+          ""
+        )}
 
         <div className="form-floating mb-3">
           <textarea
@@ -334,19 +328,72 @@ function Signup() {
           ></textarea>
           <label htmlFor="addressInput">Address</label>
         </div>
-        <div className="form-floating mb-3">
-          <textarea
-            className="form-control"
-            name="currentLocation"
-            id="currentLocationInput"
-            placeholder="Your Current Location"
-            value={formData1.currentLocation}
-            onChange={handleChange}
-            style={{ height: "150px" }}
-            disabled={true}
-          ></textarea>
-          <label htmlFor="currentLocationInput">Current Location</label>
-        </div>
+       
+
+        {role === "service" && (
+          <>
+          <p className="note-text mt-2">
+  <strong>Note:</strong> You can upload any verification document, such as{" "}
+  <span className="text-primary fw-bold">CNIC front side photo</span>,{" "}
+  <span className="text-primary fw-bold">passport photo</span>, or{" "}
+  <span className="text-primary fw-bold">license</span>.
+</p>
+
+            <div
+              className="d-flex justify-content-center"
+              style={{ marginTop: 10 }}
+            >
+              <div
+                style={{
+                  width: "100%",
+                  height: "180px",
+                  borderRadius: "3%",
+                  border: "2px solid black",
+                  marginBottom: "10px",
+                  backgroundColor: "#eafaffff",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  overflow: "hidden",
+                  fontSize: "100px",
+                  color: "white",
+                  flexDirection: "column",
+                  textAlign: "center",
+                }}
+              >
+                {formData1.verificationDocument ? (
+                  <img
+                    src={URL.createObjectURL(formData1.verificationDocument)}
+                    alt="verificationDocument"
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      objectFit: "cover",
+                    }}
+                  />
+                ) : (
+                  <>
+                    <i className="fas fa-id-card text-dark" style={{fontSize : "4.5rem"}}></i>
+                    <h5 className="my-2 text-dark">Upload Verification Document</h5>
+                  </>
+                )}
+              </div>
+            </div>
+
+            <div className="mb-3 input-group mt-2">
+              <span className="input-group-text bg-white">
+                <i className="fas fa-image"></i>
+              </span>
+              <input
+                type="file"
+            className="form-control "
+            name="verificationDocument"
+            accept="image/*"
+                onChange={handleChange}
+              />
+            </div>
+          </>
+        )}
 
         <div className="form-floating  mb-2">
           <input
@@ -361,7 +408,21 @@ function Signup() {
           />
           <label htmlFor="passwordInput">Password</label>
         </div>
-        <div className="form-check mb-3">
+
+        <div className="form-floating mb-2">
+          <input
+            type={isChecked ? "text" : "password"}
+            className="form-control"
+            name="confirmPassword"
+            id="confirmPasswordInput"
+            placeholder="Re-enter your password"
+            value={formData1.confirmPassword}
+            onChange={handleChange}
+            required
+          />
+          <label htmlFor="confirmPasswordInput">Confirm Password</label>
+        </div>
+        <div className="form-check mb-3 mx-1">
           <input
             type="checkbox"
             className="form-check-input"
@@ -372,20 +433,6 @@ function Signup() {
           <label className="form-check-label" htmlFor="exampleCheck">
             Show Password
           </label>
-        </div>
-
-        <div className="form-floating mb-4">
-          <input
-            type="password"
-            className="form-control"
-            name="confirmPassword"
-            id="confirmPasswordInput"
-            placeholder="Re-enter your password"
-            value={formData1.confirmPassword}
-            onChange={handleChange}
-            required
-          />
-          <label htmlFor="confirmPasswordInput">Confirm Password</label>
         </div>
 
         {role === "user" ? (
