@@ -5,6 +5,9 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
 import imageCompression from "browser-image-compression";
+import { DotLottieReact } from "@lottiefiles/dotlottie-react";
+import successAudio from "../sounds/success.mp3";
+
 function Signup() {
   const role = localStorage.getItem("role");
   const navigate = useNavigate();
@@ -21,6 +24,7 @@ function Signup() {
   });
   const [isChecked, setIsChecked] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [successAnimation, setSuccessAnimation] = useState(false);
 
   const handleChange = async (e) => {
     const { name, files, value } = e.target;
@@ -150,12 +154,6 @@ function Signup() {
       );
 
       if (response.status === 200) {
-        if (role === "user") {
-          toast.success(response.data.message || "Signup successful!");
-        }
-
-        console.log("Signup response:", response.data);
-
         if (response.data?.user?.id) {
           localStorage.setItem("userId", response.data.user.id);
         } else {
@@ -163,7 +161,7 @@ function Signup() {
         }
 
         if (role === "user") {
-          setTimeout(() => navigate("/login"), 300);
+          setSuccessAnimation(true);
         } else {
           setTimeout(() => navigate("/shop"), 300);
         }
@@ -175,6 +173,14 @@ function Signup() {
       setLoading(false);
     }
   };
+  useEffect(() => {
+    if (successAnimation) {
+      const audio = new Audio(successAudio);
+      audio.play().catch(err => {
+        console.error("Autoplay blocked:", err);
+      });
+    }
+  }, [successAnimation]);
 
   return (
     <div className="container  animate__animated animate__fadeInLeft animate__delay-0s">
@@ -328,16 +334,18 @@ function Signup() {
           ></textarea>
           <label htmlFor="addressInput">Address</label>
         </div>
-       
 
         {role === "service" && (
           <>
-          <p className="note-text mt-2">
-  <strong>Note:</strong> You can upload any verification document, such as{" "}
-  <span className="text-primary fw-bold">CNIC front side photo</span>,{" "}
-  <span className="text-primary fw-bold">passport photo</span>, or{" "}
-  <span className="text-primary fw-bold">license</span>.
-</p>
+            <p className="note-text mt-2">
+              <strong>Note:</strong> You can upload any verification document,
+              such as{" "}
+              <span className="text-primary fw-bold">
+                CNIC front side photo
+              </span>
+              , <span className="text-primary fw-bold">passport photo</span>, or{" "}
+              <span className="text-primary fw-bold">license</span>.
+            </p>
 
             <div
               className="d-flex justify-content-center"
@@ -373,8 +381,13 @@ function Signup() {
                   />
                 ) : (
                   <>
-                    <i className="fas fa-id-card text-dark" style={{fontSize : "4.5rem"}}></i>
-                    <h5 className="my-2 text-dark">Upload Verification Document</h5>
+                    <i
+                      className="fas fa-id-card text-dark"
+                      style={{ fontSize: "4.5rem" }}
+                    ></i>
+                    <h5 className="my-2 text-dark">
+                      Upload Verification Document
+                    </h5>
                   </>
                 )}
               </div>
@@ -386,9 +399,9 @@ function Signup() {
               </span>
               <input
                 type="file"
-            className="form-control "
-            name="verificationDocument"
-            accept="image/*"
+                className="form-control "
+                name="verificationDocument"
+                accept="image/*"
                 onChange={handleChange}
               />
             </div>
@@ -452,7 +465,7 @@ function Signup() {
               </>
             ) : (
               <>
-                <i class="fa-solid fa-right-to-bracket me-2"></i>
+                <i className="fa-solid fa-right-to-bracket me-2"></i>
                 Sign Up
               </>
             )}
@@ -481,6 +494,61 @@ function Signup() {
           </button>
         )}
       </form>
+
+      {successAnimation && (
+        <>
+          <div
+            className="offcanvas offcanvas-bottom show"
+            tabIndex="-1"
+            style={{
+              height: "55vh",
+              visibility: "visible",
+              backgroundColor: "#fff",
+              borderTopLeftRadius: "10px",
+              borderTopRightRadius: "10px",
+            }}
+          >
+            <div className="offcanvas-body position-relative text-center d-flex flex-column justify-content-center align-items-center ">
+              {/* Close Button */}
+              <button
+                className="btn-close position-absolute"
+                style={{ top: 10, right: 15 }}
+                onClick={() => navigate("/login")}
+              ></button>
+            
+
+              <DotLottieReact
+                src="https://lottie.host/d78f201d-181a-450c-803f-43ab471ef7f1/ENnJonrsix.lottie"
+                loop
+                autoplay
+                style={{ width: "225px", height: "185px" }}
+              />
+
+              {/* Message */}
+              <h4 className="text-success">🎉 Account Created Successfully!</h4>
+              <p className="mt-2 " style={{ maxWidth: "600px" }}>
+                Thank you for registering with <strong>Hazir Hay</strong>! We’re
+                thrilled to have you on board —{" "}
+                <em>Anything, Anytime, Anywhere</em>, Hazir Hay!
+              </p>
+
+              <button
+                onClick={() => navigate("/login")}
+                className="btn btn-outline-success mt-1 d-flex align-items-center gap-2"
+              >
+                <i className="fas fa-sign-in-alt"></i>
+                Go to Login
+              </button>
+            </div>
+          </div>
+
+          {/* Backdrop */}
+          <div
+            className="offcanvas-backdrop fade show"
+            onClick={() => setSuccessAnimation(false)}
+          />
+        </>
+      )}
     </div>
   );
 }

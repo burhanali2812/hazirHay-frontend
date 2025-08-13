@@ -137,9 +137,9 @@ function Login() {
           </p>
         </div>
 
-        <div class="dropdown">
+        <div className="dropdown">
           <button
-            class="btn btn-primary dropdown-toggle mx-3"
+            className="btn btn-primary dropdown-toggle mx-3"
             type="button"
             id="dropdownMenuButton"
             data-bs-toggle="dropdown"
@@ -150,37 +150,37 @@ function Login() {
           </button>
 
           <ul
-            class="dropdown-menu "
+            className="dropdown-menu "
             aria-labelledby="dropdownMenuButton"
             style={{ width: "90%" }}
           >
             <li>
               <a
-                class="dropdown-item"
+                className="dropdown-item"
                 href="#"
                 onClick={() => setRole("Admin")}
               >
-                <i class="fa-solid fa-user-shield me-2"></i>
+                <i className="fa-solid fa-user-shield me-2"></i>
                 Admin
               </a>
             </li>
             <li>
               <a
-                class="dropdown-item mt-2"
+                className="dropdown-item mt-2"
                 href="#"
                 onClick={() => setRole("Shop Kepper")}
               >
-                <i class="fa-solid fa-screwdriver-wrench me-2"></i>
+                <i className="fa-solid fa-screwdriver-wrench me-2"></i>
                 Service Provider
               </a>
             </li>
             <li>
               <a
-                class="dropdown-item mt-2"
+                className="dropdown-item mt-2"
                 href="#"
                 onClick={() => setRole("User")}
               >
-                <i class="fa-solid fa-user me-2"></i>
+                <i className="fa-solid fa-user me-2"></i>
                 User
               </a>
             </li>

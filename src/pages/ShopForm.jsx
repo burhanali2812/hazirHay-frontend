@@ -10,6 +10,8 @@ import Swal from "sweetalert2";
 import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
+import { DotLottieReact } from "@lottiefiles/dotlottie-react";
+import successAudio from "../sounds/success.mp3";
 function ShopForm() {
   const services = [
     {
@@ -522,6 +524,14 @@ function ShopForm() {
     license: "",
     currentLocation: "",
   });
+    useEffect(() => {
+      if (successAnimation) {
+        const audio = new Audio(successAudio);
+        audio.play().catch(err => {
+          console.error("Autoplay blocked:", err);
+        });
+      }
+    }, [successAnimation]);
   const [loading, setLoading] = useState(false);
   const [latitude, setLatitude] = useState(null);
   const [longitude, setLongitude] = useState(null);
@@ -533,9 +543,10 @@ function ShopForm() {
   const [locationName, setLocationName] = useState("");
   const [position, setPosition] = useState([33.6844, 73.0479]);
   const [showModal, setShowModal] = useState(false);
+    const [successAnimation, setSuccessAnimation] = useState(false);
   const customIcon = L.divIcon({
     className: "custom-div-icon",
-    html: `<div style="color: red; font-size: 24px;"><i class="fas fa-map-marker-alt"></i></div>`,
+    html: `<div style="color: red; font-size: 24px;"><i className="fas fa-map-marker-alt"></i></div>`,
     iconSize: [30, 42],
     iconAnchor: [15, 42],
   });
@@ -691,14 +702,8 @@ function ShopForm() {
         }
       );
       if (response.status === 200) {
-        toast.success(
-          response.data.message || "Shop information saved successfully"
-        );
+       setSuccessAnimation(true)
         setLoading(false);
-
-        setTimeout(() => {
-          navigate("/login");
-        }, 1000);
       }
     } catch (error) {
       setLoading(false);
@@ -896,7 +901,7 @@ function ShopForm() {
           onClick={() => setShowModal(true)}
         >
           Choose From Map
-          <i class="fa-solid fa-map-location-dot ms-2"></i>
+          <i className="fa-solid fa-map-location-dot ms-2"></i>
         </button>
 
         <h2 className="fw-bold mt-4" style={{ color: "#ff6600" }}>
@@ -944,15 +949,15 @@ function ShopForm() {
           Services Summary
         </h4>
         {selectedServices.length !== 0 && (
-          <p class="note-text mt-2">
+          <p className="note-text mt-2">
             <strong>Note:</strong> Tap on any data entry below to{" "}
-            <span class="text-danger fw-bold">delete</span> it from the summary
+            <span className="text-danger fw-bold">delete</span> it from the summary
             table.
           </p>
         )}
 
         <div style={{ maxHeight: "200px", overflowY: "auto" }}>
-          <table class="table table-striped table-hover table-responsive">
+          <table className="table table-striped table-hover table-responsive">
             <thead>
               <tr>
                 <th scope="col">#</th>
@@ -1000,7 +1005,7 @@ function ShopForm() {
             </>
           ) : (
             <>
-              <i class="fa-solid fa-shop me-2"></i>
+              <i className="fa-solid fa-shop me-2"></i>
               Save Shop
             </>
           )}
@@ -1040,7 +1045,7 @@ function ShopForm() {
                 </div>
                 <div style={{ height: "460px", width: "100%" }}>
                    <MapContainer
-                  center={[33.6844, 73.0479]} // Default center (Islamabad)
+                  center={[latitude, longitude]} 
                   zoom={13}
                   style={{ height: "100%", width: "100%" }}
                 >
@@ -1072,6 +1077,60 @@ function ShopForm() {
           </div>
         </div>
       )}
+           {successAnimation && (
+              <>
+                <div
+                  className="offcanvas offcanvas-bottom show"
+                  tabIndex="-1"
+                  style={{
+                    height: "55vh",
+                    visibility: "visible",
+                    backgroundColor: "#fff",
+                    borderTopLeftRadius: "10px",
+                    borderTopRightRadius: "10px",
+                  }}
+                >
+                  <div className="offcanvas-body position-relative text-center d-flex flex-column justify-content-center align-items-center ">
+                    {/* Close Button */}
+                    <button
+                      className="btn-close position-absolute"
+                      style={{ top: 10, right: 15 }}
+                      onClick={() => navigate("/login")}
+                    ></button>
+                  
+      
+                    <DotLottieReact
+                      src="https://lottie.host/d78f201d-181a-450c-803f-43ab471ef7f1/ENnJonrsix.lottie"
+                      loop
+                      autoplay
+                      style={{ width: "225px", height: "185px" }}
+                    />
+      
+                    {/* Message */}
+                    <h4 className="text-success">🎉 Account Created Successfully!</h4>
+                    <p className="mt-2 " style={{ maxWidth: "600px" }}>
+                      Thank you for registering with <strong>Hazir Hay</strong>! We’re
+                      thrilled to have you on board —{" "}
+                      <em>Anything, Anytime, Anywhere</em>, Hazir Hay!
+                    </p>
+      
+                    <button
+                      onClick={() => navigate("/login")}
+                      className="btn btn-outline-success mt-1 d-flex align-items-center gap-2"
+                    >
+                      <i className="fas fa-sign-in-alt"></i>
+                      Go to Login
+                    </button>
+                  </div>
+                </div>
+      
+                {/* Backdrop */}
+                <div
+                  className="offcanvas-backdrop fade show"
+                  onClick={() => setSuccessAnimation(false)}
+                />
+              </>
+            )}
     </div>
   );
 }
