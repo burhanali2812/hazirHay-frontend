@@ -12,6 +12,8 @@ import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import successAudio from "../sounds/success.mp3";
+import markerIcon from "leaflet/dist/images/marker-icon.png";
+import markerShadow from "leaflet/dist/images/marker-shadow.png";
 function ShopForm() {
   const services = [
     {
@@ -524,14 +526,7 @@ function ShopForm() {
     license: "",
     currentLocation: "",
   });
-    useEffect(() => {
-      if (successAnimation) {
-        const audio = new Audio(successAudio);
-        audio.play().catch(err => {
-          console.error("Autoplay blocked:", err);
-        });
-      }
-    }, [successAnimation]);
+
   const [loading, setLoading] = useState(false);
   const [latitude, setLatitude] = useState(null);
   const [longitude, setLongitude] = useState(null);
@@ -544,12 +539,25 @@ function ShopForm() {
   const [position, setPosition] = useState([33.6844, 73.0479]);
   const [showModal, setShowModal] = useState(false);
     const [successAnimation, setSuccessAnimation] = useState(false);
-  const customIcon = L.divIcon({
-    className: "custom-div-icon",
-    html: `<div style="color: red; font-size: 24px;"><i className="fas fa-map-marker-alt"></i></div>`,
-    iconSize: [30, 42],
-    iconAnchor: [15, 42],
-  });
+        useEffect(() => {
+      if (successAnimation) {
+        const audio = new Audio(successAudio);
+        audio.play().catch(err => {
+          console.error("Autoplay blocked:", err);
+        });
+      }
+    }, [successAnimation]);
+const customIcon = L.icon({
+  iconUrl: markerIcon,
+  shadowUrl: markerShadow,
+  iconSize: [25, 41],
+  iconAnchor: [12, 41]
+});
+const closeMap = ()=>{
+   setShowModal(false)
+  setPosition([latitude, longitude]);
+ 
+}
 
   const handleSaveLocation = ()=>{
     setFormData((pre)=>({
@@ -1025,7 +1033,7 @@ function ShopForm() {
                 <button
                   type="button"
                   className="btn-close"
-                  onClick={() => setShowModal(false)}
+                  onClick={closeMap}
                 ></button>
               </div>
               <div className="modal-body" style={{ height: "600px" }}>
@@ -1051,7 +1059,7 @@ function ShopForm() {
                 >
                   <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
                   <LocationPicker onLocationSelect={handleLocationSelect} />
-                   <Marker position={position} icon={customIcon}></Marker>
+                   {position && <Marker position={position} icon={customIcon} />}
                 </MapContainer>
                 </div>
                
@@ -1061,7 +1069,7 @@ function ShopForm() {
                 <button
                   type="button"
                   className="btn btn-secondary"
-                  onClick={() => setShowModal(false)}
+                  onClick={closeMap}
                 >
                   Close
                 </button>
