@@ -539,6 +539,9 @@ function ShopForm() {
   const [position, setPosition] = useState([33.6844, 73.0479]);
   const [showModal, setShowModal] = useState(false);
     const [successAnimation, setSuccessAnimation] = useState(false);
+
+      const id = localStorage.getItem("userId");
+
         useEffect(() => {
       if (successAnimation) {
         const audio = new Audio(successAudio);
@@ -662,7 +665,7 @@ const closeMap = ()=>{
   };
 
   const handleSubmit = async (e) => {
-    const id = localStorage.getItem("userId");
+  
     setLoading(true);
     e.preventDefault();
 
@@ -693,13 +696,14 @@ const closeMap = ()=>{
     }
 
     try {
+      const finalAreaName = locationName.trim() === "" ? areaName : locationName;
       const formData = new FormData();
       formData.append("shopName", formData1.shopName);
       formData.append("shopAddress", formData1.shopAddress);
       formData.append("license", formData1.license);
       formData.append("shopPicture", formData1.shopPicture);
       formData.append("coordinates", JSON.stringify([latitude, longitude]));
-      formData.append("area", locationName);
+      formData.append("area", finalAreaName);
       formData.append("services", JSON.stringify(selectedServices));
 
       const response = await axios.post(
@@ -710,7 +714,7 @@ const closeMap = ()=>{
         }
       );
       if (response.status === 200) {
-       setSuccessAnimation(true)
+         setSuccessAnimation(true)
         setLoading(false);
       }
     } catch (error) {
