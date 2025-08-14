@@ -538,38 +538,37 @@ function ShopForm() {
   const [locationName, setLocationName] = useState("");
   const [position, setPosition] = useState([33.6844, 73.0479]);
   const [showModal, setShowModal] = useState(false);
-    const [successAnimation, setSuccessAnimation] = useState(false);
+  const [successAnimation, setSuccessAnimation] = useState(false);
 
-      const id = localStorage.getItem("userId");
+  const id = localStorage.getItem("userId");
 
-        useEffect(() => {
-      if (successAnimation) {
-        const audio = new Audio(successAudio);
-        audio.play().catch(err => {
-          console.error("Autoplay blocked:", err);
-        });
-      }
-    }, [successAnimation]);
-const customIcon = L.icon({
-  iconUrl: markerIcon,
-  shadowUrl: markerShadow,
-  iconSize: [25, 41],
-  iconAnchor: [12, 41]
-});
-const closeMap = ()=>{
-   setShowModal(false)
-  setPosition([latitude, longitude]);
- 
-}
+  useEffect(() => {
+    if (successAnimation) {
+      const audio = new Audio(successAudio);
+      audio.play().catch((err) => {
+        console.error("Autoplay blocked:", err);
+      });
+    }
+  }, [successAnimation]);
+  const customIcon = L.icon({
+    iconUrl: markerIcon,
+    shadowUrl: markerShadow,
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+  });
+  const closeMap = () => {
+    setShowModal(false);
+    setPosition([latitude, longitude]);
+  };
 
-  const handleSaveLocation = ()=>{
-    setFormData((pre)=>({
-      ...pre, 
-      currentLocation : locationName
-    }))
+  const handleSaveLocation = () => {
+    setFormData((pre) => ({
+      ...pre,
+      currentLocation: locationName,
+    }));
 
-    setShowModal(false)
-  }
+    setShowModal(false);
+  };
   const handleChange = async (e) => {
     const { name, files, value } = e.target;
 
@@ -598,13 +597,16 @@ const closeMap = ()=>{
     const fetchLocation = async () => {
       navigator.geolocation.getCurrentPosition(
         async (position) => {
-          const lat = position.coords.latitude;
-          const lon = position.coords.longitude;
+          const lat = position?.coords?.latitude ?? 33;
+          const lon = position?.coords?.longitude ?? 73;
+          if (lat === null) {
+            alert("lat null");
+          }
 
           setLatitude(lat);
           setLongitude(lon);
           setCoordinates(lat, lon);
-            setPosition([lat, lon]);
+          setPosition([lat, lon]);
 
           try {
             const response = await axios.get(
@@ -665,7 +667,6 @@ const closeMap = ()=>{
   };
 
   const handleSubmit = async (e) => {
-  
     setLoading(true);
     e.preventDefault();
 
@@ -696,7 +697,8 @@ const closeMap = ()=>{
     }
 
     try {
-      const finalAreaName = locationName.trim() === "" ? areaName : locationName;
+      const finalAreaName =
+        locationName.trim() === "" ? areaName : locationName;
       const formData = new FormData();
       formData.append("shopName", formData1.shopName);
       formData.append("shopAddress", formData1.shopAddress);
@@ -714,7 +716,7 @@ const closeMap = ()=>{
         }
       );
       if (response.status === 200) {
-         setSuccessAnimation(true)
+        setSuccessAnimation(true);
         setLoading(false);
       }
     } catch (error) {
@@ -733,11 +735,10 @@ const closeMap = ()=>{
     useMapEvents({
       click(e) {
         const { lat, lng } = e.latlng;
-         setPosition([lat, lng]);
+        setPosition([lat, lng]);
         onLocationSelect(lat, lng);
-       
+
         console.log(lat, lng);
-        
       },
     });
     return null;
@@ -840,7 +841,6 @@ const closeMap = ()=>{
             placeholder="Enter your Shop name"
             value={formData1.shopName}
             onChange={handleChange}
-    
           />
           <label htmlFor="nameInput"> Shop Name</label>
         </div>
@@ -854,7 +854,6 @@ const closeMap = ()=>{
             placeholder="Enter your email"
             value={formData1.license}
             onChange={handleChange}
-     
           />
           <label htmlFor="licenseInput">License Number</label>
         </div>
@@ -868,7 +867,6 @@ const closeMap = ()=>{
             value={formData1.shopAddress}
             onChange={handleChange}
             style={{ height: "100px" }}
-  
           ></textarea>
           <label htmlFor="shopAddressInput">Shop Address</label>
         </div>
@@ -908,7 +906,7 @@ const closeMap = ()=>{
           />
         </div>
         <button
-        type="button"
+          type="button"
           className="btn btn-primary w-100 fw-bold mb-2"
           onClick={() => setShowModal(true)}
         >
@@ -963,8 +961,8 @@ const closeMap = ()=>{
         {selectedServices.length !== 0 && (
           <p className="note-text mt-2">
             <strong>Note:</strong> Tap on any data entry below to{" "}
-            <span className="text-danger fw-bold">delete</span> it from the summary
-            table.
+            <span className="text-danger fw-bold">delete</span> it from the
+            summary table.
           </p>
         )}
 
@@ -1028,7 +1026,7 @@ const closeMap = ()=>{
         <div
           className="modal fade show d-block"
           tabIndex="-1"
-          style={{ backgroundColor: "rgba(0,0,0,0.5)"}}
+          style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
         >
           <div className="modal-dialog modal-lg modal-dialog-centered">
             <div className="modal-content">
@@ -1056,18 +1054,18 @@ const closeMap = ()=>{
                   </label>
                 </div>
                 <div style={{ height: "460px", width: "100%" }}>
-                   <MapContainer
-                  center={[latitude, longitude]} 
-                  zoom={13}
-                  style={{ height: "100%", width: "100%" }}
-                >
-                  <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-                  <LocationPicker onLocationSelect={handleLocationSelect} />
-                   {position && <Marker position={position} icon={customIcon} />}
-                </MapContainer>
+                  <MapContainer
+                    center={[latitude, longitude]}
+                    zoom={13}
+                    style={{ height: "100%", width: "100%" }}
+                  >
+                    <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                    <LocationPicker onLocationSelect={handleLocationSelect} />
+                    {position && (
+                      <Marker position={position} icon={customIcon} />
+                    )}
+                  </MapContainer>
                 </div>
-               
-               
               </div>
               <div className="modal-footer">
                 <button
@@ -1089,60 +1087,59 @@ const closeMap = ()=>{
           </div>
         </div>
       )}
-           {successAnimation && (
-              <>
-                <div
-                  className="offcanvas offcanvas-bottom show"
-                  tabIndex="-1"
-                  style={{
-                    height: "55vh",
-                    visibility: "visible",
-                    backgroundColor: "#fff",
-                    borderTopLeftRadius: "10px",
-                    borderTopRightRadius: "10px",
-                  }}
-                >
-                  <div className="offcanvas-body position-relative text-center d-flex flex-column justify-content-center align-items-center ">
-                    {/* Close Button */}
-                    <button
-                      className="btn-close position-absolute"
-                      style={{ top: 10, right: 15 }}
-                      onClick={() => navigate("/login")}
-                    ></button>
-                  
-      
-                    <DotLottieReact
-                      src="https://lottie.host/d78f201d-181a-450c-803f-43ab471ef7f1/ENnJonrsix.lottie"
-                      loop
-                      autoplay
-                      style={{ width: "225px", height: "185px" }}
-                    />
-      
-                    {/* Message */}
-                    <h4 className="text-success">🎉 Account Created Successfully!</h4>
-                    <p className="mt-2 " style={{ maxWidth: "600px" }}>
-                      Thank you for registering with <strong>Hazir Hay</strong>! We’re
-                      thrilled to have you on board —{" "}
-                      <em>Anything, Anytime, Anywhere</em>, Hazir Hay!
-                    </p>
-      
-                    <button
-                      onClick={() => navigate("/login")}
-                      className="btn btn-outline-success mt-1 d-flex align-items-center gap-2"
-                    >
-                      <i className="fas fa-sign-in-alt"></i>
-                      Go to Login
-                    </button>
-                  </div>
-                </div>
-      
-                {/* Backdrop */}
-                <div
-                  className="offcanvas-backdrop fade show"
-                  onClick={() => setSuccessAnimation(false)}
-                />
-              </>
-            )}
+      {successAnimation && (
+        <>
+          <div
+            className="offcanvas offcanvas-bottom show"
+            tabIndex="-1"
+            style={{
+              height: "55vh",
+              visibility: "visible",
+              backgroundColor: "#fff",
+              borderTopLeftRadius: "10px",
+              borderTopRightRadius: "10px",
+            }}
+          >
+            <div className="offcanvas-body position-relative text-center d-flex flex-column justify-content-center align-items-center ">
+              {/* Close Button */}
+              <button
+                className="btn-close position-absolute"
+                style={{ top: 10, right: 15 }}
+                onClick={() => navigate("/login")}
+              ></button>
+
+              <DotLottieReact
+                src="https://lottie.host/d78f201d-181a-450c-803f-43ab471ef7f1/ENnJonrsix.lottie"
+                loop
+                autoplay
+                style={{ width: "225px", height: "185px" }}
+              />
+
+              {/* Message */}
+              <h4 className="text-success">🎉 Account Created Successfully!</h4>
+              <p className="mt-2 " style={{ maxWidth: "600px" }}>
+                Thank you for registering with <strong>Hazir Hay</strong>! We’re
+                thrilled to have you on board —{" "}
+                <em>Anything, Anytime, Anywhere</em>, Hazir Hay!
+              </p>
+
+              <button
+                onClick={() => navigate("/login")}
+                className="btn btn-outline-success mt-1 d-flex align-items-center gap-2"
+              >
+                <i className="fas fa-sign-in-alt"></i>
+                Go to Login
+              </button>
+            </div>
+          </div>
+
+          {/* Backdrop */}
+          <div
+            className="offcanvas-backdrop fade show"
+            onClick={() => setSuccessAnimation(false)}
+          />
+        </>
+      )}
     </div>
   );
 }
