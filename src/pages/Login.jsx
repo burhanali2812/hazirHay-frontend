@@ -71,156 +71,147 @@ function Login() {
   };
 
   return (
-    <div className="container  animate__animated animate__fadeInDown animate__delay-0s">
-      <ToastContainer />
-      <i
-        className="fa-solid fa-arrow-left-long mt-3 mx-1"
-        style={{ fontSize: "1.6rem", cursor: "pointer" }}
-        onClick={() => navigate("/")}
-      ></i>
+  <div className="container animate__animated animate__fadeInDown animate__delay-0s py-4">
+  <ToastContainer />
 
-      <div style={{ marginTop: "10px" }}>
-        <h1 className=" mx-3 fw-bold mt-3">Let's Sign You In</h1>
-        <h3 className="mx-3 fw-bold" style={{ color: "#ff6600" }}>
-          Welcome back!
-        </h3>
-        <p className="mx-3 ">
-          You've been missed. Let’s get you signed in to continue your journey.
-        </p>
-        <div className="text-center animate__animated animate__fadeInLeft">
-          <img src={login} style={{ width: "230px", height: "230px" }} />
-        </div>
-        <div className="form-floating  mx-3  animate__animated animate__fadeInUp">
+
+  <i
+    className="fa-solid fa-arrow-left-long mb-3"
+    style={{ fontSize: "1.6rem", cursor: "pointer" }}
+    onClick={() => navigate("/")}
+  ></i>
+
+  <div className="row justify-content-center">
+    <div className="col-12 col-md-8 col-lg-6">
+
+    
+      <h1 className="fw-bold">Let's Sign You In</h1>
+      <h3 className="fw-bold" style={{ color: "#ff6600" }}>
+        Welcome back!
+      </h3>
+      <p>You've been missed. Let’s get you signed in to continue your journey.</p>
+
+  
+      <div className="text-center animate__animated animate__fadeInLeft mb-4">
+        <img 
+          src={login} 
+          alt="Login" 
+          className="img-fluid" 
+          style={{ maxWidth: "230px" }} 
+        />
+      </div>
+
+
+      <div className="form-floating animate__animated animate__fadeInUp mb-3">
+        <input
+          type="email"
+          className="form-control"
+          id="floatingEmail"
+          placeholder="name@example.com"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+        <label htmlFor="floatingEmail">Email address</label>
+      </div>
+
+ 
+      <div className="form-floating animate__animated animate__fadeInUp mb-2">
+        <input
+          type={isChecked ? "text" : "password"}
+          className="form-control"
+          id="floatingPassword"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+        <label htmlFor="floatingPassword">Password</label>
+      </div>
+
+      <div className="d-flex justify-content-between align-items-center mb-3">
+        <div className="form-check m-0">
           <input
-            type="email"
-            className="form-control"
-            id="floatingEmail"
-            placeholder="name@example.com"
-            value={email}
-            style={{ width: "99%" }}
-            onChange={(e) => setEmail(e.target.value)}
+            type="checkbox"
+            className="form-check-input"
+            id="exampleCheck"
+            checked={isChecked}
+            onChange={(e) => setIsChecked(e.target.checked)}
           />
-          <label htmlFor="floatingEmail">Email address</label>
+          <label className="form-check-label" htmlFor="exampleCheck">
+            Show Password
+          </label>
         </div>
+        <p className="m-0 text-secondary" style={{ cursor: "pointer" }}>
+          Forgot Password?
+        </p>
+      </div>
 
    
-        <div className="form-floating mt-3 mx-3 animate__animated animate__fadeInUp">
-          <input
-            type={isChecked ? ("text"):("password")}
-            className="form-control"
-            id="floatingPassword"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            style={{ width: "99%" }}
-          />
-          <label htmlFor="floatingPassword">Password</label>
-        </div>
-        <div className="d-flex justify-content-between align-items-center mb-3 mx-3 mt-2">
-         
-          <div className="form-check m-0">
-            <input
-              type="checkbox"
-              className="form-check-input"
-              id="exampleCheck"
-              checked={isChecked}
-              onChange={(e) => setIsChecked(e.target.checked)}
-            />
-            <label className="form-check-label" htmlFor="exampleCheck">
-              Show Password
-            </label>
-          </div>
-
-          {/* Forgot Password */}
-          <p className="m-0 text-secondary" style={{ cursor: "pointer" }}>
-            Forgot Password?
-          </p>
-        </div>
-
-        <div className="dropdown">
-          <button
-            className="btn btn-primary dropdown-toggle mx-3"
-            type="button"
-            id="dropdownMenuButton"
-            data-bs-toggle="dropdown"
-            aria-expanded="false"
-            style={{ width: "90%" }}
-          >
-            {role}
-          </button>
-
-          <ul
-            className="dropdown-menu "
-            aria-labelledby="dropdownMenuButton"
-            style={{ width: "90%" }}
-          >
-            <li>
-              <a
-                className="dropdown-item"
-                href="#"
-                onClick={() => setRole("Admin")}
-              >
-                <i className="fa-solid fa-user-shield me-2"></i>
-                Admin
-              </a>
-            </li>
-            <li>
-              <a
-                className="dropdown-item mt-2"
-                href="#"
-                onClick={() => setRole("Shop Kepper")}
-              >
-                <i className="fa-solid fa-screwdriver-wrench me-2"></i>
-                Service Provider
-              </a>
-            </li>
-            <li>
-              <a
-                className="dropdown-item mt-2"
-                href="#"
-                onClick={() => setRole("User")}
-              >
-                <i className="fa-solid fa-user me-2"></i>
-                User
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div style={{ marginTop: "20px" }}>
-          <p className=" text-center">
-            Don't have an account?{" "}
-            <strong
-              className="text-primary"
-              style={{ cursor: "pointer" }}
-              onClick={() => navigate("/")}
-            >
-              Register
-            </strong>
-          </p>
-        </div>
+      <div className="dropdown mb-3">
         <button
+          className="btn btn-primary dropdown-toggle w-100"
           type="button"
-          className="btn btn-dark rounded w-90 mx-3 animate__animated animate__fadeInUp  animate__delay-0s"
-          style={{ width: "90%", height: "45px" }}
-          onClick={handleLogin}
+          id="dropdownMenuButton"
+          data-bs-toggle="dropdown"
+          aria-expanded="false"
         >
-          {loading === false ? (
-            <>
-              <i className="fa-solid fa-right-to-bracket me-2"></i>
-              Login
-            </>
-          ) : (
-            <>
-              Verifying you...
-              <div
-                className="spinner-border spinner-border-sm text-light ms-2"
-                role="status"
-              ></div>
-            </>
-          )}
+          {role}
         </button>
+
+        <ul className="dropdown-menu w-100" aria-labelledby="dropdownMenuButton">
+          <li>
+            <button className="dropdown-item" onClick={() => setRole("Admin")}>
+              <i className="fa-solid fa-user-shield me-2"></i>Admin
+            </button>
+          </li>
+          <li>
+            <button className="dropdown-item" onClick={() => setRole("Shop Kepper")}>
+              <i className="fa-solid fa-screwdriver-wrench me-2"></i>Service Provider
+            </button>
+          </li>
+          <li>
+            <button className="dropdown-item" onClick={() => setRole("User")}>
+              <i className="fa-solid fa-user me-2"></i>User
+            </button>
+          </li>
+        </ul>
       </div>
+
+      <p className="text-center">
+        Don't have an account?{" "}
+        <strong
+          className="text-primary"
+          style={{ cursor: "pointer" }}
+          onClick={() => navigate("/")}
+        >
+          Register
+        </strong>
+      </p>
+
+      <button
+        type="button"
+        className="btn btn-dark rounded w-100 animate__animated animate__fadeInUp animate__delay-0s"
+        style={{ height: "45px" }}
+        onClick={handleLogin}
+      >
+        {loading ? (
+          <>
+            Verifying you...
+            <div
+              className="spinner-border spinner-border-sm text-light ms-2"
+              role="status"
+            ></div>
+          </>
+        ) : (
+          <>
+            <i className="fa-solid fa-right-to-bracket me-2"></i>
+            Login
+          </>
+        )}
+      </button>
     </div>
+  </div>
+</div>
+
   );
 }
 

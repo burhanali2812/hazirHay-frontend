@@ -9,3 +9,14 @@
 
   color: #000; 
 }
+
+.custom-offcanvas {
+  width: 65% !important; 
+}
+
+
+@media (min-width: 768px) {
+  .custom-offcanvas {
+    width: 400px !important; 
+  }
+}

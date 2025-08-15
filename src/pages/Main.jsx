@@ -20,40 +20,61 @@ function Main() {
   return (
 
     <>
-     <div className='container text-center animate__animated animate__fadeInDown' style={{ marginTop: "130px" }}>
-  <div className="py-4 px- animate__animated animate__zoomIn">
-    <img 
-      src={logo2} 
-      alt="HazirHay Logo"
-      className='d-block mx-auto mb-3 animate__animated animate__pulse animate__delay-0s ' 
-      style={{ height: "230px", width: "230px" }} 
-    />
-
-    <h1 className="fw-bolder mb-0 animate__animated animate__fadeInUp" style={{ fontSize: '2.2rem', color: '#001b35', marginTop: "-30px",  fontFamily : "Josefin Sans"}}>
-      WELCOME TO
-    </h1>
-
-    <h2 className="fw-bold mt-0 animate__animated animate__fadeInUp animate__delay-0s" style={{ fontSize: '1.9rem', color: '#ff6600',  fontFamily : "Josefin Sans" }}>
-      HAZIRHAY
-    </h2>
-
-    <p className='text-muted mt-2 text-center animate__animated animate__fadeIn animate__delay-0s' style={{ fontSize: '1rem' }}>
-      Your one-stop solution for doorstep services — Fast, Reliable, and Hassle-Free.
-    </p>
-
-    <button type='button' className='btn btn-dark rounded mt-2 animate__animated animate__fadeInUp animate__delay-1s' style={{ width: "90%", height: "45px" }} onClick={()=>navigate("/login")}>
-      <i className="fa-solid fa-right-to-bracket me-2"></i>
-      Login
-    </button>
-
-    <button type='button' className='btn btn-info rounded mt-2 animate__animated animate__fadeInUp animate__delay-1s' style={{ width: "90%", height: "45px" }} onClick={()=>setRegisterModal(true)}>
-      <i className="fa-solid fa-user-plus me-2"></i>
-      Register
-    </button>
-  </div>
-
+   <div className="container vh-100 d-flex align-items-center justify-content-center animate__animated animate__fadeInDown">
+  <div className="row align-items-center w-100">
     
+    <div className="col-md-6 text-center  mb-md-0">
+      <img 
+        src={logo2} 
+        alt="HazirHay Logo"
+        className="img-fluid animate__animated animate__pulse"
+        style={{ maxHeight: "230px" }}
+      />
+    </div>
+
+  
+    <div className="col-md-6 text-center text-md-start animate__animated animate__zoomIn">
+      <h1 className="fw-bolder mb-0 animate__animated animate__fadeInUp" 
+        style={{ fontSize: '2.2rem', color: '#001b35', fontFamily: "Josefin Sans" }}>
+        WELCOME TO
+      </h1>
+
+      <h2 className="fw-bold mt-0 animate__animated animate__fadeInUp" 
+        style={{ fontSize: '1.9rem', color: '#ff6600', fontFamily: "Josefin Sans" }}>
+        HAZIRHAY
+      </h2>
+
+      <p className="text-muted mt-2 animate__animated animate__fadeIn" 
+        style={{ fontSize: '1rem' }}>
+        Your one-stop solution for doorstep services — Fast, Reliable, and Hassle-Free.
+      </p>
+
+      <div className="d-flex flex-column flex-sm-row gap-2 mt-3">
+        <button 
+          type="button" 
+          className="btn btn-dark flex-fill animate__animated animate__fadeInUp animate__delay-1s" 
+          style={{ height: "45px" }} 
+          onClick={() => navigate("/login")}
+        >
+          <i className="fa-solid fa-right-to-bracket me-2"></i>
+          Login
+        </button>
+
+        <button 
+          type="button" 
+          className="btn btn-info flex-fill animate__animated animate__fadeInUp animate__delay-1s" 
+          style={{ height: "45px" }} 
+          onClick={() => setRegisterModal(true)}
+        >
+          <i className="fa-solid fa-user-plus me-2"></i>
+          Register
+        </button>
+      </div>
+    </div>
+
+  </div>
 </div>
+
     
     
     {registerModal && (
