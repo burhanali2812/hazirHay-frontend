@@ -3,55 +3,17 @@ import React, { useEffect, useState } from "react";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useNavigate} from "react-router-dom";
-function Dashboard({ setTopText , totalUser}) {
+function Dashboard({ setTopText , totalUser, totalShopkepper, totalActiveShopkepper, totalLiveShopkepper}) {
   const token = localStorage.getItem("token");
   const navigate = useNavigate();
 
-  const [totalShopkepper, setTotalShopKepper] = useState([]);
-  const [totalActiveShopkepper, setTotalActiveShopKepper] = useState([]);
-  const [totalLiveShopkepper, setTotalLiveShopKepper] = useState([]);
+
   const [totalShops, setTotalShops] = useState([]);
 
 
 
 
-  const getAllShopKepper = async () => {
-    try {
-      const response = await axios.get(
-        "https://hazir-hay-backend.vercel.app/shopKeppers/getAllShopKepper",
-        {
-          headers: { Authorization: `Bearer ${token}` },
-          params: { t: Date.now() },
-        }
-      );
 
-      if (response.data.success) {
-        const shopKepperList = response.data.data || [];
-        setTotalShopKepper(shopKepperList);
-
-
-        const activeShopKepper = shopKepperList.filter(
-          (shopKepper) => shopKepper.isVerified === true
-        );
-        setTotalActiveShopKepper(activeShopKepper);
-
-        const liveShopKepper = shopKepperList.filter(
-          (shopKepper) => shopKepper.isLive === true
-        );
-        setTotalLiveShopKepper(liveShopKepper);
-      } else {
-        console.warn("No ShopKepper found:", response.data.message);
-        setTotalShopKepper([]);
-      }
-    } catch (error) {
-      console.error(
-        "Error fetching ShopKepper:",
-        error.response?.data?.message || error.message
-      );
-      toast.error("Failed to fetch ShopKepper. Please try again.");
-      setTotalShopKepper([]);
-    }
-  };
 
    const getAllShop = async () => {
     try {
@@ -81,7 +43,6 @@ function Dashboard({ setTopText , totalUser}) {
 
   useEffect(() => {
     if (token) {
-      getAllShopKepper();
       getAllShop();
     }
   }, [token]);

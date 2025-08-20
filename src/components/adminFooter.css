@@ -11,8 +11,25 @@
 }
 
 .custom-offcanvas {
-  width: 65% !important; 
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 225px !important;  /* adjust width as needed */
+  height: 100%;
+  background: #fff;
+  box-shadow: -2px 0 5px rgba(0,0,0,0.2);
+  transform: translateX(100%); /* fully hidden by default */
+  transition: transform 0.3s ease-in-out;
+  z-index: 1050;
 }
+
+.custom-offcanvas.show {
+  transform: translateX(0); /* slide in */
+}
+.offcanvas-backdrop {
+  z-index: 1040;
+}
+
 
 
 @media (min-width: 768px) {

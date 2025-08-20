@@ -17,6 +17,9 @@ function App() {
   const [topText, setTopText] = useState("");
   const token = localStorage.getItem("token");
   const [totalUser, setTotalUser] = useState([]);
+    const [totalShopkepper, setTotalShopKepper] = useState([]);
+    const [totalActiveShopkepper, setTotalActiveShopKepper] = useState([]);
+    const [totalLiveShopkepper, setTotalLiveShopKepper] = useState([]);
   
 
   const getAllUser = async () => {
@@ -44,10 +47,48 @@ function App() {
       setTotalUser([]);
     }
   };
+    const getAllShopKepper = async () => {
+    try {
+      const response = await axios.get(
+        "https://hazir-hay-backend.vercel.app/shopKeppers/getAllShopKepper",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          params: { t: Date.now() },
+        }
+      );
+
+      if (response.data.success) {
+        const shopKepperList = response.data.data || [];
+        setTotalShopKepper(shopKepperList);
+
+
+        const activeShopKepper = shopKepperList.filter(
+          (shopKepper) => shopKepper.isVerified === true
+        );
+        setTotalActiveShopKepper(activeShopKepper);
+
+        const liveShopKepper = shopKepperList.filter(
+          (shopKepper) => shopKepper.isLive === true
+        );
+        setTotalLiveShopKepper(liveShopKepper);
+      } else {
+        console.warn("No ShopKepper found:", response.data.message);
+        setTotalShopKepper([]);
+      }
+    } catch (error) {
+      console.error(
+        "Error fetching ShopKepper:",
+        error.response?.data?.message || error.message
+      );
+      toast.error("Failed to fetch ShopKepper. Please try again.");
+      setTotalShopKepper([]);
+    }
+  };
   
   useEffect(() => {
     if (token) {
       getAllUser();
+      getAllShopKepper();
     }
   }, [token]);
   return (
@@ -55,20 +96,20 @@ function App() {
       <Routes>
         <Route path="/" element={<Main />} />
         <Route path="/login" element={<Login />}></Route>
-        <Route path="/signup" element={<Signup  onUserAdded={getAllUser}/>}></Route>
+        <Route path="/signup" element={<Signup  onUserAdded={getAllUser} onShopKepperAdded={getAllShopKepper}/>}></Route>
         <Route path="/shop" element={<ShopForm />}></Route>
         <Route path="/admin/*" element={<AdminFooter1 topText={topText} />}>
           <Route
             path="dashboard"
             element={
-              <Dashboard setTopText={setTopText} totalUser={totalUser} />
+              <Dashboard setTopText={setTopText} totalUser={totalUser} totalShopkepper ={totalShopkepper} totalActiveShopkepper={totalActiveShopkepper} totalLiveShopkepper={totalLiveShopkepper}/>
             }
           />
           <Route
             path="requests"
             element={<Requests setTopText={setTopText} />}
           />
-          <Route path="users" element={<Users setTopText={setTopText} />} />
+          <Route path="users" element={<Users setTopText={setTopText} totalUser={totalUser}  totalShopkepper ={totalShopkepper} totalActiveShopkepper={totalActiveShopkepper} totalLiveShopkepper={totalLiveShopkepper}/>} />
         </Route>
       </Routes>
     </>

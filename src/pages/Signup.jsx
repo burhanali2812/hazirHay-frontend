@@ -8,7 +8,7 @@ import imageCompression from "browser-image-compression";
 import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import successAudio from "../sounds/success.mp3";
 
-function Signup({onUserAdded}) {
+function Signup({onUserAdded, onShopKepperAdded}) {
   const role = localStorage.getItem("role");
   const navigate = useNavigate();
   const [formData1, setFormData] = useState({
@@ -164,6 +164,7 @@ function Signup({onUserAdded}) {
           setSuccessAnimation(true);
           onUserAdded();
         } else {
+          onShopKepperAdded();
           setTimeout(() => navigate("/shop"), 300);
         }
       }
