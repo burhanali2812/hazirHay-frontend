@@ -15,8 +15,11 @@ function Users({
   const token = localStorage.getItem("token");
   const [liveUsers, setLiveUsers] = useState([]);
   const [latestUsers, setLatestUsers] = useState([]);
+  const [frequentUsers, setFrequentUsers] = useState([]);
   const [detailsModal, setDetailsModal] = useState(false);
     const [singleUserData, setSingleUserData] = useState(null);
+    const [filter, setFilter] = useState(false);
+    const [filterText, setFilterText] = useState("");
 
   const getLiveUsers = async () => {
     try {
@@ -41,6 +44,31 @@ function Users({
       );
       toast.error("Failed to fetch live users. Please try again.");
       setLiveUsers([]);
+    }
+  };
+  const getFrequentUsers = async () => {
+    try {
+      const response = await axios.get(
+        "https://hazir-hay-backend.vercel.app/users/get-frequent-users",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          params: { t: Date.now() },
+        }
+      );
+
+      if (response.data.success) {
+        setFrequentUsers(response.data.data || []);
+      } else {
+        console.warn("No Frequent users found:", response.data.message);
+        setFrequentUsers([]);
+      }
+    } catch (error) {
+      console.error(
+        "Error fetching Frequent users:",
+        error.response?.data?.message || error.message
+      );
+      toast.error("Failed to fetch Frequent users. Please try again.");
+      setFrequentUsers([]);
     }
   };
 
@@ -78,6 +106,7 @@ function Users({
     if (token) {
       getLiveUsers();
       getLast2mintCreateUsers();
+      getFrequentUsers();
     }
   }, [token]);
 
@@ -86,6 +115,26 @@ function Users({
     setSingleUserData(user)
     setDetailsModal(true)
   }
+
+  const handleClickOutside = ()=>{
+    setFilter(false)
+  }
+  const handleOpenFilter = (e, text)=>{
+       e.stopPropagation();
+       setFilter(true)
+       setFilterText(text)
+  }
+  useEffect(()=>{
+    if(filter){
+      document.addEventListener("click", handleClickOutside);
+    }
+    return ()=> document.removeEventListener("click", handleClickOutside)
+  },[filter])
+
+  const filterArray = filterText=== "All Users" ? totalUser :
+  filterText=== "Live Users" ? liveUsers :
+  filterText=== "Frequently Users" ? totalShopkepper : latestUsers
+
 
   return (
     <div className="container">
@@ -109,30 +158,103 @@ function Users({
         className="d-flex flex-nowrap overflow-auto mb-3"
         style={{ gap: "10px", padding: "10px 0" }}
       >
-        <button className="btn btn-outline-dark rounded-pill btn-sm text-nowrap">
+        <i class="fa-solid fa-sliders mt-2 ms-2" style={{fontSize : "18px"}}></i>
+        <button className="btn btn-outline-dark rounded-pill btn-sm text-nowrap" onClick={(e)=>handleOpenFilter(e,"All Users")}>
           All Users
         </button>
-        <button className="btn btn-outline-dark rounded-pill btn-sm text-nowrap">
+        <button className="btn btn-outline-dark rounded-pill btn-sm text-nowrap" onClick={(e)=>handleOpenFilter(e,"Live Users")}>
           Live Users
         </button>
-        <button className="btn btn-outline-dark rounded-pill btn-sm text-nowrap">
+        <button className="btn btn-outline-dark rounded-pill btn-sm text-nowrap" onClick={(e)=>handleOpenFilter(e,"Frequently Users")}>
           Frequently Users
         </button>
-        <button className="btn btn-outline-dark rounded-pill btn-sm text-nowrap">
+        <button className="btn btn-outline-dark rounded-pill btn-sm text-nowrap" onClick={(e)=>handleOpenFilter(e,"Latest Users")}>
           Latest Users
         </button>
       </div>
 
-      {/* Live Users Section */}
+     {
+      filter === true ? (
+      <>
+      
+      <h5 className="fw-bold mb-1 mt-1">{filterText}</h5>
+     {
+  filterArray?.length > 0 && (
+    filterArray.map((filter, index) => (
+      <div 
+        key={index} 
+        className="d-flex align-items-center mb-3"
+        style={{ gap: "10px" }} 
+        onClick={(e)=>{e.stopPropagation(); 
+          openDetailsModal(filter)}}// space between picture and text
+      >
+        {/* Profile Picture */}
+        <div
+          style={{
+            width: "50px",
+            height: "50px",
+            borderRadius: "50%",
+            overflow: "hidden",
+            border: "2px solid #ddd",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            backgroundColor: "#f8f9fa",
+            flexShrink: 0, // prevent shrinking
+          }}
+        >
+          {filter?.profilePicture ? (
+            <img
+              src={filter.profilePicture}
+              alt="Profile"
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+              }}
+            />
+          ) : (
+            <i
+              className="fa-solid fa-user"
+              style={{ fontSize: "24px", color: "#aaa" }}
+            ></i>
+          )}
+        </div>
+
+        {/* User Info */}
+        <div>
+          <p className="fw-bold mb-0">{filter?.name}</p>
+          <p className="text-muted mb-0" style={{ fontSize: "0.85rem" }}>
+              {filter?.createdAt 
+    ? new Date(filter.createdAt).toLocaleString() 
+    : "N/A"}
+
+          </p>
+        </div>
+      </div>
+    ))
+  )
+}
+
+
+      
+      </>):(
+        <>
+         {/* Live Users Section */}
       <div className="d-flex align-items-center justify-content-between mt-4 mb-2">
         <h5 className="fw-bold mb-0">Live Users</h5>
-        <p
+       {
+        totalShopkepper.length > 0 ?( <p
           className="text-primary mb-0 mx-1"
           style={{ cursor: "pointer", fontSize: "0.9rem" }}
-          onClick={() => console.log("View all clicked")}
+          onClick={(e) => handleOpenFilter(e,"Live Users")}
         >
           View All<i class="fa-solid fa-arrow-right ms-2"></i>
         </p>
+        ):(
+          ""
+        )
+       }
       </div>
 
       <div
@@ -213,13 +335,18 @@ function Users({
       {/* Latest Users Section */}
       <div className="d-flex align-items-center justify-content-between mt-4 mb-2">
         <h5 className="fw-bold mb-0">Latest Users</h5>
-        <p
+         {
+        totalShopkepper.length > 0 ?( <p
           className="text-primary mb-0 mx-1"
           style={{ cursor: "pointer", fontSize: "0.9rem" }}
-          onClick={() => console.log("View all clicked")}
+          onClick={(e) => handleOpenFilter(e,"Latest Users")}
         >
           View All<i class="fa-solid fa-arrow-right ms-2"></i>
         </p>
+        ):(
+          ""
+        )
+       }
       </div>
 
       <div
@@ -300,13 +427,18 @@ function Users({
       {/* Frequently Users Section */}
       <div className="d-flex align-items-center justify-content-between mt-4 mb-2">
         <h5 className="fw-bold mb-0">Frequent Users</h5>
-        <p
+       {
+        totalShopkepper.length > 5 ?( <p
           className="text-primary mb-0 mx-1"
           style={{ cursor: "pointer", fontSize: "0.9rem" }}
-          onClick={() => console.log("View all clicked")}
+          onClick={(e) => handleOpenFilter(e,"Frequently Users")}
         >
           View All<i class="fa-solid fa-arrow-right ms-2"></i>
         </p>
+        ):(
+          ""
+        )
+       }
       </div>
 
       <div
@@ -383,6 +515,10 @@ function Users({
           <div>No Frequent users found</div>
         )}
       </div>
+        </>
+      )
+     }
+
 
 
 
