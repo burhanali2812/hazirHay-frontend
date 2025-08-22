@@ -141,7 +141,7 @@ function Users({
       <ToastContainer />
 
       {/* Search bar */}
-      <div className="input-group mb-3">
+      <div className="input-group mb-1">
         <input
           type="search"
           className="form-control"
@@ -530,5 +530,7 @@ function Users({
     </div>
   );
 }
+
+
 
 export default Users;

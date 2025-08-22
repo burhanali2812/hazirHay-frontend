@@ -3,12 +3,16 @@ import React, { useEffect, useState } from "react";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useNavigate} from "react-router-dom";
-function Dashboard({ setTopText , totalUser, totalShopkepper, totalActiveShopkepper, totalLiveShopkepper}) {
+function Dashboard({ setTopText , totalUser, totalShopkepper, totalActiveShopkepper, totalLiveShopkepper, setUpdate}) {
   const token = localStorage.getItem("token");
   const navigate = useNavigate();
 
 
   const [totalShops, setTotalShops] = useState([]);
+
+  useEffect(()=>{
+    setUpdate(true)
+  },[])
 
 
 
@@ -199,6 +203,7 @@ function Dashboard({ setTopText , totalUser, totalShopkepper, totalActiveShopkep
       </div>
     </div>
   </div>
+  
 
 
   {/* <div className="d-flex align-items-center mb-3">

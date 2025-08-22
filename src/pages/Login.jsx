@@ -15,6 +15,7 @@ function Login() {
   const [isChecked, setIsChecked] = useState(false);
 
   const handleLogin = async () => {
+    console.log("Before Validation", { email, password, role });
     try {
       setLoading(true);
       if (email.trim() === "") {
@@ -38,12 +39,17 @@ function Login() {
         return;
       }
 
+   
+
       // Payload
       const loginPayload = {
         email,
         password,
-        role: role.toLowerCase(),
+        role: role
       };
+
+      console.log(loginPayload);
+      
 
       const response = await axios.post(
         "https://hazir-hay-backend.vercel.app/admin/",
@@ -56,9 +62,18 @@ function Login() {
         console.log("role", role);
         
         localStorage.setItem("role", role)
-        setTimeout(() => {
+
+        if(role === "shopKepper"){
+             setTimeout(() => {
+          navigate("/admin/shopkepperDash");
+        }, 1500);
+        }
+        else{
+             setTimeout(() => {
           navigate("/admin/dashboard");
         }, 1500);
+        }
+     
       }
     } catch (error) {
       if (error.response) {
@@ -160,17 +175,17 @@ function Login() {
 
         <ul className="dropdown-menu w-100" aria-labelledby="dropdownMenuButton">
           <li>
-            <button className="dropdown-item" onClick={() => setRole("Admin")}>
+            <button className="dropdown-item" onClick={() => setRole("admin")}>
               <i className="fa-solid fa-user-shield me-2"></i>Admin
             </button>
           </li>
           <li>
-            <button className="dropdown-item" onClick={() => setRole("Shop Kepper")}>
+            <button className="dropdown-item" onClick={() => setRole("shopKepper")}>
               <i className="fa-solid fa-screwdriver-wrench me-2"></i>Service Provider
             </button>
           </li>
           <li>
-            <button className="dropdown-item" onClick={() => setRole("User")}>
+            <button className="dropdown-item" onClick={() => setRole("user")}>
               <i className="fa-solid fa-user me-2"></i>User
             </button>
           </li>

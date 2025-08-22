@@ -12,11 +12,13 @@ import Users from "./pages/Users";
 import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import ShopKepperDashboard from "./pages/ShopKepperDashboard";
 
 function App() {
   const [topText, setTopText] = useState("");
   const token = localStorage.getItem("token");
   const [totalUser, setTotalUser] = useState([]);
+  const [update, setUpdate] = useState(false);
     const [totalShopkepper, setTotalShopKepper] = useState([]);
     const [totalActiveShopkepper, setTotalActiveShopKepper] = useState([]);
     const [totalLiveShopkepper, setTotalLiveShopKepper] = useState([]);
@@ -58,7 +60,7 @@ function App() {
       );
 
       if (response.data.success) {
-        const shopKepperList = response.data.data || [];
+        const shopKepperList = response.data?.data || [];
         setTotalShopKepper(shopKepperList);
 
 
@@ -68,7 +70,7 @@ function App() {
         setTotalActiveShopKepper(activeShopKepper);
 
         const liveShopKepper = shopKepperList.filter(
-          (shopKepper) => shopKepper.isLive === true
+          (shopKepper) => shopKepper?.isLive === true
         );
         setTotalLiveShopKepper(liveShopKepper);
       } else {
@@ -91,6 +93,19 @@ function App() {
       getAllShopKepper();
     }
   }, [token]);
+
+useEffect(() => {
+  const fetchShopKepper = async () => {
+    console.log("Update triggered:", update);
+    if (update) {
+      await getAllShopKepper();
+      setUpdate(false);
+    }
+  };
+
+  fetchShopKepper();
+}, [update]);
+
   return (
     <>
       <Routes>
@@ -102,15 +117,25 @@ function App() {
           <Route
             path="dashboard"
             element={
-              <Dashboard setTopText={setTopText} totalUser={totalUser} totalShopkepper ={totalShopkepper} totalActiveShopkepper={totalActiveShopkepper} totalLiveShopkepper={totalLiveShopkepper}/>
+              <Dashboard setTopText={setTopText} totalUser={totalUser} totalShopkepper ={totalShopkepper} totalActiveShopkepper={totalActiveShopkepper} totalLiveShopkepper={totalLiveShopkepper} setUpdate ={setUpdate}/>
             }
           />
           <Route
             path="requests"
-            element={<Requests setTopText={setTopText} />}
+            element={<Requests setTopText={setTopText} setUpdate ={setUpdate}/>}
           />
           <Route path="users" element={<Users setTopText={setTopText} totalUser={totalUser}  totalShopkepper ={totalShopkepper} totalActiveShopkepper={totalActiveShopkepper} totalLiveShopkepper={totalLiveShopkepper}/>} />
+
+          
+
+            <Route
+            path="shopkepperDash"
+            element={<ShopKepperDashboard  setUpdate ={setUpdate}/>}
+          />
         </Route>
+
+
+        
       </Routes>
     </>
   );

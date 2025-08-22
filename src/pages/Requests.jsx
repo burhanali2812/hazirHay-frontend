@@ -8,7 +8,7 @@ import { MapContainer, TileLayer, Marker, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 
-function Requests({ setTopText }) {
+function Requests({ setTopText , setUpdate}) {
   useEffect(() => {
     setTopText("Requests");
   }, [setTopText]);
@@ -116,6 +116,7 @@ function Requests({ setTopText }) {
 
       if (response.status === 200) {
         toast.success("Shopkeeper verified successfully");
+        setUpdate(true)
         setAcceptLoadingId(null);
         getShopWithShopkeppers();
         return true;
