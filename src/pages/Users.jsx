@@ -20,6 +20,10 @@ function Users({
     const [singleUserData, setSingleUserData] = useState(null);
     const [filter, setFilter] = useState(false);
     const [filterText, setFilterText] = useState("");
+    const [searchQuery, setSearchQuery] = useState("");
+    const [filteredUsers, setFilteredUsers] = useState([]);
+
+
 
   const getLiveUsers = async () => {
     try {
@@ -131,9 +135,34 @@ function Users({
     return ()=> document.removeEventListener("click", handleClickOutside)
   },[filter])
 
-  const filterArray = filterText=== "All Users" ? totalUser :
+
+  
+
+  const filterArray = filterText=== "Latest Users" ? latestUsers :
   filterText=== "Live Users" ? liveUsers :
-  filterText=== "Frequently Users" ? totalShopkepper : latestUsers
+  filterText=== "Frequently Users" ? frequentUsers : totalUser
+
+
+ const handleSearch = (searchQuery) => {
+  const result = (
+    filterText === "Latest Users"
+      ? latestUsers
+      : filterText === "Live Users"
+      ? liveUsers
+      : filterText === "Frequently Users"
+      ? frequentUsers
+      : totalUser
+  )?.filter((user) =>
+    user?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    user?.phone?.includes(searchQuery)
+  );
+
+  setFilteredUsers(result);  // Store the filtered results in state
+  setFilter(true);           // Show the filtered list
+};
+
+const finalFilter = searchQuery === "" ? filterArray : filteredUsers
+
 
 
   return (
@@ -142,13 +171,16 @@ function Users({
 
       {/* Search bar */}
       <div className="input-group mb-1">
-        <input
-          type="search"
-          className="form-control"
-          placeholder="Search"
-          aria-label="Search"
-        />
-        <button className="btn btn-info" type="submit">
+     <input
+  type="search"
+  className="form-control"
+  placeholder="Search"
+  aria-label="Search"
+  value={searchQuery}
+  onChange={(e) => setSearchQuery(e.target.value)}
+/>
+        <button className="btn btn-info" type="submit" onClick={(e)=>{e.stopPropagation(); 
+          handleSearch(searchQuery)}}>
           <i className="fa-solid fa-magnifying-glass"></i>
         </button>
       </div>
@@ -179,8 +211,8 @@ function Users({
       
       <h5 className="fw-bold mb-1 mt-1">{filterText}</h5>
      {
-  filterArray?.length > 0 && (
-    filterArray.map((filter, index) => (
+  finalFilter?.length > 0 && (
+    finalFilter.map((filter, index) => (
       <div 
         key={index} 
         className="d-flex align-items-center mb-3"
@@ -226,7 +258,7 @@ function Users({
           <p className="fw-bold mb-0">{filter?.name}</p>
           <p className="text-muted mb-0" style={{ fontSize: "0.85rem" }}>
               {filter?.createdAt 
-    ? new Date(filter.createdAt).toLocaleString() 
+    ? new Date(filter.lastActive).toLocaleString() 
     : "N/A"}
 
           </p>

@@ -107,7 +107,7 @@ function Dashboard({ setTopText , totalUser, totalShopkepper, totalActiveShopkep
               aria-valuenow={(totalLiveShopkepper.length / totalActiveShopkepper.length) * 100}
               aria-valuemin="0"
               aria-valuemax={target}
-              style={{ height: "10px" }}
+              style={{ height: "13px" }}
             >
               <div
                 className="progress-bar progress-bar-striped progress-bar-animated bg-success"
@@ -132,49 +132,49 @@ function Dashboard({ setTopText , totalUser, totalShopkepper, totalActiveShopkep
         Managements
       </h5>
 
-      <div className="d-flex justify-content-between mt-3">
-        <div className="text-center">
-          <button
-            className="btn btn-primary rounded-circle d-flex align-items-center justify-content-center"
-            style={{ width: "40px", height: "40px" }}
-            onClick={()=>navigate("/admin/users")}
-          >
-            <i className="fa-solid fa-user"></i>
-          </button>
-          <p className="mt-1 small text-muted fw-bold">Users</p>
-        </div>
+      <div className="d-flex justify-content-around mt-3 ">
+  <div className="text-center">
+    <button
+      className="btn btn-primary rounded-circle d-flex align-items-center justify-content-center"
+      style={{ width: "40px", height: "40px" }}
+      onClick={() => navigate("/admin/users")}
+    >
+      <i className="fa-solid fa-user"></i>
+    </button>
+    <p className="mt-1 small text-muted fw-bold">Users</p>
+  </div>
 
-        <div className="text-center">
-          <button
-            className="btn btn-primary rounded-circle  align-items-center justify-content-center"
-            style={{ width: "40px", height: "40px" }}
-          >
-            <i className="fa-solid fa-user-tie"></i>
-          </button>
-          <p className="mt-1 small text-muted fw-bold">Shopkeepers</p>
-        </div>
+  <div className="text-center">
+    <button
+      className="btn btn-primary rounded-circle d-flex align-items-center justify-content-center ms-4"
+      style={{ width: "40px", height: "40px" }}
+    >
+      <i className="fa-solid fa-user-tie"></i>
+    </button>
+    <p className="mt-1 small text-muted fw-bold">Shopkeepers</p>
+  </div>
 
-        <div className="text-center">
-          <button
-            className="btn btn-primary rounded-circle d-flex align-items-center justify-content-center"
-            style={{ width: "40px", height: "40px" }}
-          >
-            <i className="fa-solid fa-shop"></i>
-          </button>
-          <p className="mt-1 small text-muted fw-bold">Shops</p>
-        </div>
+  <div className="text-center">
+    <button
+      className="btn btn-primary rounded-circle d-flex align-items-center justify-content-center"
+      style={{ width: "40px", height: "40px" }}
+    >
+      <i className="fa-solid fa-shop"></i>
+    </button>
+    <p className="mt-1 small text-muted fw-bold">Shops</p>
+  </div>
 
-        <div className="text-center ms-3">
-          <button
-            className="btn btn-primary rounded-circle align-items-center justify-content-center"
-            style={{ width: "40px", height: "40px" }}
-          >
-        
-            <i className="fa-solid fa-calendar-check"></i>
-          </button>
-          <p className="mt-1 small text-muted fw-bold">Booking</p>
-        </div>
-      </div>
+  <div className="text-center ms-3">
+    <button
+      className="btn btn-primary rounded-circle d-flex align-items-center justify-content-center ms-2"
+      style={{ width: "40px", height: "40px" }}
+    >
+      <i className="fa-solid fa-calendar-check"></i>
+    </button>
+    <p className="mt-1 small text-muted fw-bold">Booking</p>
+  </div>
+</div>
+
       <div className="card shadow-sm border-0 rounded-4 p-3 mt-2">
   {/* Total Users */}
   <div className="d-flex align-items-center mb-3">
@@ -188,7 +188,7 @@ function Dashboard({ setTopText , totalUser, totalShopkepper, totalActiveShopkep
       </div>
       <div
         className="progress"
-        style={{ height: "12px" }}
+        style={{ height: "13px" }}
         role="progressbar"
         aria-valuenow={totalUser.length}
         aria-valuemin="0"
@@ -243,7 +243,7 @@ function Dashboard({ setTopText , totalUser, totalShopkepper, totalActiveShopkep
       </div>
       <div
         className="progress"
-        style={{ height: "12px" }}
+        style={{ height: "13px" }}
         role="progressbar"
         aria-valuenow={totalActiveShopkepper.length}
         aria-valuemin="0"
@@ -270,14 +270,14 @@ function Dashboard({ setTopText , totalUser, totalShopkepper, totalActiveShopkep
       </div>
       <div
         className="progress"
-        style={{ height: "12px" }}
+        style={{ height: "13px" }}
         role="progressbar"
         aria-valuenow={totalShops.length}
         aria-valuemin="0"
         aria-valuemax={target}
       >
         <div
-          className="progress-bar progress-bar-striped progress-bar-animated bg-info text-dark d-flex align-items-center justify-content-center fw-semibold"
+          className="progress-bar progress-bar-striped progress-bar-animated bg-info text-light d-flex align-items-center justify-content-center fw-semibold"
           style={{ width: `${(totalShops.length / target) * 100}%` }}
         >
           {Math.round((totalShops.length / target) * 100)}%

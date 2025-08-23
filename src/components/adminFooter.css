@@ -40,14 +40,15 @@
 /* Header */
 .admin-header {
   height: 55px;
-  background: #fff;
-  border-bottom: 1px solid #ddd;
+  background: transparent;
+  border-bottom: 2px solid  #ff6600;
   padding: 0 15px;
   z-index: 1030;
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
+
 
 .header-title {
   font-size: 1.2rem;
@@ -74,7 +75,6 @@
 /* Footer Nav */
 .admin-footer {
   border-top: 1px solid #ddd;
-  background: #fff;
   z-index: 1030;
 }
 
@@ -84,7 +84,12 @@
   color: #6c757d;
   cursor: pointer;
   transition: color 0.3s ease, transform 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
+
 
 .nav-item i {
   display: block;

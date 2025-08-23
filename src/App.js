@@ -13,6 +13,7 @@ import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import ShopKepperDashboard from "./pages/ShopKepperDashboard";
+import '@fortawesome/fontawesome-free/css/all.min.css';
 
 function App() {
   const [topText, setTopText] = useState("");
@@ -22,6 +23,7 @@ function App() {
     const [totalShopkepper, setTotalShopKepper] = useState([]);
     const [totalActiveShopkepper, setTotalActiveShopKepper] = useState([]);
     const [totalLiveShopkepper, setTotalLiveShopKepper] = useState([]);
+    const [shopKepperStatus, setShopKepperStatus] = useState(false);
   
 
   const getAllUser = async () => {
@@ -45,7 +47,7 @@ function App() {
         "Error fetching users:",
         error.response?.data?.message || error.message
       );
-      toast.error("Failed to fetch users. Please try again.");
+     
       setTotalUser([]);
     }
   };
@@ -113,7 +115,7 @@ useEffect(() => {
         <Route path="/login" element={<Login />}></Route>
         <Route path="/signup" element={<Signup  onUserAdded={getAllUser} onShopKepperAdded={getAllShopKepper}/>}></Route>
         <Route path="/shop" element={<ShopForm />}></Route>
-        <Route path="/admin/*" element={<AdminFooter1 topText={topText} />}>
+        <Route path="/admin/*" element={<AdminFooter1 topText={topText}  setUpdate ={setUpdate} setShopKepperStatus= {setShopKepperStatus}/>}>
           <Route
             path="dashboard"
             element={
@@ -130,7 +132,7 @@ useEffect(() => {
 
             <Route
             path="shopkepperDash"
-            element={<ShopKepperDashboard  setUpdate ={setUpdate}/>}
+            element={<ShopKepperDashboard  shopKepperStatus={shopKepperStatus} />}
           />
         </Route>
 

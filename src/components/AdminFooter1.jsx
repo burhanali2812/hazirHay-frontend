@@ -1,19 +1,172 @@
-import React, { useState } from "react";
+import axios from "axios";
+import React, { useEffect, useState } from "react";
 import { useNavigate, Outlet } from "react-router-dom";
 import "./adminFooter.css";
 
-function AdminFooter1({ topText }) {
+function AdminFooter({ topText, setUpdate , setShopKepperStatus}) {
   const navigate = useNavigate();
   const [active, setActive] = useState(localStorage.getItem("key") || "home");
   const [showOffcanvas, setShowOffcanvas] = useState(false);
   const currentUser = JSON.parse(localStorage.getItem("user"));
-  const role = localStorage.getItem("role");
+  const role = (localStorage.getItem("role") || "").toLowerCase();
+  const user = JSON.parse(localStorage.getItem("user"));
+  const token = localStorage.getItem("token");
+  const [isOnline, setIsOnline] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const getShopkepperStatus = async () => {
+    try {
+      const response = await axios.get(
+        `https://hazir-hay-backend.vercel.app/shopKeppers/getShopKepperStatus/${user._id}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          params: { t: Date.now() }, // prevents caching
+        }
+      );
 
-  const handleClick = (key, action) => {
+      if (response.status === 200) {
+        console.log("Current Status:", response.data.data);
+        setIsOnline(response.data.data); // update state with isLive value
+      }
+    } catch (error) {
+      console.error("Error fetching status:", error);
+      alert(error.response?.data?.message || "Failed to fetch status!");
+    }
+  };
+
+  useEffect(() => {
+    if (role !== "admin") getShopkepperStatus();
+  }, [role]);
+
+  const toggleStatus = async (e) => {
+    //setIsOnline(e.target.value);
+    setLoading(true);
+    try {
+      const newStatus = !isOnline;
+
+      const payLoad = {
+        isLive: newStatus,
+      };
+
+      const response = await axios.put(
+        "https://hazir-hay-backend.vercel.app/shopKeppers/update-live",
+        payLoad,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          params: { t: Date.now() },
+        }
+      );
+
+      if (response.status === 200) {
+        setShopKepperStatus(!isOnline)
+        setLoading(false);
+        alert(response.data.message || "Status updated successfully!");
+        setUpdate(true);
+        setIsOnline(newStatus); // update UI state
+      } else {
+        alert("Failed to update status!");
+      }
+    } catch (error) {
+      console.error("Error updating status:", error);
+      alert(error.response?.data?.message || "Something went wrong!");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Menu configuration for roles
+  const menus = {
+    admin: [
+      {
+        key: "home",
+        icon: "fas fa-home",
+        label: "Home",
+        path: "/admin/dashboard",
+      },
+      {
+        key: "requests",
+        icon: "fas fa-envelope-open-text",
+        label: "Requests",
+        path: "/admin/requests",
+      },
+      {
+        key: "complaints",
+        icon: "fas fa-frown",
+        label: "Complaints",
+        action: () => alert("Complaints"),
+      },
+      {
+        key: "setting",
+        icon: "fa-solid fa-ellipsis-vertical",
+        label: "More",
+        action: () => setShowOffcanvas(true),
+      },
+    ],
+    shopkepper: [
+      {
+        key: "home",
+        icon: "fas fa-home",
+        label: "Home",
+        path: "/admin/shopkepperDash",
+      },
+      {
+        key: "shop",
+        icon: "fas fa-shop",
+        label: "My Shop",
+        path: "/admin/shopkepperDash",
+      },
+      {
+        key: "notification",
+        icon: "fa-solid fa-bell",
+        label: "Notifications",
+        action: () => alert("Notifications"),
+      },
+      {
+        key: "setting",
+        icon: "fa-solid fa-ellipsis-vertical",
+        label: "More",
+        action: () => setShowOffcanvas(true),
+      },
+    ],
+    user: [
+      {
+        key: "home",
+        icon: "fas fa-home",
+        label: "Home",
+        path: "/user/dashboard",
+      },
+      {
+        key: "cart",
+        icon: "fas fa-shopping-cart",
+        label: "Cart",
+        path: "/user/cart",
+      },
+      {
+        key: "favorites",
+        icon: "fas fa-heart",
+        label: "Favorites",
+        path: "/user/favorites",
+      },
+      {
+        key: "setting",
+        icon: "fa-solid fa-ellipsis-vertical",
+        label: "More",
+        action: () => setShowOffcanvas(true),
+      },
+    ],
+  };
+
+  const currentMenu = menus[role] || menus.user;
+
+  // Handle navigation or action
+  const handleClick = (key, actionOrPath) => {
     localStorage.setItem("key", key);
     setActive(key);
-    action();
-    console.log("curent", role);
+
+    if (typeof actionOrPath === "string") {
+      navigate(actionOrPath);
+    } else if (typeof actionOrPath === "function") {
+      actionOrPath();
+    }
   };
 
   const logOut = () => {
@@ -26,75 +179,98 @@ function AdminFooter1({ topText }) {
 
   return (
     <>
-      <div className="admin-header fixed-top">
+      {/* Top Header */}
+      <div className="admin-header fixed-top d-flex justify-content-between align-items-center px-2">
         <div className="d-flex align-items-center gap-2">
           <div className="icon-btn bg-primary" onClick={() => navigate(-1)}>
             <i className="fa-solid fa-arrow-left text-white"></i>
           </div>
-          <h1 className="header-title">{topText}</h1>
+          <h1 className="header-title mb-0">{topText}</h1>
         </div>
 
-        <div className="d-flex gap-2">
-          <div
-            className="icon-btn bg-secondary"
-            onClick={() => navigate("/driver/dashboard")}
-          >
-            <i className="fa-solid fa-home text-white"></i>
+        {role === "shopkepper" ? (
+          <div className="form-check form-switch">
+            <label
+              className="form-check-label mt-1 fw-bold"
+              htmlFor="flexSwitchCheckDefault"
+              style={{ fontSize: "18px" }}
+            >
+              {loading ? (
+                <>
+                  Updating...
+                  <div
+                    className="spinner-border spinner-border-sm text-muted ms-2"
+                    role="status"
+                  ></div>
+                </>
+              ) : isOnline ? (
+                <span className="text-success">Online</span>
+              ) : (
+                <span className="text-danger">Offline</span>
+              )}
+            </label>
+            <input
+              className="form-check-input"
+              type="checkbox"
+              role="switch"
+              id="flexSwitchCheckDefault"
+              style={{ fontSize: "20px" }}
+              checked={isOnline}
+              onChange={toggleStatus}
+            />
           </div>
-          <div className="icon-btn bg-secondary" onClick={() => navigate(0)}>
-            <i className="fa-solid fa-bell text-white"></i>
+        ) : (
+          <div className="d-flex gap-2">
+            <div
+              className="icon-btn bg-secondary"
+              onClick={() => navigate("/driver/dashboard")}
+            >
+              <i className="fa-solid fa-home text-white"></i>
+            </div>
+            <div className="icon-btn bg-secondary" onClick={() => navigate(0)}>
+              <i className="fa-solid fa-bell text-white"></i>
+            </div>
+            <div className="icon-btn bg-danger" onClick={logOut}>
+              <i className="fa-solid fa-right-from-bracket text-white"></i>
+            </div>
           </div>
-          <div className="icon-btn bg-danger" onClick={logOut}>
-            <i className="fa-solid fa-right-from-bracket text-white"></i>
-          </div>
-        </div>
+        )}
       </div>
 
-      <div className="admin-footer card fixed-bottom">
+      {/* Bottom Navigation */}
+      <div
+        className="card fixed-bottom py-1"
+        style={{
+          background: "transparent",
+          borderTop: "2px solid  #ff6600", // Top border
+          boxShadow: "none",
+        }}
+      >
         <div className="card-body d-flex justify-content-around p-2">
-          <span
-            className={`nav-item ${active === "home" ? "active" : ""}`}
-            onClick={() =>
-              handleClick("home", () => navigate("/admin/dashboard"))
-            }
-          >
-            <i className="fas fa-home"></i>
-            <small>Home</small>
-          </span>
-
-          <span
-            className={`nav-item ${active === "requests" ? "active" : ""}`}
-            onClick={() =>
-              handleClick("requests", () => navigate("/admin/requests"))
-            }
-          >
-            <i className="fas fa-envelope-open-text"></i>
-            <small>Requests</small>
-          </span>
-
-          <span
-            className={`nav-item ${active === "complaints" ? "active" : ""}`}
-            onClick={() => handleClick("complaints", () => alert("Complaints"))}
-          >
-            <i className="fas fa-frown"></i>
-            <small>Complaints</small>
-          </span>
-
-          <span
-            className={`nav-item ${active === "setting" ? "active" : ""}`}
-            onClick={() => handleClick("setting", () => setShowOffcanvas(true))}
-          >
-            <i className="fa-solid fa-ellipsis-vertical"></i>
-            <small>More</small>
-          </span>
+          {currentMenu.map((item) => (
+            <span
+              key={item.key}
+              className={`nav-item ${active === item.key ? "active" : ""}`}
+              onClick={() =>
+                handleClick(item.key, item.path ? item.path : item.action)
+              }
+              style={{ cursor: "pointer" }}
+            >
+              <i className={item.icon}></i>
+              <small>{item.label}</small>
+            </span>
+          ))}
         </div>
       </div>
 
+      {/* Content */}
       <div className="admin-content">
         <Outlet />
       </div>
 
+      {/* Offcanvas Settings */}
       <div className={`custom-offcanvas ${showOffcanvas ? "show" : ""}`}>
+        {/* Offcanvas Header */}
         <div className="offcanvas-header">
           <button
             type="button"
@@ -104,8 +280,10 @@ function AdminFooter1({ topText }) {
           ></button>
           <h5 className="mb-0 ms-2 mt-1">Settings</h5>
         </div>
+
+        {/* Offcanvas Body */}
         <div className="offcanvas-body">
-          
+          {/* Profile Image */}
           <div className="d-flex justify-content-center mt-4">
             <div
               style={{
@@ -120,7 +298,7 @@ function AdminFooter1({ topText }) {
                 backgroundColor: "#f8f9fa",
               }}
             >
-              {currentUser.profilePicture ? (
+              {currentUser?.profilePicture ? (
                 <img
                   src={currentUser.profilePicture}
                   alt="Profile Preview"
@@ -139,58 +317,54 @@ function AdminFooter1({ topText }) {
             </div>
           </div>
 
-          {role === "user" ||
-            (role === "Admin" && (
-              <>
-                <div className="d-flex justify-content-center align-items-center">
-                  <h5 className="fw-bold mt-2 mb-0">{currentUser?.name}</h5>
-                  <i
-                    class="fa-solid fa-circle-check ms-1 mt-2"
-                    style={{ color: "#28a745", fontSize: "18px" }}
-                  ></i>
-                </div>
-                <div className="d-flex justify-content-center">
-                  <span
-                    className="badge rounded-pill bg-primary"
-                  
-                  >
-                    {role === "User" ? (
-                      <>
-                        <i className="fa-solid fa-user small ms-2"></i>User
-                      </>
-                    ) : (
-                      <>
-                        <i class="fa-solid fa-user-shield ms-2"></i> Admin
-                      </>
-                    )}
-                  </span>
-                </div>
-              </>
-            ))}
-
-          {role === "Service Provider" && (
+          {/* User / Admin Info */}
+          {(role === "user" || role === "admin") && (
             <>
               <div className="d-flex justify-content-center align-items-center">
-                <h5 className="fw-bold mb-0">{currentUser?.name}</h5>
+                <h5 className="fw-bold mt-2 mb-0">{currentUser?.name}</h5>
                 <i
-                  class={`${
-                    currentUser.isVerified
+                  className="fa-solid fa-circle-check ms-1 mt-2"
+                  style={{ color: "#28a745", fontSize: "18px" }}
+                ></i>
+              </div>
+
+              <div className="d-flex justify-content-center">
+                <span className="badge rounded-pill bg-primary">
+                  {role === "user" ? (
+                    <>
+                      <i className="fa-solid fa-user small ms-2"></i> User
+                    </>
+                  ) : (
+                    <>
+                      <i className="fa-solid fa-user-shield ms-2"></i> Admin
+                    </>
+                  )}
+                </span>
+              </div>
+            </>
+          )}
+
+          {/* ShopKeeper Info */}
+          {role === "shopKepper" && (
+            <>
+              <div className="d-flex justify-content-center align-items-center">
+                <h5 className="fw-bold mb-0 ">{currentUser?.name}</h5>
+                <i
+                  className={`${
+                    currentUser?.isVerified
                       ? "fa-solid fa-circle-check"
-                      : "fa-solid fa-circle-xmark "
+                      : "fa-solid fa-circle-xmark"
                   } ms-1`}
                   style={{
-                    color: currentUser.isVerified ? "#28a745" : "#dc3545",
+                    color: currentUser?.isVerified ? "#28a745" : "#dc3545",
                     fontSize: "18px",
                   }}
                 ></i>
               </div>
+
               <div className="d-flex justify-content-center">
-                <span
-                  className="badge rounded-pill bg-primary"
-                  
-                >
-                      <i class="fa-solid fa-user-tie ms-2"></i> Service Provider
-                   
+                <span className="badge rounded-pill bg-primary">
+                  <i className="fa-solid fa-user-tie ms-2"></i> Service Provider
                 </span>
               </div>
             </>
@@ -198,6 +372,7 @@ function AdminFooter1({ topText }) {
         </div>
       </div>
 
+      {/* Backdrop */}
       {showOffcanvas && (
         <div
           className="offcanvas-backdrop fade show"
@@ -208,4 +383,4 @@ function AdminFooter1({ topText }) {
   );
 }
 
-export default AdminFooter1;
+export default AdminFooter;
