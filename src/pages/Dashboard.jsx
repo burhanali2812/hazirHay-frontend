@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useNavigate} from "react-router-dom";
-function Dashboard({ setTopText , totalUser, totalShopkepper, totalActiveShopkepper, totalLiveShopkepper, setUpdate}) {
+function Dashboard({ setTopText , totalUser, totalShopkepper, totalActiveShopkepper, totalLiveShopkepper, setUpdate, setUpdateAppjs}) {
   const token = localStorage.getItem("token");
   const navigate = useNavigate();
 
@@ -12,6 +12,7 @@ function Dashboard({ setTopText , totalUser, totalShopkepper, totalActiveShopkep
 
   useEffect(()=>{
     setUpdate(true)
+    setUpdateAppjs(true)
   },[])
 
 

@@ -26,6 +26,8 @@ function App() {
     const [totalActiveShopkepper, setTotalActiveShopKepper] = useState([]);
     const [totalLiveShopkepper, setTotalLiveShopKepper] = useState([]);
     const [shopKepperStatus, setShopKepperStatus] = useState(false);
+    const [UpdateAppjs, setUpdateAppjs] = useState(false);
+      const [shopWithShopkepper, setShopWithShopkepper] = useState([]);
   
 
   const getAllUser = async () => {
@@ -91,12 +93,18 @@ function App() {
     }
   };
   
+
+  useEffect(()=>{
+       getAllUser();
+      getAllShopKepper();
+  },[])
+  
   useEffect(() => {
-    if (token) {
+    if (UpdateAppjs) {
       getAllUser();
       getAllShopKepper();
     }
-  }, [token]);
+  }, [UpdateAppjs]);
 
 useEffect(() => {
   const fetchShopKepper = async () => {
@@ -121,12 +129,12 @@ useEffect(() => {
           <Route
             path="dashboard"
             element={
-              <Dashboard setTopText={setTopText} totalUser={totalUser} totalShopkepper ={totalShopkepper} totalActiveShopkepper={totalActiveShopkepper} totalLiveShopkepper={totalLiveShopkepper} setUpdate ={setUpdate}/>
+              <Dashboard setTopText={setTopText} totalUser={totalUser} totalShopkepper ={totalShopkepper} totalActiveShopkepper={totalActiveShopkepper} totalLiveShopkepper={totalLiveShopkepper} setUpdate ={setUpdate} setUpdateAppjs={setUpdateAppjs}/>
             }
           />
           <Route
             path="requests"
-            element={<Requests setTopText={setTopText} setUpdate ={setUpdate}/>}
+            element={<Requests setTopText={setTopText} setUpdate ={setUpdate} shopWithShopkepper={shopWithShopkepper}/>}
           />
           <Route path="users" element={<Users setTopText={setTopText} totalUser={totalUser}  totalShopkepper ={totalShopkepper} totalActiveShopkepper={totalActiveShopkepper} totalLiveShopkepper={totalLiveShopkepper}/>} />
 
@@ -134,7 +142,7 @@ useEffect(() => {
 
             <Route
             path="shopKepper/dashboard"
-            element={<ShopKepperDashboard  shopKepperStatus={shopKepperStatus} />}
+            element={<ShopKepperDashboard  shopKepperStatus={shopKepperStatus} setUpdateAppjs={setUpdateAppjs}/>}
           />
            <Route
             path="shopKepper/requests"
@@ -142,7 +150,7 @@ useEffect(() => {
           />
           <Route
             path="user/dashboard"
-            element={<UserDashboard/>}
+            element={<UserDashboard totalActiveShopkepper={totalActiveShopkepper} setUpdateAppjs={setUpdateAppjs}/>}
           />
         </Route>
 
