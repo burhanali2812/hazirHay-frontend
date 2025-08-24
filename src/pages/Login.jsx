@@ -8,14 +8,14 @@ import axios from "axios";
 import "../components/adminFooter.css";
 function Login() {
   const navigate = useNavigate();
-  const [role, setRole] = useState("Choose Your Role");
+  const [role, setRole] = useState("");
+  const [roleText, setRoleText] = useState("Choose Your Role");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
 
   const handleLogin = async () => {
-    console.log("Before Validation", { email, password, role });
     try {
       setLoading(true);
       if (email.trim() === "") {
@@ -65,7 +65,12 @@ function Login() {
 
         if(role === "shopKepper"){
              setTimeout(() => {
-          navigate("/admin/shopkepperDash");
+          navigate("/admin/shopKepper/dashboard");
+        }, 1500);
+        }
+        if(role === "user"){    
+            setTimeout(() => {
+          navigate("/admin/user/dashboard");
         }, 1500);
         }
         else{
@@ -170,22 +175,22 @@ function Login() {
           data-bs-toggle="dropdown"
           aria-expanded="false"
         >
-          {role}
+          {roleText}
         </button>
 
         <ul className="dropdown-menu w-100" aria-labelledby="dropdownMenuButton">
           <li>
-            <button className="dropdown-item" onClick={() => setRole("admin")}>
+            <button className="dropdown-item" onClick={() => {setRoleText("Admin"); setRole("admin")}}>
               <i className="fa-solid fa-user-shield me-2"></i>Admin
             </button>
           </li>
           <li>
-            <button className="dropdown-item" onClick={() => setRole("shopKepper")}>
+            <button className="dropdown-item" onClick={() => {setRoleText("Service Provider"); setRole("shopKepper")}}>
               <i className="fa-solid fa-screwdriver-wrench me-2"></i>Service Provider
             </button>
           </li>
           <li>
-            <button className="dropdown-item" onClick={() => setRole("user")}>
+            <button className="dropdown-item" onClick={() => {setRoleText("User"); setRole("user")}}>
               <i className="fa-solid fa-user me-2"></i>User
             </button>
           </li>

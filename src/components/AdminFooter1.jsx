@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, Outlet } from "react-router-dom";
 import "./adminFooter.css";
 
-function AdminFooter({ topText, setUpdate , setShopKepperStatus}) {
+function AdminFooter({ topText, setUpdate, setShopKepperStatus }) {
   const navigate = useNavigate();
   const [active, setActive] = useState(localStorage.getItem("key") || "home");
   const [showOffcanvas, setShowOffcanvas] = useState(false);
@@ -34,7 +34,7 @@ function AdminFooter({ topText, setUpdate , setShopKepperStatus}) {
   };
 
   useEffect(() => {
-    if (role !== "admin") getShopkepperStatus();
+    if (role !== "admin" && role !== "user") getShopkepperStatus();
   }, [role]);
 
   const toggleStatus = async (e) => {
@@ -57,7 +57,7 @@ function AdminFooter({ topText, setUpdate , setShopKepperStatus}) {
       );
 
       if (response.status === 200) {
-        setShopKepperStatus(!isOnline)
+        setShopKepperStatus(!isOnline);
         setLoading(false);
         alert(response.data.message || "Status updated successfully!");
         setUpdate(true);
@@ -106,13 +106,13 @@ function AdminFooter({ topText, setUpdate , setShopKepperStatus}) {
         key: "home",
         icon: "fas fa-home",
         label: "Home",
-        path: "/admin/shopkepperDash",
+        path: "/admin/shopKepper/dashboard",
       },
       {
-        key: "shop",
-        icon: "fas fa-shop",
-        label: "My Shop",
-        path: "/admin/shopkepperDash",
+        key: "requests",
+        icon: "fas fa-envelope-open-text",
+        label: "Requests",
+        path: "/admin/shopKepper/requests",
       },
       {
         key: "notification",
@@ -189,36 +189,32 @@ function AdminFooter({ topText, setUpdate , setShopKepperStatus}) {
         </div>
 
         {role === "shopkepper" ? (
-          <div className="form-check form-switch">
-            <label
-              className="form-check-label mt-1 fw-bold"
-              htmlFor="flexSwitchCheckDefault"
-              style={{ fontSize: "18px" }}
-            >
-              {loading ? (
-                <>
-                  Updating...
-                  <div
-                    className="spinner-border spinner-border-sm text-muted ms-2"
-                    role="status"
-                  ></div>
-                </>
-              ) : isOnline ? (
-                <span className="text-success">Online</span>
-              ) : (
-                <span className="text-danger">Offline</span>
-              )}
-            </label>
-            <input
-              className="form-check-input"
-              type="checkbox"
-              role="switch"
-              id="flexSwitchCheckDefault"
-              style={{ fontSize: "20px" }}
-              checked={isOnline}
-              onChange={toggleStatus}
-            />
-          </div>
+       <>
+          <button
+            className={`btn ${
+              isOnline ? "btn-success" : "btn-danger"
+            } fw-bold `}
+            onClick={toggleStatus}
+          >
+            {loading ? (
+              <>
+                Updating...
+                <span className="spinner-border spinner-border-sm ms-2"></span>
+              </>
+            ) : isOnline ? (
+              <>
+                <i class="fa-solid fa-power-off me-1"></i>
+                Online
+              </>
+            ) : (
+              <>
+                <i class="fa-solid fa-power-off me-1"></i>
+                Offline
+              </>
+            )}
+          </button>
+          <button className="btn btn-primary" onClick={logOut}>Log Out</button>
+       </>
         ) : (
           <div className="d-flex gap-2">
             <div

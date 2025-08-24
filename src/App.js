@@ -14,6 +14,8 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import ShopKepperDashboard from "./pages/ShopKepperDashboard";
 import '@fortawesome/fontawesome-free/css/all.min.css';
+import ShopkepperRequests from "./pages/ShopkepperRequests";
+import UserDashboard from "./pages/UserDashboard";
 
 function App() {
   const [topText, setTopText] = useState("");
@@ -84,7 +86,7 @@ function App() {
         "Error fetching ShopKepper:",
         error.response?.data?.message || error.message
       );
-      toast.error("Failed to fetch ShopKepper. Please try again.");
+    //  toast.error("Failed to fetch ShopKepper. Please try again.");
       setTotalShopKepper([]);
     }
   };
@@ -131,8 +133,16 @@ useEffect(() => {
           
 
             <Route
-            path="shopkepperDash"
+            path="shopKepper/dashboard"
             element={<ShopKepperDashboard  shopKepperStatus={shopKepperStatus} />}
+          />
+           <Route
+            path="shopKepper/requests"
+            element={<ShopkepperRequests  shopKepperStatus={shopKepperStatus} />}
+          />
+          <Route
+            path="user/dashboard"
+            element={<UserDashboard/>}
           />
         </Route>
 
