@@ -10,6 +10,7 @@ import {
   Circle,
   Popup,
   Tooltip,
+
 } from "react-leaflet";
 import markerIcon from "leaflet/dist/images/marker-icon.png";
 import markerShadow from "leaflet/dist/images/marker-shadow.png";
@@ -139,7 +140,7 @@ function UserDashboard({ shopWithShopkepper, setUpdateAppjs }) {
     }
   };
   function FlyToLocation({ coordinates }) {
-  const map = useMapEvents({}); // get map instance
+  const map = useMapEvents({}); 
 
   useEffect(() => {
     if (coordinates && coordinates.length === 2) {
@@ -152,6 +153,20 @@ function UserDashboard({ shopWithShopkepper, setUpdateAppjs }) {
 
   return null;
 }
+function FlyToUser({ position }) {
+  const map = useMapEvents({}); // or useMap()
+  useEffect(() => {
+    if (position && position.length === 2) {
+      map.flyTo(position, 18, {
+        animate: true,
+        duration: 1,
+      });
+    }
+  }, [position, map]);
+  return null;
+}
+
+
 
   useEffect(() => {
     const fetchLocation = async () => {
@@ -167,7 +182,7 @@ function UserDashboard({ shopWithShopkepper, setUpdateAppjs }) {
 
           setLatitude(lat);
           setLongitude(lon);
-          setCoordinates(lat, lon);
+          setCoordinates([lat, lon]);
           setPosition([lat, lon]);
 
           try {
@@ -300,6 +315,7 @@ function UserDashboard({ shopWithShopkepper, setUpdateAppjs }) {
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
           <LocationPicker onLocationSelect={handleLocationSelect} />
           <FlyToLocation coordinates={coordinates} />
+          <FlyToUser position={position} />
           {position && <Marker position={position} icon={customIcon} />}
           {/* {position && (
             <Circle
