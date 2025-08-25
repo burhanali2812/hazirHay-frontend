@@ -340,6 +340,8 @@ function AdminFooter({ topText, setUpdate, setShopKepperStatus }) {
                     </>
                   )}
                 </span>
+
+                 <button className="mt-2 btn btn-primary" onClick={logOut}>Logout</button>
               </div>
             </>
           )}
@@ -367,6 +369,8 @@ function AdminFooter({ topText, setUpdate, setShopKepperStatus }) {
                   <i className="fa-solid fa-user-tie ms-2"></i> Service Provider
                 </span>
               </div>
+              
+              <button className="mt-2 btn btn-primary" onClick={logOut}>Logout</button>
             </>
           )}
         </div>

@@ -1,0 +1,20 @@
+.locationCard {
+  background-color: #ffffff; /* default background */
+  border-radius: 12px;
+  padding: 16px;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Hover effect */
+.locationCard:hover {
+  background-color: #f0f8ff; /* light blue */
+  transform: scale(1.02); /* slight zoom */
+}
+
+/* Click (active) effect */
+.locationCard:active {
+  background-color: #d0d0d0; /* darker blue */
+  transform: scale(0.98);
+}

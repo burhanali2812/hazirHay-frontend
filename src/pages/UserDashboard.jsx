@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import location from "../images/location.png";
+import "./style.css"
 import {
   MapContainer,
   TileLayer,
@@ -25,10 +26,133 @@ function UserDashboard({ shopWithShopkepper, setUpdateAppjs }) {
   const [verifiedShops, setVerifiedShops] = useState([]);
   const [verifiedLiveShops, setVerifiedLiveShops] = useState([]);
   const [chooseLocationModal, setChooseLocationModal] = useState(false);
+  const [userLocations, setUserLocations] = useState([]);
+  const [saveLocationsModal, setSaveLocationsModal] = useState(false);
+  const [locationName, setLocationName] = useState("");
+
+  const user = JSON.parse(localStorage.getItem("user"));
+
+  const getUserLocations = async () => {
+    try {
+      const response = await axios.get(
+        `https://hazir-hay-backend.vercel.app/users/getUserById/${user._id}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          params: { t: Date.now() }, // Prevent caching
+        }
+      );
+
+      if (response.data.success) {
+        setUserLocations(response.data.data.location || []);
+        // alert("successFull getUser Locations")
+      } else {
+        console.error("Failed to fetch user locations");
+        setUserLocations([]);
+      }
+    } catch (error) {
+      console.error("Error fetching user locations:", error.message);
+      setUserLocations([]); // Reset state on error
+    }
+  };
+
   useEffect(() => {
     setUpdateAppjs(true);
-    console.log(shopWithShopkepper);
+    getUserLocations();
   }, []);
+  const setSelectedLocation = (location) => {
+    setAreaName(location.area);
+    setLocationName(location.name);
+    setCoordinates(location.coordinates);
+    setPosition(location.coordinates); 
+  };
+  const handleSaveLocation = async () => {
+    setLoading(true);
+    if (locationName === "") {
+      alert("Location Name Cannot be Empty");
+      return;
+    }
+    console.log(locationName, coordinates, areaName);
+
+    const payload = {
+      name: locationName,
+      coordinates: coordinates,
+      area: areaName,
+    };
+
+    try {
+      const response = await axios.post(
+        `https://hazir-hay-backend.vercel.app/users/addUserLocation/${user._id}`,
+        payload,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          params: { t: Date.now() }, // Prevent caching
+        }
+      );
+      if (response.data.success) {
+        getUserLocations();
+        alert("Location saved successfully!");
+        setLocationName("");
+        setCoordinates([]);
+        setAreaName("");
+        setLoading(false);
+
+        setSaveLocationsModal(false);
+      } else {
+        alert(response.data.message || "Failed to save location.");
+        setLoading(false);
+      }
+    } catch (error) {
+      console.error("Error saving location:", error);
+      alert("Something went wrong while saving location.");
+      setLoading(false);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deleteUserLocation = async (location) => {
+    setLoading(true);
+
+    try {
+      const response = await axios.delete(
+        `https://hazir-hay-backend.vercel.app/users/deleteUserLocation/${location._id}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          params: { t: Date.now() }, // Prevent caching
+        }
+      );
+
+      if (response.data.success) {
+        alert("Location deleted successfully!");
+        setLoading(false);
+        setUserLocations((prev) =>
+          prev.filter((loc) => loc._id !== location._id)
+        );
+      } else {
+        alert(response.data.message || "Failed to delete location.");
+        setLoading(false);
+      }
+    } catch (error) {
+      console.error("Error deleting location:", error);
+      alert("Server error. Please try again later.");
+      setLoading(false);
+    }
+  };
+  function FlyToLocation({ coordinates }) {
+  const map = useMapEvents({}); // get map instance
+
+  useEffect(() => {
+    if (coordinates && coordinates.length === 2) {
+      map.flyTo(coordinates, 18, {
+        animate: true,
+        duration: 1, // smooth animation (seconds)
+      });
+    }
+  }, [coordinates, map]);
+
+  return null;
+}
+
   useEffect(() => {
     const fetchLocation = async () => {
       if (!navigator.geolocation) {
@@ -132,6 +256,7 @@ function UserDashboard({ shopWithShopkepper, setUpdateAppjs }) {
         const { lat, lng } = e.latlng;
         setPosition([lat, lng]);
         onLocationSelect(lat, lng);
+        setCoordinates([lat, lng]);
 
         console.log("points", lat, lng);
       },
@@ -166,7 +291,7 @@ function UserDashboard({ shopWithShopkepper, setUpdateAppjs }) {
 
   return (
     <div>
-      <div style={{ height: "350px", width: "100%", marginTop: "-70px" }}>
+      <div style={{ height: "400px", width: "100%", marginTop: "-70px" }}>
         <MapContainer
           center={[latitude, longitude]}
           zoom={13}
@@ -174,8 +299,9 @@ function UserDashboard({ shopWithShopkepper, setUpdateAppjs }) {
         >
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
           <LocationPicker onLocationSelect={handleLocationSelect} />
+          <FlyToLocation coordinates={coordinates} />
           {position && <Marker position={position} icon={customIcon} />}
-          {position && (
+          {/* {position && (
             <Circle
               center={position}
               radius={1000}
@@ -185,7 +311,7 @@ function UserDashboard({ shopWithShopkepper, setUpdateAppjs }) {
                 fillOpacity: 0.1,
               }}
             />
-          )}
+          )} */}
           {verifiedShops.map((provider) => {
             const coords = provider?.shop?.location?.coordinates;
 
@@ -253,7 +379,8 @@ function UserDashboard({ shopWithShopkepper, setUpdateAppjs }) {
             style={{ fontSize: "27px" }}
           ></i>
           <p style={{ fontSize: "16px", marginBottom: "-10px" }}>
-          {areaName || "No location found! please click on me to update your location"}
+            {areaName ||
+              "No location found! please click on me to update your location"}
           </p>
         </div>
       </div>
@@ -267,40 +394,117 @@ function UserDashboard({ shopWithShopkepper, setUpdateAppjs }) {
           <div className="modal-dialog modal-lg modal-dialog-centered">
             <div className="modal-content">
               <div className="modal-header">
-                <h5 className="modal-title">Location</h5>
+                <h5 className="modal-title">Choose Address</h5>
                 <button
                   type="button"
                   className="btn-close"
                   onClick={() => setChooseLocationModal(false)}
                 ></button>
               </div>
-              <div className="modal-body" style={{ height: "auto" }}>
-                <div
-                  className="d-flex flex-column justify-content-center align-items-center text-center"
-                  style={{ height: "65vh" }}
-                >
-                  <img
-                    src={location}
-                    alt="No Data"
-                    className="mb-3"
-                    style={{ width: "180px", height: "auto" }}
-                  />
-                  <h4 className="fw-bold text-warning mb-2">
-                    Sorry, No Address Saved!
-                  </h4>
-                  <p
-                    className="text-muted"
-                    style={{ maxWidth: "380px", fontSize: "15px" }}
+              <div className="modal-body" style={{ maxHeight :"550px", overflowY :"auto" }}>
+                {userLocations.length > 0 ? (
+                  <>
+                    <div className="form-floating mb-3">
+                      <textarea
+                        className="form-control mt-1"
+                        name="currentLocation"
+                        id="currentLocationInput"
+                        placeholder="Your Current Location"
+                        value={`${areaName} (${locationName})`}
+                        style={{ height: "100px" }}
+                        disabled={true}
+                      ></textarea>
+                      <label htmlFor="currentLocationInput">
+                        Selected Address (Current)
+                      </label>
+                    </div>
+                    <hr />
+                    <h3 className="text-center">Manage Your Addresses</h3>
+                   <p className="text-center text-muted">
+  Choose your preferred address from the list below for quick access.  
+  You can also add a new address by clicking the <strong>"Add Address"</strong> button below.
+</p>
+
+                    
+
+                    <div className="row g-3">
+                      {userLocations.map((location, index) => (
+                        <div className="col-12" key={index}>
+                          <div
+                            className="card shadow-sm border-0 rounded-3 locationCard"
+                            onClick={() => setSelectedLocation(location)}
+                          >
+                            <div className="card-body d-flex justify-content-between align-items-center">
+                              <div>
+                                <h6 className="fw-bold mb-1 text-primary">
+                                  <i className="fa-solid fa-location-dot me-2 text-danger"></i>
+                                  {location.name}
+                                </h6>
+                                <p
+                                  className="mb-0 text-muted"
+                                  style={{ fontSize: "14px" }}
+                                >
+                                  {location.area}
+                                </p>
+                              </div>
+                              <button
+                                className="btn btn-outline-danger btn-sm"
+                                onClick={() => deleteUserLocation(location)}
+                              >
+                                {loading ? (
+                                  <>
+                                    <div
+                                      className="spinner-border spinner-border-sm text-light ms-2"
+                                      role="status"
+                                    ></div>
+                                  </>
+                                ) : (
+                                  <>
+                                    <i className="fa-solid fa-trash"></i>
+                                  </>
+                                )}
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  <div
+                    className="d-flex flex-column justify-content-center align-items-center text-center"
+                    style={{ height: "65vh" }}
                   >
-                    Sorry, you currently have not saved any address. Please
-                    click the
-                    <strong> "Add Address" </strong> button below to save your
-                    address once for easy access next time.
-                  </p>
-                </div>
-                  <div>
-                    <button className="btn btn-success w-100"><i class="fa-solid fa-map-location-dot me-2"></i>Add Address</button>
+                    <img
+                      src={location}
+                      alt="No Data"
+                      className="mb-3"
+                      style={{ width: "180px", height: "auto" }}
+                    />
+                    <h4 className="fw-bold text-warning mb-2">
+                      Sorry, No Address Saved!
+                    </h4>
+                    <p
+                      className="text-muted"
+                      style={{ maxWidth: "380px", fontSize: "15px" }}
+                    >
+                      Sorry, you currently have not saved any address. Please
+                      click the
+                      <strong> "Add Address" </strong> button below to save your
+                      address once for easy access next time.
+                    </p>
                   </div>
+                )}
+                <div>
+                  <button
+                    className="btn btn-success w-100 mt-3"
+                    onClick={() => setSaveLocationsModal(true)}
+                  >
+                    
+                       <i class="fa-solid fa-map-location-dot me-2"></i>
+                        Add Address
+                  </button>
+                </div>
               </div>
               <div className="modal-footer">
                 <button
@@ -309,6 +513,98 @@ function UserDashboard({ shopWithShopkepper, setUpdateAppjs }) {
                   onClick={() => setChooseLocationModal(false)}
                 >
                   Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {saveLocationsModal && (
+        <div
+          className="modal fade show d-block"
+          tabIndex="-1"
+          style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+        >
+          <div className="modal-dialog modal-lg modal-dialog-centered">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">Add Address</h5>
+                <button
+                  type="button"
+                  className="btn-close"
+                  onClick={() => setSaveLocationsModal(false)}
+                ></button>
+              </div>
+              <div className="modal-body" style={{ height: "auto" }}>
+                <div className="form-floating mb-3">
+                  <input
+                    type="text"
+                    className="form-control"
+                    name="name"
+                    id="nameInput"
+                    value={locationName}
+                    onChange={(e) => setLocationName(e.target.value)}
+                    placeholder="Enter your name"
+                    required
+                  />
+                  <label htmlFor="nameInput">Name</label>
+                </div>
+                <div className="form-floating mb-3">
+                  <textarea
+                    className="form-control mt-1"
+                    name="currentLocation"
+                    id="currentLocationInput"
+                    placeholder="Your Current Location"
+                    value={areaName}
+                    style={{ height: "100px" }}
+                    disabled={true}
+                  ></textarea>
+                  <label htmlFor="currentLocationInput">Current Location</label>
+                </div>
+                <div
+                  style={{ height: "350px", width: "100%", marginTop: "2px" }}
+                >
+                  <MapContainer
+                    center={[latitude, longitude]}
+                    zoom={13}
+                    style={{ height: "100%", width: "100%" }}
+                  >
+                    <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                    <LocationPicker onLocationSelect={handleLocationSelect} />
+                    {position && (
+                      <Marker position={position} icon={customIcon} />
+                    )}
+                  </MapContainer>
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => setSaveLocationsModal(false)}
+                >
+                  Close
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-success"
+                  onClick={handleSaveLocation}
+                >
+                  {loading ? (
+                      <>
+                        Saving...
+                        <div
+                          className="spinner-border spinner-border-sm text-light ms-2"
+                          role="status"
+                        ></div>
+                      </>
+                    ) : (
+                      <>
+                        <i class="fa-solid fa-map-location-dot me-2"></i>
+                         Save Address
+                      </>
+                    )}
+                 
                 </button>
               </div>
             </div>
