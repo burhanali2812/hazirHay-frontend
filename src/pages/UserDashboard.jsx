@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import location from "../images/location.png";
 import {
   MapContainer,
   TileLayer,
@@ -23,6 +24,7 @@ function UserDashboard({ shopWithShopkepper, setUpdateAppjs }) {
   const [loading, setLoading] = useState(false);
   const [verifiedShops, setVerifiedShops] = useState([]);
   const [verifiedLiveShops, setVerifiedLiveShops] = useState([]);
+  const [chooseLocationModal, setChooseLocationModal] = useState(false);
   useEffect(() => {
     setUpdateAppjs(true);
     console.log(shopWithShopkepper);
@@ -163,8 +165,8 @@ function UserDashboard({ shopWithShopkepper, setUpdateAppjs }) {
   };
 
   return (
-    <div className="container">
-      <div style={{ height: "400px", width: "100%" }}>
+    <div>
+      <div style={{ height: "350px", width: "100%", marginTop: "-70px" }}>
         <MapContainer
           center={[latitude, longitude]}
           zoom={13}
@@ -217,15 +219,102 @@ function UserDashboard({ shopWithShopkepper, setUpdateAppjs }) {
         </MapContainer>
       </div>
 
-      <div className="d-flex justify-content-between mt-2">
-        <input
-          className="form-control"
-          type="search"
-          placeholder="Searching your current location..."
-          value={areaName}
-          readOnly
-        />
+      <div
+        className="card bg-light container shadow-sm"
+        style={{
+          marginTop: "-15px",
+          height: "330px",
+          borderTopLeftRadius: "25px",
+          borderTopRightRadius: "20px",
+          border: "1px solid #ddd",
+          padding: "20px",
+        }}
+      >
+        {" "}
+        <span
+          className="mt-1"
+          style={{
+            backgroundColor: "#a5d5f5ff",
+            color: "#010101ff",
+            padding: "8px 12px",
+            borderRadius: "6px",
+            fontSize: "14px",
+          }}
+        >
+          <strong>Note:</strong> You can change your address from the map or
+          click on the address below.
+        </span>
+        <div
+          className="d-flex align-items-center mt-3"
+          onClick={() => setChooseLocationModal(true)}
+        >
+          <i
+            className="fa-solid fa-street-view text-danger me-3"
+            style={{ fontSize: "27px" }}
+          ></i>
+          <p style={{ fontSize: "16px", marginBottom: "-10px" }}>
+          {areaName || "No location found! please click on me to update your location"}
+          </p>
+        </div>
       </div>
+
+      {chooseLocationModal && (
+        <div
+          className="modal fade show d-block"
+          tabIndex="-1"
+          style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+        >
+          <div className="modal-dialog modal-lg modal-dialog-centered">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">Location</h5>
+                <button
+                  type="button"
+                  className="btn-close"
+                  onClick={() => setChooseLocationModal(false)}
+                ></button>
+              </div>
+              <div className="modal-body" style={{ height: "auto" }}>
+                <div
+                  className="d-flex flex-column justify-content-center align-items-center text-center"
+                  style={{ height: "65vh" }}
+                >
+                  <img
+                    src={location}
+                    alt="No Data"
+                    className="mb-3"
+                    style={{ width: "180px", height: "auto" }}
+                  />
+                  <h4 className="fw-bold text-warning mb-2">
+                    Sorry, No Address Saved!
+                  </h4>
+                  <p
+                    className="text-muted"
+                    style={{ maxWidth: "380px", fontSize: "15px" }}
+                  >
+                    Sorry, you currently have not saved any address. Please
+                    click the
+                    <strong> "Add Address" </strong> button below to save your
+                    address once for easy access next time.
+                  </p>
+                </div>
+                  <div>
+                    <button className="btn btn-success w-100"><i class="fa-solid fa-map-location-dot me-2"></i>Add Address</button>
+                  </div>
+              </div>
+              <div className="modal-footer">
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => setChooseLocationModal(false)}
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

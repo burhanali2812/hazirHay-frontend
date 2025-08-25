@@ -180,7 +180,9 @@ function AdminFooter({ topText, setUpdate, setShopKepperStatus }) {
   return (
     <>
       {/* Top Header */}
-      <div className="admin-header fixed-top d-flex justify-content-between align-items-center px-2">
+   {
+    role === "user" ? (""):(
+         <div className="admin-header fixed-top d-flex justify-content-between align-items-center px-2">
         <div className="d-flex align-items-center gap-2">
           <div className="icon-btn bg-primary" onClick={() => navigate(-1)}>
             <i className="fa-solid fa-arrow-left text-white"></i>
@@ -232,6 +234,8 @@ function AdminFooter({ topText, setUpdate, setShopKepperStatus }) {
           </div>
         )}
       </div>
+    )
+   }
 
       {/* Bottom Navigation */}
       <div
