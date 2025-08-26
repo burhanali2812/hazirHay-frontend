@@ -1,5 +1,5 @@
 .locationCard {
-  background-color: #ffffff; /* default background */
+  /* default background */
   border-radius: 12px;
   padding: 16px;
   transition: background-color 0.3s ease, transform 0.2s ease;
@@ -15,6 +15,6 @@
 
 /* Click (active) effect */
 .locationCard:active {
-  background-color: #d0d0d0; /* darker blue */
+  background-color: #ffffff; /* darker blue */
   transform: scale(0.98);
 }

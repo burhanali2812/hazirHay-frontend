@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import location from "../images/location.png";
-import "./style.css"
+import "./style.css";
 import {
   MapContainer,
   TileLayer,
@@ -10,12 +10,12 @@ import {
   Circle,
   Popup,
   Tooltip,
-
 } from "react-leaflet";
 import markerIcon from "leaflet/dist/images/marker-icon.png";
 import markerShadow from "leaflet/dist/images/marker-shadow.png";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
+import { services } from "../components/servicesData";
 function UserDashboard({ shopWithShopkepper, setUpdateAppjs }) {
   const token = localStorage.getItem("token");
   const [position, setPosition] = useState([33.6844, 73.0479]);
@@ -30,6 +30,8 @@ function UserDashboard({ shopWithShopkepper, setUpdateAppjs }) {
   const [userLocations, setUserLocations] = useState([]);
   const [saveLocationsModal, setSaveLocationsModal] = useState(false);
   const [locationName, setLocationName] = useState("");
+  const [selectedSubCategory, setSelectedSubCategory] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState(null);
 
   const user = JSON.parse(localStorage.getItem("user"));
 
@@ -64,7 +66,7 @@ function UserDashboard({ shopWithShopkepper, setUpdateAppjs }) {
     setAreaName(location.area);
     setLocationName(location.name);
     setCoordinates(location.coordinates);
-    setPosition(location.coordinates); 
+    setPosition(location.coordinates);
   };
   const handleSaveLocation = async () => {
     setLoading(true);
@@ -140,33 +142,31 @@ function UserDashboard({ shopWithShopkepper, setUpdateAppjs }) {
     }
   };
   function FlyToLocation({ coordinates }) {
-  const map = useMapEvents({}); 
+    const map = useMapEvents({});
 
-  useEffect(() => {
-    if (coordinates && coordinates.length === 2) {
-      map.flyTo(coordinates, 18, {
-        animate: true,
-        duration: 1, // smooth animation (seconds)
-      });
-    }
-  }, [coordinates, map]);
+    useEffect(() => {
+      if (coordinates && coordinates.length === 2) {
+        map.flyTo(coordinates, 16, {
+          animate: true,
+          duration: 1, // smooth animation (seconds)
+        });
+      }
+    }, [coordinates, map]);
 
-  return null;
-}
-function FlyToUser({ position }) {
-  const map = useMapEvents({}); // or useMap()
-  useEffect(() => {
-    if (position && position.length === 2) {
-      map.flyTo(position, 18, {
-        animate: true,
-        duration: 1,
-      });
-    }
-  }, [position, map]);
-  return null;
-}
-
-
+    return null;
+  }
+  function FlyToUser({ position }) {
+    const map = useMapEvents({}); // or useMap()
+    useEffect(() => {
+      if (position && position.length === 2) {
+        map.flyTo(position, 16, {
+          animate: true,
+          duration: 1,
+        });
+      }
+    }, [position, map]);
+    return null;
+  }
 
   useEffect(() => {
     const fetchLocation = async () => {
@@ -303,10 +303,14 @@ function FlyToUser({ position }) {
     const name = await fetchAreaName(lat, lon);
     setAreaName(name);
   };
+  const handleCategoryChange = (e) => {
+    setSelectedCategory(e.target.value);
+    setSelectedSubCategory("");
+  };
 
   return (
     <div>
-      <div style={{ height: "400px", width: "100%", marginTop: "-70px" }}>
+      <div style={{ height: "400px", width: "100%", marginTop: "-68px" }}>
         <MapContainer
           center={[latitude, longitude]}
           zoom={13}
@@ -365,7 +369,7 @@ function FlyToUser({ position }) {
         className="card bg-light container shadow-sm"
         style={{
           marginTop: "-15px",
-          height: "330px",
+          height: "350px",
           borderTopLeftRadius: "25px",
           borderTopRightRadius: "20px",
           border: "1px solid #ddd",
@@ -395,10 +399,48 @@ function FlyToUser({ position }) {
             style={{ fontSize: "27px" }}
           ></i>
           <p style={{ fontSize: "16px", marginBottom: "-10px" }}>
-            {areaName ||
-              "No location found! please click on me to update your location"}
+            {areaName
+              ? areaName.length > 58
+                ? areaName.slice(0, 58) + "..."
+                : areaName
+              : "No location found! please click on me to update your location"}
           </p>
         </div>
+        <div style={{ marginTop: "30px" }}>
+          <div>
+            <select
+              className="form-select mb-2 bg-info"
+              value={selectedCategory}
+              onChange={handleCategoryChange}
+            >
+              <option value="">Select Category</option>
+              {services.map((cat, index) => (
+                <option key={index} value={cat.category}>
+                  {cat.category}
+                </option>
+              ))}
+            </select>
+            <select
+              className="form-select mb-3 bg-info"
+              value={selectedSubCategory}
+              onChange={(e) => {
+                setSelectedSubCategory(e.target.value);
+              }}
+              disabled={!selectedCategory}
+            >
+              <option value="">Select Sub-category</option>
+              {services
+                .find((cat) => cat.category === selectedCategory)
+                ?.subcategories.map((sub, index) => (
+                  <option key={index} value={sub}>
+                    {sub}
+                  </option>
+                ))}
+            </select>
+          </div>
+        </div>
+
+        <button className="btn btn-success mt-3"><i class="fa-solid fa-screwdriver-wrench me-2"></i>Request Services Provider</button>
       </div>
 
       {chooseLocationModal && (
@@ -417,7 +459,10 @@ function FlyToUser({ position }) {
                   onClick={() => setChooseLocationModal(false)}
                 ></button>
               </div>
-              <div className="modal-body" style={{ maxHeight :"550px", overflowY :"auto" }}>
+              <div
+                className="modal-body"
+                style={{ maxHeight: "550px", overflowY: "auto" }}
+              >
                 {userLocations.length > 0 ? (
                   <>
                     <div className="form-floating mb-3">
@@ -436,23 +481,22 @@ function FlyToUser({ position }) {
                     </div>
                     <hr />
                     <h3 className="text-center">Manage Your Addresses</h3>
-                   <p className="text-center text-muted">
-  Choose your preferred address from the list below for quick access.  
-  You can also add a new address by clicking the <strong>"Add Address"</strong> button below.
-</p>
-
-                    
+                    <p className="text-center text-muted">
+                      Choose your preferred address from the list below for
+                      quick access. You can also add a new address by clicking
+                      the <strong>"Add Address"</strong> button below.
+                    </p>
 
                     <div className="row g-3">
                       {userLocations.map((location, index) => (
                         <div className="col-12" key={index}>
                           <div
-                            className="card shadow-sm border-0 rounded-3 locationCard"
+                            className="card shadow-sm border-0 rounded-3 locationCard bg-info"
                             onClick={() => setSelectedLocation(location)}
                           >
                             <div className="card-body d-flex justify-content-between align-items-center">
                               <div>
-                                <h6 className="fw-bold mb-1 text-primary">
+                                <h6 className="fw-bold mb-1 text-light">
                                   <i className="fa-solid fa-location-dot me-2 text-danger"></i>
                                   {location.name}
                                 </h6>
@@ -489,7 +533,7 @@ function FlyToUser({ position }) {
                 ) : (
                   <div
                     className="d-flex flex-column justify-content-center align-items-center text-center"
-                    style={{ height: "65vh" }}
+                    style={{ height: "65vh" , marginTop : "-65px"}}
                   >
                     <img
                       src={location}
@@ -516,9 +560,8 @@ function FlyToUser({ position }) {
                     className="btn btn-success w-100 mt-3"
                     onClick={() => setSaveLocationsModal(true)}
                   >
-                    
-                       <i class="fa-solid fa-map-location-dot me-2"></i>
-                        Add Address
+                    <i class="fa-solid fa-map-location-dot me-2"></i>
+                    Add Address
                   </button>
                 </div>
               </div>
@@ -607,20 +650,19 @@ function FlyToUser({ position }) {
                   onClick={handleSaveLocation}
                 >
                   {loading ? (
-                      <>
-                        Saving...
-                        <div
-                          className="spinner-border spinner-border-sm text-light ms-2"
-                          role="status"
-                        ></div>
-                      </>
-                    ) : (
-                      <>
-                        <i class="fa-solid fa-map-location-dot me-2"></i>
-                         Save Address
-                      </>
-                    )}
-                 
+                    <>
+                      Saving...
+                      <div
+                        className="spinner-border spinner-border-sm text-light ms-2"
+                        role="status"
+                      ></div>
+                    </>
+                  ) : (
+                    <>
+                      <i class="fa-solid fa-map-location-dot me-2"></i>
+                      Save Address
+                    </>
+                  )}
                 </button>
               </div>
             </div>

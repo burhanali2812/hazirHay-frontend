@@ -241,7 +241,7 @@ function AdminFooter({ topText, setUpdate, setShopKepperStatus }) {
       <div
         className="card fixed-bottom py-1"
         style={{
-          background: "transparent",
+          background: "white",
           borderTop: "2px solid  #ff6600", // Top border
           boxShadow: "none",
         }}
