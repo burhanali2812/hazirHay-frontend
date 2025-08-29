@@ -35,9 +35,15 @@ function UserDashboard({ shopWithShopkepper, setUpdateAppjs }) {
   const [selectedSubCategory, setSelectedSubCategory] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const user = JSON.parse(sessionStorage.getItem("user"));
-  const socket = io("http://localhost:5000");
-
+ const socket = io("https://hazir-hay-backend.wckd.pk", {
+  transports: ["websocket"], // force WebSocket for stability
+  reconnection: true,        // enable reconnection
+  reconnectionAttempts: 5,   // retry up to 5 times
+  reconnectionDelay: 2000,   // wait 2 seconds before retrying
+});
   const sendRequestDataToSocket = () => {
+
+    
     const payLoad = {
       category: selectedCategory,
       subcategory: selectedSubCategory,
@@ -323,7 +329,7 @@ function UserDashboard({ shopWithShopkepper, setUpdateAppjs }) {
 
   return (
     <div>
-      <div style={{ height: "300px", width: "100%", marginTop: "-68px" }}>
+      <div style={{ height: "400px", width: "100%"}}>
         <MapContainer
           center={[latitude, longitude]}
           zoom={13}
@@ -382,7 +388,7 @@ function UserDashboard({ shopWithShopkepper, setUpdateAppjs }) {
         className="card bg-light container shadow-sm"
         style={{
           marginTop: "-35px",
-          height: "350px",
+          height: "400px",
           borderTopLeftRadius: "25px",
           borderTopRightRadius: "20px",
           border: "1px solid #ddd",

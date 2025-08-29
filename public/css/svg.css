@@ -102,7 +102,7 @@
   line-height: var(--fa-counter-line-height, 1);
   max-width: var(--fa-counter-max-width, 5em);
   min-width: var(--fa-counter-min-width, 1.5em);
-  overflow: hidden;
+   overflow-y: auto;;
   padding: var(--fa-counter-padding, 0.25em 0.5em);
   right: var(--fa-right, 0);
   text-overflow: ellipsis;

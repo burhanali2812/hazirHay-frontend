@@ -5,7 +5,12 @@ import axios from "axios";
 
 import noData from "../images/noData.png";
 function ShopkepperRequests() {
-  const socket = io("http://localhost:5000");
+   const socket = io("https://hazir-hay-backend.wckd.pk", {
+    transports: ["websocket"], // force WebSocket for stability
+    reconnection: true,        // enable reconnection
+    reconnectionAttempts: 5,   // retry up to 5 times
+    reconnectionDelay: 2000,   // wait 2 seconds before retrying
+  });
   const shopKepperStatus = JSON.parse(localStorage.getItem("shopKepperStatus"));
   const user = JSON.parse(sessionStorage.getItem("user"));
   const [requests, setRequests] = useState([]);
