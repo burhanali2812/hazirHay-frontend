@@ -36,10 +36,10 @@ function UserDashboard({ shopWithShopkepper, setUpdateAppjs }) {
   const [selectedCategory, setSelectedCategory] = useState(null);
   const user = JSON.parse(sessionStorage.getItem("user"));
  const socket = io("https://hazir-hay-backend.wckd.pk", {
-  transports: ["websocket"], // force WebSocket for stability
-  reconnection: true,        // enable reconnection
-  reconnectionAttempts: 5,   // retry up to 5 times
-  reconnectionDelay: 2000,   // wait 2 seconds before retrying
+  transports: ["websocket"],
+  reconnection: true,
+  reconnectionAttempts: 5,
+  reconnectionDelay: 2000,
 });
   const sendRequestDataToSocket = () => {
 
@@ -53,7 +53,22 @@ function UserDashboard({ shopWithShopkepper, setUpdateAppjs }) {
 
     socket.emit("sendRequestData", payLoad);
     console.log("Request sent to server", payLoad);
+   
   };
+  useEffect(() => {
+  socket.once("requestStatus", (data) => {
+    console.log("📩 Received from server:", data);
+    if (data.success) {
+      alert(data.message || "Request sent to matching providers.");
+    } else {
+      alert(data.message || "Failed to send request.");
+    }
+  });
+  return () => {
+    socket.off("requestStatus");
+  };
+}, []);
+
 
   const getUserLocations = async () => {
     try {
