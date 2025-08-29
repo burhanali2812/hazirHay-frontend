@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import location from "../images/location.png";
 import "./style.css";
+import { io } from "socket.io-client";
+
 import {
   MapContainer,
   TileLayer,
@@ -32,13 +34,25 @@ function UserDashboard({ shopWithShopkepper, setUpdateAppjs }) {
   const [locationName, setLocationName] = useState("");
   const [selectedSubCategory, setSelectedSubCategory] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const user = JSON.parse(sessionStorage.getItem("user"));
+  const socket = io("http://localhost:5000");
 
-  const user = JSON.parse(localStorage.getItem("user"));
+  const sendRequestDataToSocket = () => {
+    const payLoad = {
+      category: selectedCategory,
+      subcategory: selectedSubCategory,
+      coordinates: coordinates,
+      user: user,
+    };
+
+    socket.emit("sendRequestData", payLoad);
+    console.log("Request sent to server", payLoad);
+  };
 
   const getUserLocations = async () => {
     try {
       const response = await axios.get(
-        `https://hazir-hay-backend.vercel.app/users/getUserById/${user._id}`,
+        `https://hazir-hay-backend.wckd.pk/users/getUserById/${user._id}`,
         {
           headers: { Authorization: `Bearer ${token}` },
           params: { t: Date.now() }, // Prevent caching
@@ -74,7 +88,6 @@ function UserDashboard({ shopWithShopkepper, setUpdateAppjs }) {
       alert("Location Name Cannot be Empty");
       return;
     }
-    console.log(locationName, coordinates, areaName);
 
     const payload = {
       name: locationName,
@@ -84,7 +97,7 @@ function UserDashboard({ shopWithShopkepper, setUpdateAppjs }) {
 
     try {
       const response = await axios.post(
-        `https://hazir-hay-backend.vercel.app/users/addUserLocation/${user._id}`,
+        `https://hazir-hay-backend.wckd.pk/users/addUserLocation/${user._id}`,
         payload,
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -118,7 +131,7 @@ function UserDashboard({ shopWithShopkepper, setUpdateAppjs }) {
 
     try {
       const response = await axios.delete(
-        `https://hazir-hay-backend.vercel.app/users/deleteUserLocation/${location._id}`,
+        `https://hazir-hay-backend.wckd.pk/users/deleteUserLocation/${location._id}`,
         {
           headers: { Authorization: `Bearer ${token}` },
           params: { t: Date.now() }, // Prevent caching
@@ -148,7 +161,7 @@ function UserDashboard({ shopWithShopkepper, setUpdateAppjs }) {
       if (coordinates && coordinates.length === 2) {
         map.flyTo(coordinates, 16, {
           animate: true,
-          duration: 1, // smooth animation (seconds)
+          duration: 1,
         });
       }
     }, [coordinates, map]);
@@ -156,7 +169,7 @@ function UserDashboard({ shopWithShopkepper, setUpdateAppjs }) {
     return null;
   }
   function FlyToUser({ position }) {
-    const map = useMapEvents({}); // or useMap()
+    const map = useMapEvents({});
     useEffect(() => {
       if (position && position.length === 2) {
         map.flyTo(position, 16, {
@@ -187,7 +200,7 @@ function UserDashboard({ shopWithShopkepper, setUpdateAppjs }) {
 
           try {
             const response = await axios.get(
-              "https://hazir-hay-backend.vercel.app/admin/reverse-geocode",
+              "https://hazir-hay-backend.wckd.pk/admin/reverse-geocode",
               { params: { lat, lon } }
             );
 
@@ -226,7 +239,7 @@ function UserDashboard({ shopWithShopkepper, setUpdateAppjs }) {
     setLoading(true);
     try {
       const response = await axios.get(
-        "https://hazir-hay-backend.vercel.app/shopKeppers/allVerifiedShopkepperWithShops",
+        "https://hazir-hay-backend.wckd.pk/shopKeppers/allVerifiedShopkepperWithShops",
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -281,7 +294,7 @@ function UserDashboard({ shopWithShopkepper, setUpdateAppjs }) {
   const fetchAreaName = async (lat, lon) => {
     try {
       const response = await axios.get(
-        "https://hazir-hay-backend.vercel.app/admin/reverse-geocode",
+        "https://hazir-hay-backend.wckd.pk/admin/reverse-geocode",
         { params: { lat: lat, lon: lon } }
       );
 
@@ -310,7 +323,7 @@ function UserDashboard({ shopWithShopkepper, setUpdateAppjs }) {
 
   return (
     <div>
-      <div style={{ height: "400px", width: "100%", marginTop: "-68px" }}>
+      <div style={{ height: "300px", width: "100%", marginTop: "-68px" }}>
         <MapContainer
           center={[latitude, longitude]}
           zoom={13}
@@ -368,7 +381,7 @@ function UserDashboard({ shopWithShopkepper, setUpdateAppjs }) {
       <div
         className="card bg-light container shadow-sm"
         style={{
-          marginTop: "-15px",
+          marginTop: "-35px",
           height: "350px",
           borderTopLeftRadius: "25px",
           borderTopRightRadius: "20px",
@@ -378,7 +391,7 @@ function UserDashboard({ shopWithShopkepper, setUpdateAppjs }) {
       >
         {" "}
         <span
-          className="mt-1"
+          className="mt-4"
           style={{
             backgroundColor: "#a5d5f5ff",
             color: "#010101ff",
@@ -391,12 +404,12 @@ function UserDashboard({ shopWithShopkepper, setUpdateAppjs }) {
           click on the address below.
         </span>
         <div
-          className="d-flex align-items-center mt-3"
+          className="d-flex align-items-center mt-2"
           onClick={() => setChooseLocationModal(true)}
         >
           <i
             className="fa-solid fa-street-view text-danger me-3"
-            style={{ fontSize: "27px" }}
+            style={{ fontSize: "25px" }}
           ></i>
           <p style={{ fontSize: "16px", marginBottom: "-10px" }}>
             {areaName
@@ -406,7 +419,7 @@ function UserDashboard({ shopWithShopkepper, setUpdateAppjs }) {
               : "No location found! please click on me to update your location"}
           </p>
         </div>
-        <div style={{ marginTop: "30px" }}>
+        <div style={{ marginTop: "17px" }}>
           <div>
             <select
               className="form-select mb-2 bg-info"
@@ -439,8 +452,28 @@ function UserDashboard({ shopWithShopkepper, setUpdateAppjs }) {
             </select>
           </div>
         </div>
-
-        <button className="btn btn-success mt-3"><i class="fa-solid fa-screwdriver-wrench me-2"></i>Request Services Provider</button>
+        <p
+          style={{ fontSize: "16px", color: "#333", fontWeight: 500 }}
+          className="text-center mb-0"
+        >
+          <i
+            className="fas fa-motorcycle"
+            style={{ color: "#ff9800", marginRight: "5px" }}
+          ></i>
+          Service Charges:
+          <span
+            style={{ color: "#007bff", fontWeight: "bold", marginLeft: "5px" }}
+          >
+            Rs. 15/km
+          </span>
+        </p>
+        <button
+          className="btn btn-success mt-1"
+          onClick={sendRequestDataToSocket}
+        >
+          <i class="fa-solid fa-screwdriver-wrench me-2"></i>Request Services
+          Provider
+        </button>
       </div>
 
       {chooseLocationModal && (
@@ -533,7 +566,7 @@ function UserDashboard({ shopWithShopkepper, setUpdateAppjs }) {
                 ) : (
                   <div
                     className="d-flex flex-column justify-content-center align-items-center text-center"
-                    style={{ height: "65vh" , marginTop : "-65px"}}
+                    style={{ height: "65vh", marginTop: "-65px" }}
                   >
                     <img
                       src={location}

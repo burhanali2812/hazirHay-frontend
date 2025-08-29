@@ -8,7 +8,7 @@ import imageCompression from "browser-image-compression";
 import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import successAudio from "../sounds/success.mp3";
 
-function Signup({onUserAdded, onShopKepperAdded}) {
+function Signup({ onUserAdded, onShopKepperAdded }) {
   const role = localStorage.getItem("role");
   const navigate = useNavigate();
   const [formData1, setFormData] = useState({
@@ -148,7 +148,7 @@ function Signup({onUserAdded, onShopKepperAdded}) {
 
     try {
       const response = await axios.post(
-        "https://hazir-hay-backend.vercel.app/admin/saveUser",
+        "https://hazir-hay-backend.wckd.pk/admin/saveUser",
         formData,
         { headers: { "Content-Type": "multipart/form-data" } }
       );
@@ -178,7 +178,7 @@ function Signup({onUserAdded, onShopKepperAdded}) {
   useEffect(() => {
     if (successAnimation) {
       const audio = new Audio(successAudio);
-      audio.play().catch(err => {
+      audio.play().catch((err) => {
         console.error("Autoplay blocked:", err);
       });
     }
@@ -517,7 +517,6 @@ function Signup({onUserAdded, onShopKepperAdded}) {
                 style={{ top: 10, right: 15 }}
                 onClick={() => navigate("/login")}
               ></button>
-            
 
               <DotLottieReact
                 src="https://lottie.host/d78f201d-181a-450c-803f-43ab471ef7f1/ENnJonrsix.lottie"

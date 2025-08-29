@@ -1,5 +1,5 @@
 import axios from "axios";
-import  { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 import noData from "../images/noData.png";
 import { toast, ToastContainer } from "react-toastify";
@@ -8,7 +8,7 @@ import { MapContainer, TileLayer, Marker, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 
-function Requests({ setTopText , setUpdate}) {
+function Requests({ setTopText, setUpdate }) {
   useEffect(() => {
     setTopText("Requests");
   }, [setTopText]);
@@ -28,7 +28,7 @@ function Requests({ setTopText , setUpdate}) {
     if (selectedShopWithKeep?.shop?.location?.coordinates) {
       const coords = selectedShopWithKeep.shop.location.coordinates;
       console.log("Raw from DB:", coords);
-      setPoints(coords); 
+      setPoints(coords);
     }
   }, [selectedShopWithKeep]);
 
@@ -54,7 +54,7 @@ function Requests({ setTopText , setUpdate}) {
     setLoading(true);
     try {
       const response = await axios.get(
-        "https://hazir-hay-backend.vercel.app/shopKeppers/allShopkepperWithShops",
+        "https://hazir-hay-backend.wckd.pk/shopKeppers/allShopkepperWithShops",
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -105,7 +105,7 @@ function Requests({ setTopText , setUpdate}) {
 
     try {
       const response = await axios.put(
-        `https://hazir-hay-backend.vercel.app/shopKeppers/verifyShopKepper/${shopWithKeep._id}`,
+        `https://hazir-hay-backend.wckd.pk/shopKeppers/verifyShopKepper/${shopWithKeep._id}`,
         payload,
         {
           headers: {
@@ -116,7 +116,7 @@ function Requests({ setTopText , setUpdate}) {
 
       if (response.status === 200) {
         toast.success("Shopkeeper verified successfully");
-        setUpdate(true)
+        setUpdate(true);
         setAcceptLoadingId(null);
         getShopWithShopkeppers();
         return true;
@@ -223,10 +223,9 @@ function Requests({ setTopText , setUpdate}) {
                             </span>
                           ) : (
                             <>
-                             <i class="fa-solid fa-circle-check me-1"></i>
-                             Accept
+                              <i class="fa-solid fa-circle-check me-1"></i>
+                              Accept
                             </>
-                           
                           )}
                         </button>
 
@@ -245,8 +244,8 @@ function Requests({ setTopText , setUpdate}) {
                             </span>
                           ) : (
                             <>
-                             <i class="fa-solid fa-trash me-1"></i>
-                             Delete
+                              <i class="fa-solid fa-trash me-1"></i>
+                              Delete
                             </>
                           )}
                         </button>
@@ -266,8 +265,8 @@ function Requests({ setTopText , setUpdate}) {
                             </span>
                           ) : (
                             <>
-                             <i class="fa-solid fa-circle-info me-1"></i>
-                             Details
+                              <i class="fa-solid fa-circle-info me-1"></i>
+                              Details
                             </>
                           )}
                         </button>

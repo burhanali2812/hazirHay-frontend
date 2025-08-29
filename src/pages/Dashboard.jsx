@@ -2,28 +2,30 @@ import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { useNavigate} from "react-router-dom";
-function Dashboard({ setTopText , totalUser, totalShopkepper, totalActiveShopkepper, totalLiveShopkepper, setUpdate, setUpdateAppjs}) {
+import { useNavigate } from "react-router-dom";
+function Dashboard({
+  setTopText,
+  totalUser,
+  totalShopkepper,
+  totalActiveShopkepper,
+  totalLiveShopkepper,
+  setUpdate,
+  setUpdateAppjs,
+}) {
   const token = localStorage.getItem("token");
   const navigate = useNavigate();
 
-
   const [totalShops, setTotalShops] = useState([]);
 
-  useEffect(()=>{
-    setUpdate(true)
-    setUpdateAppjs(true)
-  },[])
+  useEffect(() => {
+    setUpdate(true);
+    setUpdateAppjs(true);
+  }, []);
 
-
-
-
-
-
-   const getAllShop = async () => {
+  const getAllShop = async () => {
     try {
       const response = await axios.get(
-        "https://hazir-hay-backend.vercel.app/shops/getAllShops",
+        "https://hazir-hay-backend.wckd.pk/shops/getAllShops",
         {
           headers: { Authorization: `Bearer ${token}` },
           params: { t: Date.now() },
@@ -98,14 +100,21 @@ function Dashboard({ setTopText , totalUser, totalShopkepper, totalActiveShopkep
               className="mb-0 fw-bold text-muted"
               style={{ minWidth: "45px", textAlign: "right" }}
             >
-              {Math.round((totalLiveShopkepper.length / totalActiveShopkepper.length) * 100)}%
+              {Math.round(
+                (totalLiveShopkepper.length / totalActiveShopkepper.length) *
+                  100
+              )}
+              %
             </p>
 
             <div
               className="progress flex-grow-1"
               role="progressbar"
               aria-label="Live Shopkeepers Progress"
-              aria-valuenow={(totalLiveShopkepper.length / totalActiveShopkepper.length) * 100}
+              aria-valuenow={
+                (totalLiveShopkepper.length / totalActiveShopkepper.length) *
+                100
+              }
               aria-valuemin="0"
               aria-valuemax={target}
               style={{ height: "13px" }}
@@ -113,12 +122,19 @@ function Dashboard({ setTopText , totalUser, totalShopkepper, totalActiveShopkep
               <div
                 className="progress-bar progress-bar-striped progress-bar-animated bg-success"
                 style={{
-                  width: `${(totalLiveShopkepper.length / totalActiveShopkepper.length) * 100}%`,
+                  width: `${
+                    (totalLiveShopkepper.length /
+                      totalActiveShopkepper.length) *
+                    100
+                  }%`,
                 }}
               ></div>
             </div>
 
-            <button className="btn btn-sm btn-light border rounded-pill ms-1 px-3" disabled={totalLiveShopkepper.length === 0}>
+            <button
+              className="btn btn-sm btn-light border rounded-pill ms-1 px-3"
+              disabled={totalLiveShopkepper.length === 0}
+            >
               <i
                 className="fa-solid fa-circle text-success me-1"
                 style={{ fontSize: "10px" }}
@@ -134,80 +150,78 @@ function Dashboard({ setTopText , totalUser, totalShopkepper, totalActiveShopkep
       </h5>
 
       <div className="d-flex justify-content-around mt-3 ">
-  <div className="text-center">
-    <button
-      className="btn btn-primary rounded-circle d-flex align-items-center justify-content-center"
-      style={{ width: "40px", height: "40px" }}
-      onClick={() => navigate("/admin/users")}
-    >
-      <i className="fa-solid fa-user"></i>
-    </button>
-    <p className="mt-1 small text-muted fw-bold">Users</p>
-  </div>
+        <div className="text-center">
+          <button
+            className="btn btn-primary rounded-circle d-flex align-items-center justify-content-center"
+            style={{ width: "40px", height: "40px" }}
+            onClick={() => navigate("/admin/users")}
+          >
+            <i className="fa-solid fa-user"></i>
+          </button>
+          <p className="mt-1 small text-muted fw-bold">Users</p>
+        </div>
 
-  <div className="text-center">
-    <button
-      className="btn btn-primary rounded-circle d-flex align-items-center justify-content-center ms-4"
-      style={{ width: "40px", height: "40px" }}
-    >
-      <i className="fa-solid fa-user-tie"></i>
-    </button>
-    <p className="mt-1 small text-muted fw-bold">Shopkeepers</p>
-  </div>
+        <div className="text-center">
+          <button
+            className="btn btn-primary rounded-circle d-flex align-items-center justify-content-center ms-4"
+            style={{ width: "40px", height: "40px" }}
+          >
+            <i className="fa-solid fa-user-tie"></i>
+          </button>
+          <p className="mt-1 small text-muted fw-bold">Shopkeepers</p>
+        </div>
 
-  <div className="text-center">
-    <button
-      className="btn btn-primary rounded-circle d-flex align-items-center justify-content-center"
-      style={{ width: "40px", height: "40px" }}
-    >
-      <i className="fa-solid fa-shop"></i>
-    </button>
-    <p className="mt-1 small text-muted fw-bold">Shops</p>
-  </div>
+        <div className="text-center">
+          <button
+            className="btn btn-primary rounded-circle d-flex align-items-center justify-content-center"
+            style={{ width: "40px", height: "40px" }}
+          >
+            <i className="fa-solid fa-shop"></i>
+          </button>
+          <p className="mt-1 small text-muted fw-bold">Shops</p>
+        </div>
 
-  <div className="text-center ms-3">
-    <button
-      className="btn btn-primary rounded-circle d-flex align-items-center justify-content-center ms-2"
-      style={{ width: "40px", height: "40px" }}
-    >
-      <i className="fa-solid fa-calendar-check"></i>
-    </button>
-    <p className="mt-1 small text-muted fw-bold">Booking</p>
-  </div>
-</div>
-
-      <div className="card shadow-sm border-0 rounded-4 p-3 mt-2">
-  {/* Total Users */}
-  <div className="d-flex align-items-center mb-3">
-    <div className="me-2 text-primary">
-      <i className="fa-solid fa-user fs-6"></i>
-    </div>
-    <div className="flex-grow-1">
-      <div className="d-flex justify-content-between mb-1">
-        <span className="fw-semibold small text-muted">Total Users</span>
-        <span className="fw-bold small">{totalUser.length}</span>
-      </div>
-      <div
-        className="progress"
-        style={{ height: "13px" }}
-        role="progressbar"
-        aria-valuenow={totalUser.length}
-        aria-valuemin="0"
-        aria-valuemax={target}
-      >
-        <div
-          className="progress-bar progress-bar-striped progress-bar-animated bg-primary d-flex align-items-center justify-content-center fw-semibold"
-          style={{ width: `${(totalUser.length / target) * 100}%` }}
-        >
-          {Math.round((totalUser.length / target) * 100)}%
+        <div className="text-center ms-3">
+          <button
+            className="btn btn-primary rounded-circle d-flex align-items-center justify-content-center ms-2"
+            style={{ width: "40px", height: "40px" }}
+          >
+            <i className="fa-solid fa-calendar-check"></i>
+          </button>
+          <p className="mt-1 small text-muted fw-bold">Booking</p>
         </div>
       </div>
-    </div>
-  </div>
-  
 
+      <div className="card shadow-sm border-0 rounded-4 p-3 mt-2">
+        {/* Total Users */}
+        <div className="d-flex align-items-center mb-3">
+          <div className="me-2 text-primary">
+            <i className="fa-solid fa-user fs-6"></i>
+          </div>
+          <div className="flex-grow-1">
+            <div className="d-flex justify-content-between mb-1">
+              <span className="fw-semibold small text-muted">Total Users</span>
+              <span className="fw-bold small">{totalUser.length}</span>
+            </div>
+            <div
+              className="progress"
+              style={{ height: "13px" }}
+              role="progressbar"
+              aria-valuenow={totalUser.length}
+              aria-valuemin="0"
+              aria-valuemax={target}
+            >
+              <div
+                className="progress-bar progress-bar-striped progress-bar-animated bg-primary d-flex align-items-center justify-content-center fw-semibold"
+                style={{ width: `${(totalUser.length / target) * 100}%` }}
+              >
+                {Math.round((totalUser.length / target) * 100)}%
+              </div>
+            </div>
+          </div>
+        </div>
 
-  {/* <div className="d-flex align-items-center mb-3">
+        {/* <div className="d-flex align-items-center mb-3">
     <div className="me-2 text-success">
       <i className="fa-solid fa-user-tie fs-6"></i>
     </div>
@@ -233,63 +247,66 @@ function Dashboard({ setTopText , totalUser, totalShopkepper, totalActiveShopkep
       </div>
     </div>
   </div> */}
-  <div className="d-flex align-items-center">
-    <div className="me-2 text-warning">
-      <i className="fa-solid fa-user-check fs-6"></i>
-    </div>
-    <div className="flex-grow-1">
-      <div className="d-flex justify-content-between mb-1">
-        <span className="fw-semibold small text-muted">Active Shopkeepers</span>
-        <span className="fw-bold small">{totalActiveShopkepper.length}</span>
-      </div>
-      <div
-        className="progress"
-        style={{ height: "13px" }}
-        role="progressbar"
-        aria-valuenow={totalActiveShopkepper.length}
-        aria-valuemin="0"
-        aria-valuemax={target}
-      >
-        <div
-          className="progress-bar progress-bar-striped progress-bar-animated bg-warning d-flex align-items-center justify-content-center fw-semibold"
-          style={{ width: `${(totalActiveShopkepper.length / target) * 100}%` }}
-        >
-          {Math.round((totalActiveShopkepper.length / target) * 100)}%
+        <div className="d-flex align-items-center">
+          <div className="me-2 text-warning">
+            <i className="fa-solid fa-user-check fs-6"></i>
+          </div>
+          <div className="flex-grow-1">
+            <div className="d-flex justify-content-between mb-1">
+              <span className="fw-semibold small text-muted">
+                Active Shopkeepers
+              </span>
+              <span className="fw-bold small">
+                {totalActiveShopkepper.length}
+              </span>
+            </div>
+            <div
+              className="progress"
+              style={{ height: "13px" }}
+              role="progressbar"
+              aria-valuenow={totalActiveShopkepper.length}
+              aria-valuemin="0"
+              aria-valuemax={target}
+            >
+              <div
+                className="progress-bar progress-bar-striped progress-bar-animated bg-warning d-flex align-items-center justify-content-center fw-semibold"
+                style={{
+                  width: `${(totalActiveShopkepper.length / target) * 100}%`,
+                }}
+              >
+                {Math.round((totalActiveShopkepper.length / target) * 100)}%
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="d-flex align-items-center mt-3">
+          <div className="me-2 text-info">
+            <i className="fa-solid fa-shop fs-6"></i>
+          </div>
+          <div className="flex-grow-1">
+            <div className="d-flex justify-content-between mb-1">
+              <span className="fw-semibold small text-muted">Total Shops</span>
+              <span className="fw-bold small">{totalShops.length}</span>
+            </div>
+            <div
+              className="progress"
+              style={{ height: "13px" }}
+              role="progressbar"
+              aria-valuenow={totalShops.length}
+              aria-valuemin="0"
+              aria-valuemax={target}
+            >
+              <div
+                className="progress-bar progress-bar-striped progress-bar-animated bg-info text-light d-flex align-items-center justify-content-center fw-semibold"
+                style={{ width: `${(totalShops.length / target) * 100}%` }}
+              >
+                {Math.round((totalShops.length / target) * 100)}%
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
-  </div>
-
-    <div className="d-flex align-items-center mt-3">
-    <div className="me-2 text-info">
-      <i className="fa-solid fa-shop fs-6"></i>
-    </div>
-    <div className="flex-grow-1">
-      <div className="d-flex justify-content-between mb-1">
-        <span className="fw-semibold small text-muted">Total Shops</span>
-        <span className="fw-bold small">{totalShops.length}</span>
-      </div>
-      <div
-        className="progress"
-        style={{ height: "13px" }}
-        role="progressbar"
-        aria-valuenow={totalShops.length}
-        aria-valuemin="0"
-        aria-valuemax={target}
-      >
-        <div
-          className="progress-bar progress-bar-striped progress-bar-animated bg-info text-light d-flex align-items-center justify-content-center fw-semibold"
-          style={{ width: `${(totalShops.length / target) * 100}%` }}
-        >
-          {Math.round((totalShops.length / target) * 100)}%
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-     
-
     </div>
   );
 }

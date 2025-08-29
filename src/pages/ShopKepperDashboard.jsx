@@ -2,7 +2,7 @@ import axios from 'axios'
 import React, { useEffect , useState} from 'react'
 
 function ShopKepperDashboard({setUpdate, shopKepperStatus, setUpdateAppjs}) {
-    const user = JSON.parse(localStorage.getItem("user"))
+    const user = JSON.parse(sessionStorage.getItem("user"));
     const token = localStorage.getItem("token")
 
 useEffect(()=>{

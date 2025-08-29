@@ -14,9 +14,8 @@ import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import successAudio from "../sounds/success.mp3";
 import markerIcon from "leaflet/dist/images/marker-icon.png";
 import markerShadow from "leaflet/dist/images/marker-shadow.png";
-import {services} from "../components/servicesData"
+import { services } from "../components/servicesData";
 function ShopForm() {
- 
   const navigate = useNavigate();
   const [formData1, setFormData] = useState({
     shopPicture: null,
@@ -57,7 +56,6 @@ function ShopForm() {
   });
   const closeMap = () => {
     setShowModal(false);
-   
   };
 
   const handleSaveLocation = () => {
@@ -68,7 +66,6 @@ function ShopForm() {
 
     setShowModal(false);
     console.log(position);
-    
   };
   const handleChange = async (e) => {
     const { name, files, value } = e.target;
@@ -111,7 +108,7 @@ function ShopForm() {
 
           try {
             const response = await axios.get(
-              "https://hazir-hay-backend.vercel.app/admin/reverse-geocode",
+              "https://hazir-hay-backend.wckd.pk/admin/reverse-geocode",
               { params: { lat: lat, lon: lon } }
             );
 
@@ -210,7 +207,7 @@ function ShopForm() {
       formData.append("services", JSON.stringify(selectedServices));
 
       const response = await axios.post(
-        `https://hazir-hay-backend.vercel.app/admin/shopInformation/${id}`,
+        `https://hazir-hay-backend.wckd.pk/admin/shopInformation/${id}`,
         formData,
         {
           headers: { "Content-Type": "multipart/form-data" },
@@ -247,7 +244,7 @@ function ShopForm() {
   const fetchAreaName = async (lat, lon) => {
     try {
       const response = await axios.get(
-        "https://hazir-hay-backend.vercel.app/admin/reverse-geocode",
+        "https://hazir-hay-backend.wckd.pk/admin/reverse-geocode",
         { params: { lat: lat, lon: lon } }
       );
 

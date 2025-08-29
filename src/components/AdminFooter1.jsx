@@ -8,15 +8,15 @@ function AdminFooter({ topText, setUpdate, setShopKepperStatus }) {
   const [active, setActive] = useState(localStorage.getItem("key") || "home");
   const [showOffcanvas, setShowOffcanvas] = useState(false);
   const currentUser = JSON.parse(localStorage.getItem("user"));
-  const role = (localStorage.getItem("role") || "").toLowerCase();
-  const user = JSON.parse(localStorage.getItem("user"));
+  const role = sessionStorage.getItem("role");
+  const user = JSON.parse(sessionStorage.getItem("user"));
   const token = localStorage.getItem("token");
   const [isOnline, setIsOnline] = useState(false);
   const [loading, setLoading] = useState(false);
   const getShopkepperStatus = async () => {
     try {
       const response = await axios.get(
-        `https://hazir-hay-backend.vercel.app/shopKeppers/getShopKepperStatus/${user._id}`,
+        `https://hazir-hay-backend.wckd.pk/shopKeppers/getShopKepperStatus/${user._id}`,
         {
           headers: { Authorization: `Bearer ${token}` },
           params: { t: Date.now() }, // prevents caching
@@ -26,6 +26,7 @@ function AdminFooter({ topText, setUpdate, setShopKepperStatus }) {
       if (response.status === 200) {
         console.log("Current Status:", response.data.data);
         setIsOnline(response.data.data); // update state with isLive value
+        localStorage.setItem("shopKepperStatus", response.data.data);
       }
     } catch (error) {
       console.error("Error fetching status:", error);
@@ -34,6 +35,8 @@ function AdminFooter({ topText, setUpdate, setShopKepperStatus }) {
   };
 
   useEffect(() => {
+    console.log(role);
+
     if (role !== "admin" && role !== "user") getShopkepperStatus();
   }, [role]);
 
@@ -48,7 +51,7 @@ function AdminFooter({ topText, setUpdate, setShopKepperStatus }) {
       };
 
       const response = await axios.put(
-        "https://hazir-hay-backend.vercel.app/shopKeppers/update-live",
+        "https://hazir-hay-backend.wckd.pk/shopKeppers/update-live",
         payLoad,
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -57,7 +60,12 @@ function AdminFooter({ topText, setUpdate, setShopKepperStatus }) {
       );
 
       if (response.status === 200) {
-        setShopKepperStatus(!isOnline);
+        //setShopKepperStatus(!isOnline);
+        if (!isOnline) {
+          localStorage.setItem("shopKepperStatus", true);
+        } else {
+          localStorage.removeItem("shopKepperStatus");
+        }
         setLoading(false);
         alert(response.data.message || "Status updated successfully!");
         setUpdate(true);
@@ -101,7 +109,7 @@ function AdminFooter({ topText, setUpdate, setShopKepperStatus }) {
         action: () => setShowOffcanvas(true),
       },
     ],
-    shopkepper: [
+    shopKepper: [
       {
         key: "home",
         icon: "fas fa-home",
@@ -174,68 +182,74 @@ function AdminFooter({ topText, setUpdate, setShopKepperStatus }) {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     localStorage.removeItem("key");
+    localStorage.removeItem("shopKepperStatus");
     navigate("/login");
   };
 
   return (
     <>
       {/* Top Header */}
-   {
-    role === "user" ? (""):(
-         <div className="admin-header fixed-top d-flex justify-content-between align-items-center px-2">
-        <div className="d-flex align-items-center gap-2">
-          <div className="icon-btn bg-primary" onClick={() => navigate(-1)}>
-            <i className="fa-solid fa-arrow-left text-white"></i>
+      {role === "user" ? (
+        ""
+      ) : (
+        <div className="admin-header fixed-top d-flex justify-content-between align-items-center px-2">
+          <div className="d-flex align-items-center gap-2">
+            <div className="icon-btn bg-primary" onClick={() => navigate(-1)}>
+              <i className="fa-solid fa-arrow-left text-white"></i>
+            </div>
+            <h1 className="header-title mb-0">{topText}</h1>
           </div>
-          <h1 className="header-title mb-0">{topText}</h1>
-        </div>
 
-        {role === "shopkepper" ? (
-       <>
-          <button
-            className={`btn ${
-              isOnline ? "btn-success" : "btn-danger"
-            } fw-bold `}
-            onClick={toggleStatus}
-          >
-            {loading ? (
-              <>
-                Updating...
-                <span className="spinner-border spinner-border-sm ms-2"></span>
-              </>
-            ) : isOnline ? (
-              <>
-                <i class="fa-solid fa-power-off me-1"></i>
-                Online
-              </>
-            ) : (
-              <>
-                <i class="fa-solid fa-power-off me-1"></i>
-                Offline
-              </>
-            )}
-          </button>
-          <button className="btn btn-primary" onClick={logOut}>Log Out</button>
-       </>
-        ) : (
-          <div className="d-flex gap-2">
-            <div
-              className="icon-btn bg-secondary"
-              onClick={() => navigate("/driver/dashboard")}
-            >
-              <i className="fa-solid fa-home text-white"></i>
+          {role === "shopKepper" ? (
+            <>
+              <button
+                className={`btn ${
+                  isOnline ? "btn-success" : "btn-danger"
+                } fw-bold `}
+                onClick={toggleStatus}
+              >
+                {loading ? (
+                  <>
+                    Updating...
+                    <span className="spinner-border spinner-border-sm ms-2"></span>
+                  </>
+                ) : isOnline ? (
+                  <>
+                    <i class="fa-solid fa-power-off me-1"></i>
+                    Online
+                  </>
+                ) : (
+                  <>
+                    <i class="fa-solid fa-power-off me-1"></i>
+                    Offline
+                  </>
+                )}
+              </button>
+              <button className="btn btn-primary" onClick={logOut}>
+                Log Out
+              </button>
+            </>
+          ) : (
+            <div className="d-flex gap-2">
+              <div
+                className="icon-btn bg-secondary"
+                onClick={() => navigate("/driver/dashboard")}
+              >
+                <i className="fa-solid fa-home text-white"></i>
+              </div>
+              <div
+                className="icon-btn bg-secondary"
+                onClick={() => navigate(0)}
+              >
+                <i className="fa-solid fa-bell text-white"></i>
+              </div>
+              <div className="icon-btn bg-danger" onClick={logOut}>
+                <i className="fa-solid fa-right-from-bracket text-white"></i>
+              </div>
             </div>
-            <div className="icon-btn bg-secondary" onClick={() => navigate(0)}>
-              <i className="fa-solid fa-bell text-white"></i>
-            </div>
-            <div className="icon-btn bg-danger" onClick={logOut}>
-              <i className="fa-solid fa-right-from-bracket text-white"></i>
-            </div>
-          </div>
-        )}
-      </div>
-    )
-   }
+          )}
+        </div>
+      )}
 
       {/* Bottom Navigation */}
       <div
@@ -341,7 +355,9 @@ function AdminFooter({ topText, setUpdate, setShopKepperStatus }) {
                   )}
                 </span>
 
-                 <button className="mt-2 btn btn-primary" onClick={logOut}>Logout</button>
+                <button className="mt-2 btn btn-primary" onClick={logOut}>
+                  Logout
+                </button>
               </div>
             </>
           )}
@@ -369,8 +385,10 @@ function AdminFooter({ topText, setUpdate, setShopKepperStatus }) {
                   <i className="fa-solid fa-user-tie ms-2"></i> Service Provider
                 </span>
               </div>
-              
-              <button className="mt-2 btn btn-primary" onClick={logOut}>Logout</button>
+
+              <button className="mt-2 btn btn-primary" onClick={logOut}>
+                Logout
+              </button>
             </>
           )}
         </div>
