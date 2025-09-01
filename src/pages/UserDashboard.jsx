@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import location from "../images/location.png";
 import "./style.css";
-import { io } from "socket.io-client";
+import noData from "../images/noData.png";
 
 import {
   MapContainer,
@@ -18,7 +18,7 @@ import markerShadow from "leaflet/dist/images/marker-shadow.png";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { services } from "../components/servicesData";
-function UserDashboard({ shopWithShopkepper, setUpdateAppjs }) {
+function UserDashboard({ shopWithShopkepper, setUpdateAppjs, onRequestAdded }) {
   const token = localStorage.getItem("token");
   const [position, setPosition] = useState([33.6844, 73.0479]);
   const [latitude, setLatitude] = useState(33.6844);
@@ -31,44 +31,99 @@ function UserDashboard({ shopWithShopkepper, setUpdateAppjs }) {
   const [chooseLocationModal, setChooseLocationModal] = useState(false);
   const [userLocations, setUserLocations] = useState([]);
   const [saveLocationsModal, setSaveLocationsModal] = useState(false);
+  const [subCatModal, setSubCatModal] = useState(false);
   const [locationName, setLocationName] = useState("");
   const [selectedSubCategory, setSelectedSubCategory] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const [availableServices, setAvailableServices] = useState([]);
   const user = JSON.parse(sessionStorage.getItem("user"));
- const socket = io("https://hazir-hay-backend.wckd.pk", {
-  transports: ["websocket"],
-  reconnection: true,
-  reconnectionAttempts: 5,
-  reconnectionDelay: 2000,
-});
-  const sendRequestDataToSocket = () => {
 
-    
-    const payLoad = {
-      category: selectedCategory,
-      subcategory: selectedSubCategory,
-      coordinates: coordinates,
-      user: user,
-    };
+  const findServicesProvider = async () => {
+    try {
+      const response = await axios.get(
+        "https://hazir-hay-backend.wckd.pk/shops/shopsDataByCategory",
+        {
+          params: {
+            category: selectedCategory,
+            subCategory: selectedSubCategory,
+          },
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
-    socket.emit("sendRequestData", payLoad);
-    console.log("Request sent to server", payLoad);
-   
-  };
-  useEffect(() => {
-  socket.once("requestStatus", (data) => {
-    console.log("📩 Received from server:", data);
-    if (data.success) {
-      alert(data.message || "Request sent to matching providers.");
-    } else {
-      alert(data.message || "Failed to send request.");
+      if (response.data.success) {
+        console.log("Providers found:", response.data.data);
+        setAvailableServices(response.data.data || []);
+        alert("Service Providers Found");
+        setSubCatModal(true);
+      } else {
+        console.warn(response.data.message);
+      }
+    } catch (error) {
+      console.error(
+        "Error fetching service providers:",
+        error.response?.data?.message || error.message
+      );
     }
-  });
-  return () => {
-    socket.off("requestStatus");
   };
-}, []);
 
+  const sendRequestData = async () => {
+    try {
+      if (!selectedCategory) {
+        return alert("Please select a category");
+      }
+      if (!selectedSubCategory) {
+        return alert("Please select a sub-category");
+      }
+      if (!coordinates.length) {
+        return alert("Please select your location on the map");
+      }
+
+      const payload = {
+        category: selectedCategory,
+        subCategory: selectedSubCategory,
+        location: {
+          coordinates,
+          area: areaName || "Unknown Area",
+        },
+        userId: user?._id,
+      };
+
+      console.log("Payload:", payload);
+
+      const response = await axios.post(
+        "https://hazir-hay-backend.wckd.pk/requests/sendRequestData",
+        payload,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          params: { t: Date.now() }, // Prevents caching
+        }
+      );
+      if (response.data.success) {
+        onRequestAdded();
+        setSelectedCategory(null);
+        setSelectedSubCategory(null);
+
+        alert(response?.data?.message || "Request sent successfully!");
+      }
+    } catch (error) {
+      console.error("Error sending request:", error);
+
+      if (error.response) {
+        alert(
+          `Failed: ${
+            error.response.data?.message || "Server returned an error"
+          }`
+        );
+      } else if (error.request) {
+        alert("Network error. Please check your internet connection.");
+      } else {
+        alert("Unexpected error. Please try again.");
+      }
+    }
+  };
 
   const getUserLocations = async () => {
     try {
@@ -76,7 +131,7 @@ function UserDashboard({ shopWithShopkepper, setUpdateAppjs }) {
         `https://hazir-hay-backend.wckd.pk/users/getUserById/${user._id}`,
         {
           headers: { Authorization: `Bearer ${token}` },
-          params: { t: Date.now() }, // Prevent caching
+          params: { t: Date.now() },
         }
       );
 
@@ -342,9 +397,35 @@ function UserDashboard({ shopWithShopkepper, setUpdateAppjs }) {
     setSelectedSubCategory("");
   };
 
+  // Calculate distance between two coordinates in kilometers
+function getDistanceFromCoordinates(shopCoords, userCoords) {
+  const toRad = (value) => (value * Math.PI) / 180;
+
+  const R = 6371; // Earth's radius in KM
+  const lat1 = shopCoords.lat;
+  const lon1 = shopCoords.lng;
+  const lat2 = userCoords.lat;
+  const lon2 = userCoords.lng;
+
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(toRad(lat1)) *
+      Math.cos(toRad(lat2)) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+  return (R * c).toFixed(2); 
+}
+
+
   return (
     <div>
-      <div style={{ height: "400px", width: "100%"}}>
+      <div style={{ height: "400px", width: "100%" }}>
         <MapContainer
           center={[latitude, longitude]}
           zoom={13}
@@ -488,11 +569,8 @@ function UserDashboard({ shopWithShopkepper, setUpdateAppjs }) {
             Rs. 15/km
           </span>
         </p>
-        <button
-          className="btn btn-success mt-1"
-          onClick={sendRequestDataToSocket}
-        >
-          <i class="fa-solid fa-screwdriver-wrench me-2"></i>Request Services
+        <button className="btn btn-success mt-1" onClick={findServicesProvider}>
+          <i class="fa-solid fa-screwdriver-wrench me-2"></i>Find Services
           Provider
         </button>
       </div>
@@ -717,6 +795,114 @@ function UserDashboard({ shopWithShopkepper, setUpdateAppjs }) {
                       Save Address
                     </>
                   )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {subCatModal && (
+        <div
+          className="modal fade show d-block"
+          tabIndex="-1"
+          style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+        >
+          <div className="modal-dialog modal-fullscreen modal-dialog-centered">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">Available Services</h5>
+                <button
+                  type="button"
+                  className="btn-close"
+                  onClick={() => setSubCatModal(false)}
+                ></button>
+              </div>
+              <div className="modal-body" style={{ height: "auto" }}>
+                {availableServices.length > 0 ? (
+                  <div className="row g-3">
+                    {availableServices.map((shop, index) => {
+                      const shopCoords = {
+                        lat: shop?.location?.coordinates[0],
+                        lng: shop?.location?.coordinates[1],
+                      };
+                      const userCoords = {
+                        lat: coordinates[0],
+                        lng: coordinates[1],
+                      };
+                      const distance = getDistanceFromCoordinates(
+                        shopCoords,
+                        userCoords
+                      );
+                      return (
+           <div className="col-6 col-md-6 col-lg-4" key={index}>
+  <div className="card shadow-sm border-0 rounded-3 overflow-hidden">
+    {/* Shop Image */}
+    <div style={{ position: "relative" }}>
+      <img
+        src={shop.shopPicture || "/default-image.jpg"}
+        alt="Service"
+        className="img-fluid"
+        style={{
+          height: "120px",
+          width: "80%",
+          objectFit: "cover",
+        }}
+      />
+    </div>
+
+    {/* Divider */}
+    <hr className="m-0" />
+
+    {/* Card Body */}
+    <div className="card-body p-2">
+      {/* Subcategory Name */}
+      <h6 className="fw-bold mb-1 text-truncate" style={{ fontSize: "15px" }}>
+        {selectedSubCategory}
+      </h6>
+
+      {/* Price */}
+      <p className="mb-1 text-success fw-semibold" style={{ fontSize: "14px" }}>
+      {shop.servicesOffered
+        .filter(service => service.subCategory?.name === selectedSubCategory)
+        .map((service, index) => (
+          <p
+            key={index}
+            className="mb-1 text-success fw-semibold"
+            style={{ fontSize: "14px" }}
+          >
+            Rs. {service.subCategory.price}
+          </p>
+        ))}
+      </p>
+
+      {/* Distance */}
+      <p className="mb-0 text-muted" style={{ fontSize: "13px" }}>
+        <i className="fa-solid fa-route me-2 text-primary"></i>
+        {distance} km away
+      </p>
+      
+    </div>
+  </div>
+</div>
+
+
+                      );
+                    })}
+                  </div>
+                ) : (
+                  
+                  <h1>No services</h1>
+                  
+                 
+                )}  
+              </div>
+              <div className="modal-footer">
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => setSubCatModal(false)}
+                >
+                  Close
                 </button>
               </div>
             </div>

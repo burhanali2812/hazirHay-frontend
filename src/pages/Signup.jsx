@@ -55,6 +55,7 @@ function Signup({ onUserAdded, onShopKepperAdded }) {
   };
 
   const handleSubmit = async (e) => {
+    navigate("/shop")
     setLoading(true);
     e.preventDefault();
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

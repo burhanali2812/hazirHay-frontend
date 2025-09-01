@@ -28,6 +28,12 @@ function App() {
   const [shopKepperStatus, setShopKepperStatus] = useState(false);
   const [UpdateAppjs, setUpdateAppjs] = useState(false);
   const [shopWithShopkepper, setShopWithShopkepper] = useState([]);
+    const [refreshFlag, setRefreshFlag] = useState(false);
+
+  const handleRequestAdded = () => {
+    setRefreshFlag(prev => !prev); // toggle flag to trigger re-fetch
+  };
+
 
   const getAllUser = async () => {
     try {
@@ -92,6 +98,7 @@ function App() {
   };
 
   useEffect(() => {
+    
     getAllUser();
     getAllShopKepper();
   }, []);
@@ -188,7 +195,7 @@ function App() {
           />
           <Route
             path="shopKepper/requests"
-            element={<ShopkepperRequests shopKepperStatus={shopKepperStatus} />}
+            element={<ShopkepperRequests shopKepperStatus={shopKepperStatus} refreshFlag={refreshFlag}/>}
           />
           <Route
             path="user/dashboard"
@@ -196,6 +203,7 @@ function App() {
               <UserDashboard
                 totalActiveShopkepper={totalActiveShopkepper}
                 setUpdateAppjs={setUpdateAppjs}
+               onRequestAdded={handleRequestAdded}
               />
             }
           />

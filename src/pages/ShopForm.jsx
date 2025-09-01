@@ -30,13 +30,16 @@ function ShopForm() {
   const [longitude, setLongitude] = useState(73.0479);
   const [areaName, setAreaName] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
-  const [selectedSubCategory, setSelectedSubCategory] = useState("");
+  const [selectedSubCategory, setSelectedSubCategory] = useState({});
   const [selectedServices, setSelectedServices] = useState([]);
   const [coordinates, setCoordinates] = useState([]);
   const [locationName, setLocationName] = useState("");
   const [position, setPosition] = useState([33.6844, 73.0479]);
   const [showModal, setShowModal] = useState(false);
   const [successAnimation, setSuccessAnimation] = useState(false);
+  const [priceModal, setPriceModal] = useState(false);
+  const [price, setPrice] = useState("");
+  const [description, setDescription] = useState("");
 
   const id = localStorage.getItem("userId");
 
@@ -92,6 +95,20 @@ function ShopForm() {
     }
   };
   useEffect(() => {
+  if (priceModal) {
+    // Scroll up near the center/top
+    window.scrollTo({ top: 500, behavior: "smooth" });
+  } else {
+    // Scroll back to the bottom
+    window.scrollTo({
+      top: document.documentElement.scrollHeight,
+      behavior: "smooth",
+    });
+  }
+}, [priceModal]);
+
+
+  useEffect(() => {
     const fetchLocation = async () => {
       navigator.geolocation.getCurrentPosition(
         async (position) => {
@@ -138,7 +155,12 @@ function ShopForm() {
     fetchLocation();
   }, []);
 
-  const handleSelectSubCat = (subCat) => {
+  const handleSelectSubCat = () => {
+    const subCat = {
+      name: selectedSubCategory,
+      price,
+      description,
+    };
     setSelectedServices((pre) => [
       ...pre,
       { category: selectedCategory, subCategory: subCat },
@@ -438,7 +460,7 @@ function ShopForm() {
             value={selectedSubCategory}
             onChange={(e) => {
               setSelectedSubCategory(e.target.value);
-              handleSelectSubCat(e.target.value);
+              setPriceModal(true);
             }}
             disabled={!selectedCategory}
           >
@@ -471,6 +493,7 @@ function ShopForm() {
                 <th scope="col">#</th>
                 <th scope="col">Category</th>
                 <th scope="col">Sub Category</th>
+                <th scope="col">Price</th>
               </tr>
             </thead>
             <tbody>
@@ -483,7 +506,8 @@ function ShopForm() {
                   >
                     <td>{index + 1}</td>
                     <td>{sub.category}</td>
-                    <td>{sub.subCategory}</td>
+                    <td>{sub.subCategory.name}</td>
+                    <td>{sub.subCategory.price}</td>
                   </tr>
                 ))
               ) : (
@@ -637,6 +661,85 @@ function ShopForm() {
             onClick={() => setSuccessAnimation(false)}
           />
         </>
+      )}
+
+      {priceModal && (
+        <div
+          className="modal fade show d-block animate__animated animate__fadeIn"
+          tabIndex="-1"
+          style={{
+            backgroundColor: "rgba(0, 0, 0, 0.6)",
+            backdropFilter: "blur(2px)",
+          }}
+        >
+          <div className="modal-dialog modal-sm modal-dialog-centered">
+            <div
+              className="modal-content shadow"
+              style={{ borderRadius: "10px" }}
+            >
+              {/* Header */}
+              <div
+                className="modal-header text-light py-2 px-3"
+                style={{ backgroundColor: "#1e1e2f" }}
+              >
+                <h6 className="modal-title m-0">Adjust the Price</h6>
+                <button
+                  type="button"
+                  className="btn-close btn-close-white"
+                  aria-label="Close"
+                  onClick={() => setPriceModal(false)}
+                ></button>
+              </div>
+
+              {/* Body */}
+              <div className="modal-body">
+                <p className="text-center mb-3">
+                  Set price of{" "}
+                  <strong>
+                    {selectedSubCategory} ({selectedCategory})
+                  </strong>{" "}
+                  for <strong>transparency</strong> and <strong>trust</strong>.
+                </p>
+
+                {/* Price Input */}
+                <label className="form-label fw-semibold small mb-1">
+                  Enter Price
+                </label>
+                <input
+                  type="number"
+                  className="form-control form-control-sm mb-3"
+                  placeholder="E.g. 200"
+                  value={price}
+                  onChange={(e) => setPrice(e.target.value)}
+                />
+
+                {/* Description Input */}
+                <label className="form-label fw-semibold small mb-1">
+                  Description
+                </label>
+                <textarea
+                  className="form-control form-control-sm"
+                  rows="2"
+                  placeholder="E.g. This price is for 1kg gas"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                ></textarea>
+
+                <button
+                  className="btn btn-primary w-100  mt-3"
+                  onClick={() => {
+                    handleSelectSubCat();
+                    setPrice("");
+                    setDescription("");
+                    setPriceModal(false);
+                  }}
+                >
+                  <i className="fas fa-save"></i> Save Service
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

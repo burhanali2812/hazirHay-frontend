@@ -1,16 +1,10 @@
 import React, { useEffect, useState } from "react";
 import offline from "../images/offline.png";
-import { io } from "socket.io-client";
 import axios from "axios";
 
 import noData from "../images/noData.png";
-function ShopkepperRequests() {
-   const socket = io("https://hazir-hay-backend.wckd.pk", {
-    transports: ["websocket"], // force WebSocket for stability
-    reconnection: true,        // enable reconnection
-    reconnectionAttempts: 5,   // retry up to 5 times
-    reconnectionDelay: 2000,   // wait 2 seconds before retrying
-  });
+function ShopkepperRequests({refreshFlag}) {
+
   const shopKepperStatus = JSON.parse(localStorage.getItem("shopKepperStatus"));
   const user = JSON.parse(sessionStorage.getItem("user"));
   const [requests, setRequests] = useState([]);
@@ -36,28 +30,47 @@ function ShopkepperRequests() {
     }
   };
 
+  const fetchRequests = async () => {
+    console.log(user._id);
+    
+    try {
+
+      const response = await axios.get(
+        `https://hazir-hay-backend.wckd.pk/requests/getRequests/${user._id}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          params: { t: Date.now() }, 
+        }
+      );
+
+      if (response.data.success) {
+        setRequests(response.data.data || []);
+        if(refreshFlag){
+          alert("New Request Added");
+        }
+      } else {
+        console.warn("No requests found:", response.data.message);
+        setRequests([]);
+      }
+    } catch (error) {
+      console.error(
+        "Error fetching requests:",
+        error.response?.data?.message || error.message
+      );
+      setRequests([]);
+    }
+  
+  }
+
   useEffect(() => {
     getShopData();
   }, []);
 
   useEffect(() => {
-    console.log(shopKepperStatus);
+    
+       fetchRequests();    
+    }, [refreshFlag]);
 
-    if (user) {
-      socket.emit("goOnline", shop?._id);
-
-      socket.on("newRequest", (data) => {
-        console.log("New Request:", data);
-        alert("You have a new request!");
-        setRequests((prevRequests) => [...prevRequests, data]);
-        console.log(data);
-      });
-
-      return () => {
-        socket.disconnect();
-      };
-    }
-  }, [user]);
   return (
     <div className="container">
       {shopKepperStatus ? (

@@ -278,7 +278,7 @@ function AdminFooter({ topText, setUpdate, setShopKepperStatus }) {
       </div>
 
       {/* Content */}
-      <div  style={{marginTop: role === "user" ? "0" : "80px", paddingTop: role === "user" ? "0px" : "70px" }}>
+      <div  style={{paddingTop: role === "user" ? "0px" : "70px" }}>
         <Outlet />
       </div>
 
