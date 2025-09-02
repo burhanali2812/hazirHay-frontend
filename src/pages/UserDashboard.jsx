@@ -398,30 +398,36 @@ function UserDashboard({ shopWithShopkepper, setUpdateAppjs, onRequestAdded }) {
   };
 
   // Calculate distance between two coordinates in kilometers
-function getDistanceFromCoordinates(shopCoords, userCoords) {
-  const toRad = (value) => (value * Math.PI) / 180;
+  function getDistanceFromCoordinates(shopCoords, userCoords) {
+    const toRad = (value) => (value * Math.PI) / 180;
 
-  const R = 6371; // Earth's radius in KM
-  const lat1 = shopCoords.lat;
-  const lon1 = shopCoords.lng;
-  const lat2 = userCoords.lat;
-  const lon2 = userCoords.lng;
+    const R = 6371; // Earth's radius in KM
+    const lat1 = shopCoords.lat;
+    const lon1 = shopCoords.lng;
+    const lat2 = userCoords.lat;
+    const lon2 = userCoords.lng;
 
-  const dLat = toRad(lat2 - lat1);
-  const dLon = toRad(lon2 - lon1);
+    const dLat = toRad(lat2 - lat1);
+    const dLon = toRad(lon2 - lon1);
 
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(toRad(lat1)) *
-      Math.cos(toRad(lat2)) *
-      Math.sin(dLon / 2) *
-      Math.sin(dLon / 2);
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(toRad(lat1)) *
+        Math.cos(toRad(lat2)) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
 
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
-  return (R * c).toFixed(2); 
-}
+    return (R * c).toFixed(2);
+  }
 
+  const findAverageRating = (ratings) => {
+    if (!ratings || ratings.length === 0) return 0;
+
+    const total = ratings.reduce((acc, rating) => acc + rating.rate, 0);
+    return (total / ratings.length).toFixed(1);
+  };
 
   return (
     <div>
@@ -569,9 +575,23 @@ function getDistanceFromCoordinates(shopCoords, userCoords) {
             Rs. 15/km
           </span>
         </p>
-        <button className="btn btn-success mt-1" onClick={findServicesProvider}>
-          <i class="fa-solid fa-screwdriver-wrench me-2"></i>Find Services
-          Provider
+        <button
+          className="btn btn-success mt-1"
+          onClick={findServicesProvider}
+          disabled={loading}
+        >
+          {loading ? (
+            <>
+              <div class="spinner-grow" role="status">
+                <span class="visually-hidden">Searching...</span>
+              </div>
+            </>
+          ) : (
+            <>
+              <i class="fa-solid fa-screwdriver-wrench me-2"></i>Find Services
+              Provider
+            </>
+          )}
         </button>
       </div>
 
@@ -817,7 +837,118 @@ function getDistanceFromCoordinates(shopCoords, userCoords) {
                   onClick={() => setSubCatModal(false)}
                 ></button>
               </div>
-              <div className="modal-body" style={{ height: "auto" }}>
+              <div className="modal-body " style={{ height: "auto" }}>
+                <div
+                  className="d-flex flex-nowrap overflow-auto mb-3 mt-0"
+                  style={{ gap: "10px", padding: "10px 0" }}
+                  
+                >
+                  {/* Filter Icon */}
+          
+
+                  {/* Sort by Price */}
+                  <div className="dropdown position-static">
+                    <button
+                      className="btn btn-outline-primary dropdown-toggle btn-sm rounded-pill px-2"
+                      type="button"
+                      data-bs-toggle="dropdown"
+                      aria-expanded="false"
+                    >
+                      <i className="fa-solid fa-tag me-1"></i> Price
+                    </button>
+                    <ul className="dropdown-menu">
+                      {[
+                        "All",
+                        "Under Rs. 500",
+                        "Rs. 500-1000",
+                        "Rs. 1000-2000",
+                        "Above Rs. 2000",
+                      ].map((range, i) => (
+                        <li key={i}>
+                          <button className="dropdown-item">{range}</button>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  {/* Rating */}
+                  <div className="dropdown position-static">
+                    <button
+                      className="btn btn-outline-success dropdown-toggle btn-sm rounded-pill px-2"
+                      type="button"
+                      data-bs-toggle="dropdown"
+                      aria-expanded="false"
+                    >
+                      <i className="fa-solid fa-star me-1"></i> Rating
+                    </button>
+                    <ul className="dropdown-menu">
+                      {["All Ratings", "5 Stars", "4+ Stars", "3+ Stars"].map(
+                        (rate, i) => (
+                          <li key={i}>
+                            <button className="dropdown-item">{rate}</button>
+                          </li>
+                        )
+                      )}
+                    </ul>
+                  </div>
+
+                  {/* Distance */}
+                  <div className="dropdown position-static">
+                    <button
+                      className="btn btn-outline-warning dropdown-toggle btn-sm rounded-pill px-2"
+                      type="button"
+                      data-bs-toggle="dropdown"
+                      aria-expanded="false"
+                    >
+                      <i className="fa-solid fa-location-dot me-1"></i> Distance
+                    </button>
+                    <ul className="dropdown-menu">
+                      {[
+                        "All",
+                        "Within 1 km",
+                        "1-5 km",
+                        "5-10 km",
+                        "10+ km",
+                      ].map((range, i) => (
+                        <li key={i}>
+                          <button className="dropdown-item">{range}</button>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  {/* Availability */}
+                  <div className="dropdown position-static">
+                    <button
+                      className="btn btn-outline-info dropdown-toggle btn-sm rounded-pill px-2"
+                      type="button"
+                      data-bs-toggle="dropdown"
+                      aria-expanded="false"
+                    >
+                      <i className="fa-solid fa-clock me-1"></i> Availability
+                    </button>
+                    <ul className="dropdown-menu">
+                      {[
+                        "All",
+                        "Open Now",
+                        "Morning",
+                        "Afternoon",
+                        "Evening",
+                      ].map((time, i) => (
+                        <li key={i}>
+                          <button className="dropdown-item">{time}</button>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  {/* Featured Shops */}
+                  <button className="btn btn-outline-dark rounded-pill btn-sm text-nowrap">
+                    <i className="fa-solid fa-crown me-1 text-warning"></i>{" "}
+                    Featured
+                  </button>
+                </div>
+
                 {availableServices.length > 0 ? (
                   <div className="row g-3">
                     {availableServices.map((shop, index) => {
@@ -833,68 +964,89 @@ function getDistanceFromCoordinates(shopCoords, userCoords) {
                         shopCoords,
                         userCoords
                       );
+                      const averageRating = findAverageRating(shop.reviews);
                       return (
-           <div className="col-6 col-md-6 col-lg-4" key={index}>
-  <div className="card shadow-sm border-0 rounded-3 overflow-hidden">
-    {/* Shop Image */}
-    <div style={{ position: "relative" }}>
-      <img
-        src={shop.shopPicture || "/default-image.jpg"}
-        alt="Service"
-        className="img-fluid"
-        style={{
-          height: "120px",
-          width: "80%",
-          objectFit: "cover",
-        }}
-      />
-    </div>
+                        <div className="col-12 col-md-6 col-lg-4" key={index}>
+                          <div className="card shadow-sm border-1 rounded-4 overflow-hidden">
+                            <div className="card-body ">
+                              <div className="d-flex align-items-center">
+                                {/* Shop Image */}
+                                <div
+                                  className="rounded-circle border flex-shrink-0 d-flex align-items-center justify-content-center bg-light"
+                                  style={{
+                                    width: "100px",
+                                    height: "100px",
+                                    overflow: "hidden",
+                                  }}
+                                >
+                                  <img
+                                    src={
+                                      shop.shopPicture || "/default-image.jpg"
+                                    }
+                                    alt="Shop"
+                                    style={{
+                                      objectFit: "cover",
+                                      width: "100%",
+                                      height: "100%",
+                                    }}
+                                  />
+                                </div>
 
-    {/* Divider */}
-    <hr className="m-0" />
+                                {/* Shop Details */}
+                                <div className="ms-3 flex-grow-1">
+                                  {/* Shop name and rating */}
+                                  <div className="d-flex justify-content-between align-items-center mb-1">
+                                    <p
+                                      className="text-dark fw-semibold mb-0 text-truncate"
+                                      style={{ maxWidth: "70%" }}
+                                      title={shop.shopName}
+                                    >
+                                      {shop.shopName.length > 10
+                                        ? `${shop.shopName.slice(0, 10)}...`
+                                        : shop.shopName}
+                                    </p>
+                                    <p className="mb-0 text-muted small d-flex align-items-center">
+                                      <i className="fa-solid fa-star text-warning me-1"></i>
+                                      <strong>{averageRating}</strong>/5
+                                    </p>
+                                  </div>
 
-    {/* Card Body */}
-    <div className="card-body p-2">
-      {/* Subcategory Name */}
-      <h6 className="fw-bold mb-1 text-truncate" style={{ fontSize: "15px" }}>
-        {selectedSubCategory}
-      </h6>
+                                  {/* Price */}
+                                  {shop.servicesOffered
+                                    .filter(
+                                      (service) =>
+                                        service.subCategory?.name ===
+                                        selectedSubCategory
+                                    )
+                                    .map((service, index) => (
+                                      <p
+                                        key={index}
+                                        className="mb-0 text-primary fw-bold"
+                                        style={{ fontSize: "15px" }}
+                                      >
+                                        Rs. {service.subCategory.price}/-
+                                      </p>
+                                    ))}
 
-      {/* Price */}
-      <p className="mb-1 text-success fw-semibold" style={{ fontSize: "14px" }}>
-      {shop.servicesOffered
-        .filter(service => service.subCategory?.name === selectedSubCategory)
-        .map((service, index) => (
-          <p
-            key={index}
-            className="mb-1 text-success fw-semibold"
-            style={{ fontSize: "14px" }}
-          >
-            Rs. {service.subCategory.price}
-          </p>
-        ))}
-      </p>
-
-      {/* Distance */}
-      <p className="mb-0 text-muted" style={{ fontSize: "13px" }}>
-        <i className="fa-solid fa-route me-2 text-primary"></i>
-        {distance} km away
-      </p>
-      
-    </div>
-  </div>
-</div>
-
-
+                                  {/* Distance */}
+                                  <p className="mb-0 text-muted small">
+                                    <b>{distance}</b> km away
+                                  </p>
+                                  <div className="d-flex justify-content-start gap-1 mt-1">
+                                    <button className="btn btn-success btn-sm w-100"><i class="fa-solid fa-cart-shopping me-1"></i>Order Now</button>
+                              
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
                       );
                     })}
                   </div>
                 ) : (
-                  
                   <h1>No services</h1>
-                  
-                 
-                )}  
+                )}
               </div>
               <div className="modal-footer">
                 <button

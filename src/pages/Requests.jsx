@@ -506,6 +506,7 @@ function Requests({ setTopText, setUpdate }) {
                                 <th>#</th>
                                 <th>Category</th>
                                 <th>Sub Category</th>
+                                <th>Price</th>
                               </tr>
                             </thead>
                             <tbody>
@@ -516,7 +517,8 @@ function Requests({ setTopText, setUpdate }) {
                                     <tr key={index}>
                                       <td>{index + 1}</td>
                                       <td>{sub.category}</td>
-                                      <td>{sub.subCategory}</td>
+                                      <td>{sub.subCategory.name}</td>
+                                      <td>{sub.subCategory.price}</td>
                                     </tr>
                                   )
                                 )
