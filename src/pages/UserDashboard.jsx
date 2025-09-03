@@ -18,6 +18,7 @@ import markerShadow from "leaflet/dist/images/marker-shadow.png";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { services } from "../components/servicesData";
+import UserInfoModal from "../components/UserInfo";
 function UserDashboard({ shopWithShopkepper, setUpdateAppjs, onRequestAdded }) {
   const token = localStorage.getItem("token");
   const [position, setPosition] = useState([33.6844, 73.0479]);
@@ -36,7 +37,64 @@ function UserDashboard({ shopWithShopkepper, setUpdateAppjs, onRequestAdded }) {
   const [selectedSubCategory, setSelectedSubCategory] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [availableServices, setAvailableServices] = useState([]);
+  const [selectedShopWithShopkepper, setSelectedShopWithShopkepper] = useState(null);
+  const [infoModal, setInfoModal] = useState(false);
+
   const user = JSON.parse(sessionStorage.getItem("user"));
+
+    const [cartData, setCartData] = useState([]);
+
+
+  const addTocart = (shop)=>{
+    const exists = cartData.find(item => item._id === shop._id);
+    if (exists) {
+      alert("This item is already in the cart");
+    } else {
+      setCartData([...cartData,  shop ]);
+      alert("Shop added in a cart");
+      console.log("cart data",cartData)
+    }
+  }
+
+
+const getShopWithShopkeppers = async (provider) => {
+  setLoading(true);
+  try {
+    const response = await axios.get(
+      "https://hazir-hay-backend.wckd.pk/shopKeppers/allVerifiedShopkepperWithShops",
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    if (response.status === 200) {
+      const shopWithShopkeppers = response.data.data || [];
+      console.log("All shops with shopkeepers:", shopWithShopkeppers);
+      console.log("Selected provider:", provider);
+
+      // Convert ObjectId to string for accurate comparison
+      const selected = shopWithShopkeppers.find(
+        (serviceProvider) =>
+          serviceProvider?.shop?.owner?.toString() ===
+          provider?.owner?._id?.toString()
+      );
+
+      console.log("Selected shop with shopkeeper:", selected);
+
+      console.log("Selected shop with shopkeeper:", selected);
+
+      setSelectedShopWithShopkepper(selected);
+      setInfoModal(true);
+    }
+  } catch (error) {
+    console.error("Error fetching shopkeepers with shops:", error);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   const findServicesProvider = async () => {
     try {
@@ -967,7 +1025,7 @@ function UserDashboard({ shopWithShopkepper, setUpdateAppjs, onRequestAdded }) {
                       const averageRating = findAverageRating(shop.reviews);
                       return (
                         <div className="col-12 col-md-6 col-lg-4" key={index}>
-                          <div className="card shadow-sm border-1 rounded-4 overflow-hidden">
+                          <div className="card shadow-sm border-1 rounded-4 overflow-hidden" >
                             <div className="card-body ">
                               <div className="d-flex align-items-center">
                                 {/* Shop Image */}
@@ -977,7 +1035,10 @@ function UserDashboard({ shopWithShopkepper, setUpdateAppjs, onRequestAdded }) {
                                     width: "100px",
                                     height: "100px",
                                     overflow: "hidden",
+                                    cursor: "pointer",
+                                    
                                   }}
+                                  onClick={()=>getShopWithShopkeppers(shop)}
                                 >
                                   <img
                                     src={
@@ -998,8 +1059,9 @@ function UserDashboard({ shopWithShopkepper, setUpdateAppjs, onRequestAdded }) {
                                   <div className="d-flex justify-content-between align-items-center mb-1">
                                     <p
                                       className="text-dark fw-semibold mb-0 text-truncate"
-                                      style={{ maxWidth: "70%" }}
+                                      style={{ maxWidth: "70%" , cursor: "pointer" }}
                                       title={shop.shopName}
+                                      onClick={()=>getShopWithShopkeppers(shop)}
                                     >
                                       {shop.shopName.length > 10
                                         ? `${shop.shopName.slice(0, 10)}...`
@@ -1033,7 +1095,7 @@ function UserDashboard({ shopWithShopkepper, setUpdateAppjs, onRequestAdded }) {
                                     <b>{distance}</b> km away
                                   </p>
                                   <div className="d-flex justify-content-start gap-1 mt-1">
-                                    <button className="btn btn-success btn-sm w-100"><i class="fa-solid fa-cart-shopping me-1"></i>Order Now</button>
+                                    <button className="btn btn-success btn-sm w-100" onClick={()=>addTocart(shop)}><i class="fa-solid fa-cart-plus me-1"></i>Add to cart</button>
                               
                                   </div>
                                 </div>
@@ -1056,11 +1118,32 @@ function UserDashboard({ shopWithShopkepper, setUpdateAppjs, onRequestAdded }) {
                 >
                   Close
                 </button>
+                 {
+                  cartData.length > 0 && (
+                     <button
+                  type="button"
+                  className="btn btn-success"
+                  onClick={() => setSubCatModal(false)}
+                    
+                  
+                >
+                  <i class="fa-solid fa-cart-shopping me-1"></i>
+                  View Cart {cartData.length > 0 && `(${cartData.length})`}
+                </button>
+                  )
+                 }
               </div>
+               
             </div>
           </div>
         </div>
       )}
+
+      {
+        infoModal  && (
+          <UserInfoModal singleUserData ={selectedShopWithShopkepper} setDetailsModal ={setInfoModal}/>
+        )
+      }
     </div>
   );
 }
