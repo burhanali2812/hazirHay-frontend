@@ -37,7 +37,7 @@ function UserDashboard({ shopWithShopkepper, setUpdateAppjs, onRequestAdded }) {
   const [locationName, setLocationName] = useState("");
   const [selectedSubCategory, setSelectedSubCategory] = useState(null);
 
-    const [selectedCategory, setSelectedCategory] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState(null);
   const [availableServices, setAvailableServices] = useState([]);
   const [selectedShopWithShopkepper, setSelectedShopWithShopkepper] =
     useState(null);
@@ -477,7 +477,6 @@ function UserDashboard({ shopWithShopkepper, setUpdateAppjs, onRequestAdded }) {
         Math.sin(dLon / 2);
 
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    
 
     return (R * c).toFixed(2);
   }
@@ -491,23 +490,23 @@ function UserDashboard({ shopWithShopkepper, setUpdateAppjs, onRequestAdded }) {
 
   const countryNumber = `+92${selectedShopWithShopkepper?.phone?.slice(1)}`;
   const shopCoords = selectedShopWithShopkepper?.shop?.location?.coordinates
-  ? {
-      lat: selectedShopWithShopkepper.shop.location.coordinates[0],
-      lng: selectedShopWithShopkepper.shop.location.coordinates[1],
-    }
-  : null;
-
-const userCoords = coordinates
-  ? {
-      lat: coordinates[0],
-      lng: coordinates[1],
-    }
-  : null;
-
-const shopDistance =
-  shopCoords && userCoords
-    ? getDistanceFromCoordinates(shopCoords, userCoords)
+    ? {
+        lat: selectedShopWithShopkepper.shop.location.coordinates[0],
+        lng: selectedShopWithShopkepper.shop.location.coordinates[1],
+      }
     : null;
+
+  const userCoords = coordinates
+    ? {
+        lat: coordinates[0],
+        lng: coordinates[1],
+      }
+    : null;
+
+  const shopDistance =
+    shopCoords && userCoords
+      ? getDistanceFromCoordinates(shopCoords, userCoords)
+      : null;
 
   return (
     <div>
@@ -1230,19 +1229,18 @@ const shopDistance =
                     style={{ fontSize: "20px" }}
                   ></i>
                 </div>
-               <div className="d-flex justify-content-center align-items-center gap-2">
-                 <p className="text-center text-muted">
-      {selectedShopWithShopkepper?.isLive === true
-        ? "Online"
-        : selectedShopWithShopkepper?.createdAt}
-    </p>
-    {shopDistance && (
-      <p className="text-center text-muted ">
-        | <b>{shopDistance}</b> km away
-      </p>
-    )}
+                <div className="d-flex justify-content-center align-items-center gap-2">
+                  <p className="text-center text-muted">
+                    {selectedShopWithShopkepper?.isLive === true
+                      ? "Online"
+                      : selectedShopWithShopkepper?.createdAt}
+                  </p>
+                  {shopDistance && (
+                    <p className="text-center text-muted ">
+                      | <b>{shopDistance}</b> km away
+                    </p>
+                  )}
                 </div>
-                
 
                 <div className="d-flex justify-content-center gap-2 mt-1">
                   {/* Call Button */}
@@ -1333,63 +1331,75 @@ const shopDistance =
                     </tbody>
                   </table>
                 </div>
-<h6 className="bg-warning p-2 rounded-3 text-center mt-3">
-  <i className="fa-solid fa-star-half-stroke me-2"></i>
-  RATING & REVIEWS
-</h6>
+                <h6 className="bg-warning p-2 rounded-3 text-center mt-3">
+                  <i className="fa-solid fa-star-half-stroke me-2"></i>
+                  RATING & REVIEWS
+                </h6>
 
-<div>
-  {selectedShopWithShopkepper?.shop?.reviews?.length > 0 ? (
-    <>
-      {/* Average rating */}
-      <div className="d-flex align-items-center mb-2 mt-1 justify-content-center" style={{fontSize: "16px"}}>
-        <i className="fa-solid fa-star text-warning me-2"></i>
-        <span className="fw-bold fs-6">
-          {findAverageRating(selectedShopWithShopkepper?.shop?.reviews)}/5
-        </span>
-        <span className="text-muted ms-2 small">
-          ({selectedShopWithShopkepper?.shop?.reviews.length} reviews)
-        </span>
-      </div>
+                <div>
+                  {selectedShopWithShopkepper?.shop?.reviews?.length > 0 ? (
+                    <>
+                      {/* Average rating */}
+                      <div
+                        className="d-flex align-items-center mb-2 mt-1 justify-content-center"
+                        style={{ fontSize: "16px" }}
+                      >
+                        <i className="fa-solid fa-star text-warning me-2"></i>
+                        <span className="fw-bold fs-6">
+                          {findAverageRating(
+                            selectedShopWithShopkepper?.shop?.reviews
+                          )}
+                          /5
+                        </span>
+                        <span className="text-muted ms-2 small">
+                          ({selectedShopWithShopkepper?.shop?.reviews.length}{" "}
+                          reviews)
+                        </span>
+                      </div>
 
-      {/* Reviews list */}
-      <div className="list-group">
-        {selectedShopWithShopkepper?.shop?.reviews.map((review, index) => (
-          <div
-            key={index}
-            className="list-group-item border rounded-3 mb-2 shadow-sm"
-          >
-            <div className="d-flex justify-content-between align-items-center mb-1">
-              <div>
-                <strong>{review.name}</strong>
-                <i class="fa-solid fa-circle-check text-success"></i>
-              </div>
-              <small className="text-muted">
-  {new Date(review.date).toLocaleDateString()}
-</small>
-            </div>
-            <p className="mb-1 text-muted small">{review.msg}</p>
-            <div>
-              {[...Array(5)].map((_, i) => (
-                <i
-                  key={i}
-                  className={`fa-solid fa-star ${
-                    i < review.rate ? "text-warning" : "text-secondary"
-                  }`}
-                  style={{ fontSize: "13px" }}
-                ></i>
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
-    </>
-  ) : (
-    <p className="text-muted text-center">No reviews yet</p>
-  )}
-</div>
-
-
+                      {/* Reviews list */}
+                      <div className="list-group">
+                        {selectedShopWithShopkepper?.shop?.reviews.map(
+                          (review, index) => (
+                            <div
+                              key={index}
+                              className="list-group-item border rounded-3 mb-2 shadow-sm "
+                              style={{ backgroundColor: "aqua" }}
+                            >
+                              <div className="d-flex justify-content-between align-items-center mb-1">
+                                <div>
+                                  <strong>{review.name}</strong>
+                                  <i class="fa-solid fa-circle-check text-success"></i>
+                                </div>
+                                <small className="text-muted">
+                                  {new Date(review.date).toLocaleDateString()}
+                                </small>
+                              </div>
+                              <p className="mb-1 text-muted small">
+                                {review.msg}
+                              </p>
+                              <div>
+                                {[...Array(5)].map((_, i) => (
+                                  <i
+                                    key={i}
+                                    className={`fa-solid fa-star ${
+                                      i < review.rate
+                                        ? "text-warning"
+                                        : "text-secondary"
+                                    }`}
+                                    style={{ fontSize: "13px" }}
+                                  ></i>
+                                ))}
+                              </div>
+                            </div>
+                          )
+                        )}
+                      </div>
+                    </>
+                  ) : (
+                    <p className="text-muted text-center">No reviews yet</p>
+                  )}
+                </div>
               </div>
               {/* <div className="modal-footer">
                 <button
