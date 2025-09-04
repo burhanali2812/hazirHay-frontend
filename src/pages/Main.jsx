@@ -35,12 +35,12 @@ function Main() {
   
     <div className="col-md-6 text-center text-md-start animate__animated animate__zoomIn">
       <h1 className="fw-bolder mb-0 animate__animated animate__fadeInUp" 
-        style={{ fontSize: '2.2rem', color: '#001b35', fontFamily: "Josefin Sans" }}>
+        style={{ fontSize: '2.2rem', color: '#001b35'}}>
         WELCOME TO
       </h1>
 
       <h2 className="fw-bold mt-0 animate__animated animate__fadeInUp" 
-        style={{ fontSize: '1.9rem', color: '#ff6600', fontFamily: "Josefin Sans" }}>
+        style={{ fontSize: '1.9rem', color: '#ff6600' }}>
         HAZIRHAY
       </h2>
 

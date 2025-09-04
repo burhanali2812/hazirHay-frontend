@@ -3,6 +3,7 @@ import axios from "axios";
 import location from "../images/location.png";
 import "./style.css";
 import noData from "../images/noData.png";
+import { useNavigate } from "react-router-dom";
 
 import {
   MapContainer,
@@ -35,66 +36,66 @@ function UserDashboard({ shopWithShopkepper, setUpdateAppjs, onRequestAdded }) {
   const [subCatModal, setSubCatModal] = useState(false);
   const [locationName, setLocationName] = useState("");
   const [selectedSubCategory, setSelectedSubCategory] = useState(null);
-  const [selectedCategory, setSelectedCategory] = useState(null);
+
+    const [selectedCategory, setSelectedCategory] = useState(null);
   const [availableServices, setAvailableServices] = useState([]);
-  const [selectedShopWithShopkepper, setSelectedShopWithShopkepper] = useState(null);
+  const [selectedShopWithShopkepper, setSelectedShopWithShopkepper] =
+    useState(null);
   const [infoModal, setInfoModal] = useState(false);
+  const navigate = useNavigate();
 
   const user = JSON.parse(sessionStorage.getItem("user"));
 
-    const [cartData, setCartData] = useState([]);
+  const [cartData, setCartData] = useState([]);
 
-
-  const addTocart = (shop)=>{
-    const exists = cartData.find(item => item._id === shop._id);
+  const addTocart = (shop) => {
+    const exists = cartData.find((item) => item._id === shop._id);
     if (exists) {
       alert("This item is already in the cart");
     } else {
-      setCartData([...cartData,  shop ]);
+      setCartData([...cartData, shop]);
       alert("Shop added in a cart");
-      console.log("cart data",cartData)
+      console.log("cart data", cartData);
     }
-  }
+  };
 
-
-const getShopWithShopkeppers = async (provider) => {
-  setLoading(true);
-  try {
-    const response = await axios.get(
-      "https://hazir-hay-backend.wckd.pk/shopKeppers/allVerifiedShopkepperWithShops",
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-
-    if (response.status === 200) {
-      const shopWithShopkeppers = response.data.data || [];
-      console.log("All shops with shopkeepers:", shopWithShopkeppers);
-      console.log("Selected provider:", provider);
-
-      // Convert ObjectId to string for accurate comparison
-      const selected = shopWithShopkeppers.find(
-        (serviceProvider) =>
-          serviceProvider?.shop?.owner?.toString() ===
-          provider?.owner?._id?.toString()
+  const getShopWithShopkeppers = async (provider) => {
+    setLoading(true);
+    try {
+      const response = await axios.get(
+        "https://hazir-hay-backend.wckd.pk/shopKeppers/allVerifiedShopkepperWithShops",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
 
-      console.log("Selected shop with shopkeeper:", selected);
+      if (response.status === 200) {
+        const shopWithShopkeppers = response.data.data || [];
+        console.log("All shops with shopkeepers:", shopWithShopkeppers);
+        console.log("Selected provider:", provider);
 
-      console.log("Selected shop with shopkeeper:", selected);
+        // Convert ObjectId to string for accurate comparison
+        const selected = shopWithShopkeppers.find(
+          (serviceProvider) =>
+            serviceProvider?.shop?.owner?.toString() ===
+            provider?.owner?._id?.toString()
+        );
 
-      setSelectedShopWithShopkepper(selected);
-      setInfoModal(true);
+        console.log("Selected shop with shopkeeper:", selected);
+
+        console.log("Selected shop with shopkeeper:", selected);
+
+        setSelectedShopWithShopkepper(selected);
+        setInfoModal(true);
+      }
+    } catch (error) {
+      console.error("Error fetching shopkeepers with shops:", error);
+    } finally {
+      setLoading(false);
     }
-  } catch (error) {
-    console.error("Error fetching shopkeepers with shops:", error);
-  } finally {
-    setLoading(false);
-  }
-};
-
+  };
 
   const findServicesProvider = async () => {
     try {
@@ -476,6 +477,7 @@ const getShopWithShopkeppers = async (provider) => {
         Math.sin(dLon / 2);
 
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    
 
     return (R * c).toFixed(2);
   }
@@ -486,6 +488,26 @@ const getShopWithShopkeppers = async (provider) => {
     const total = ratings.reduce((acc, rating) => acc + rating.rate, 0);
     return (total / ratings.length).toFixed(1);
   };
+
+  const countryNumber = `+92${selectedShopWithShopkepper?.phone?.slice(1)}`;
+  const shopCoords = selectedShopWithShopkepper?.shop?.location?.coordinates
+  ? {
+      lat: selectedShopWithShopkepper.shop.location.coordinates[0],
+      lng: selectedShopWithShopkepper.shop.location.coordinates[1],
+    }
+  : null;
+
+const userCoords = coordinates
+  ? {
+      lat: coordinates[0],
+      lng: coordinates[1],
+    }
+  : null;
+
+const shopDistance =
+  shopCoords && userCoords
+    ? getDistanceFromCoordinates(shopCoords, userCoords)
+    : null;
 
   return (
     <div>
@@ -888,21 +910,19 @@ const getShopWithShopkeppers = async (provider) => {
           <div className="modal-dialog modal-fullscreen modal-dialog-centered">
             <div className="modal-content">
               <div className="modal-header">
-                <h5 className="modal-title">Available Services</h5>
-                <button
-                  type="button"
-                  className="btn-close"
+                <i
+                  class="fa-solid fa-circle-chevron-left"
+                  style={{ fontSize: "20px" }}
                   onClick={() => setSubCatModal(false)}
-                ></button>
+                ></i>
+                <h5 className="ms-2 mt-2 fw-bold">Available Services</h5>
               </div>
               <div className="modal-body " style={{ height: "auto" }}>
                 <div
                   className="d-flex flex-nowrap overflow-auto mb-3 mt-0"
                   style={{ gap: "10px", padding: "10px 0" }}
-                  
                 >
                   {/* Filter Icon */}
-          
 
                   {/* Sort by Price */}
                   <div className="dropdown position-static">
@@ -1025,7 +1045,7 @@ const getShopWithShopkeppers = async (provider) => {
                       const averageRating = findAverageRating(shop.reviews);
                       return (
                         <div className="col-12 col-md-6 col-lg-4" key={index}>
-                          <div className="card shadow-sm border-1 rounded-4 overflow-hidden" >
+                          <div className="card shadow-sm border-1 rounded-4 overflow-hidden">
                             <div className="card-body ">
                               <div className="d-flex align-items-center">
                                 {/* Shop Image */}
@@ -1036,9 +1056,8 @@ const getShopWithShopkeppers = async (provider) => {
                                     height: "100px",
                                     overflow: "hidden",
                                     cursor: "pointer",
-                                    
                                   }}
-                                  onClick={()=>getShopWithShopkeppers(shop)}
+                                  onClick={() => getShopWithShopkeppers(shop)}
                                 >
                                   <img
                                     src={
@@ -1059,9 +1078,14 @@ const getShopWithShopkeppers = async (provider) => {
                                   <div className="d-flex justify-content-between align-items-center mb-1">
                                     <p
                                       className="text-dark fw-semibold mb-0 text-truncate"
-                                      style={{ maxWidth: "70%" , cursor: "pointer" }}
+                                      style={{
+                                        maxWidth: "70%",
+                                        cursor: "pointer",
+                                      }}
                                       title={shop.shopName}
-                                      onClick={()=>getShopWithShopkeppers(shop)}
+                                      onClick={() =>
+                                        getShopWithShopkeppers(shop)
+                                      }
                                     >
                                       {shop.shopName.length > 10
                                         ? `${shop.shopName.slice(0, 10)}...`
@@ -1095,8 +1119,13 @@ const getShopWithShopkeppers = async (provider) => {
                                     <b>{distance}</b> km away
                                   </p>
                                   <div className="d-flex justify-content-start gap-1 mt-1">
-                                    <button className="btn btn-success btn-sm w-100" onClick={()=>addTocart(shop)}><i class="fa-solid fa-cart-plus me-1"></i>Add to cart</button>
-                              
+                                    <button
+                                      className="btn btn-success btn-sm w-100"
+                                      onClick={() => addTocart(shop)}
+                                    >
+                                      <i class="fa-solid fa-cart-plus me-1"></i>
+                                      Add to cart
+                                    </button>
                                   </div>
                                 </div>
                               </div>
@@ -1118,6 +1147,258 @@ const getShopWithShopkeppers = async (provider) => {
                 >
                   Close
                 </button>
+                {cartData.length > 0 && (
+                  <button
+                    type="button"
+                    className="btn btn-success"
+                    onClick={() => setSubCatModal(false)}
+                  >
+                    <i class="fa-solid fa-cart-shopping me-1"></i>
+                    View Cart {cartData.length > 0 && `(${cartData.length})`}
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {infoModal && (
+        <div
+          className="modal fade show d-block"
+          tabIndex="-1"
+          style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+        >
+          <div className="modal-dialog modal-fullscreen modal-dialog-centered">
+            <div className="modal-content">
+              <div className="modal-header d-flex justify-content-between">
+                <div className="d-flex mt-1">
+                  <i
+                    class="fa-solid fa-circle-chevron-left mt-1"
+                    style={{ fontSize: "18px" }}
+                    onClick={() => setInfoModal(false)}
+                  ></i>
+                  <h5 className="ms-2  fw-bold">
+                    {selectedShopWithShopkepper?.shop?.shopName}
+                  </h5>
+                </div>
+
+                <div className="position-relative d-inline-block me-2">
+                  <i
+                    className="fa-solid fa-cart-shopping"
+                    style={{ fontSize: "25px" }}
+                  ></i>
+                  <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                    {cartData.length}
+                    <span className="visually-hidden">unread messages</span>
+                  </span>
+                </div>
+              </div>
+              <div className="modal-body " style={{ height: "auto" }}>
+                {/* Shop Image */}
+                <div className="d-flex justify-content-center">
+                  <div
+                    className="rounded-circle border flex-shrink-0 bg-light d-flex align-items-center justify-content-center"
+                    style={{
+                      width: "130px",
+                      height: "130px",
+                      overflow: "hidden",
+                      cursor: "pointer",
+                    }}
+                  >
+                    <img
+                      src={
+                        selectedShopWithShopkepper?.shop?.shopPicture ||
+                        "/default-image.jpg"
+                      }
+                      alt="Shop"
+                      style={{
+                        objectFit: "cover",
+                        width: "100%",
+                        height: "100%",
+                      }}
+                    />
+                  </div>
+                </div>
+
+                <div className="d-flex justify-content-center mt-2 mb-0">
+                  <h4 className="text-dark fw-bold mt-1 text-center">
+                    {selectedShopWithShopkepper?.shop?.shopName}
+                  </h4>
+                  <i
+                    class="fa-solid fa-circle-check text-success ms-1 mt-2"
+                    style={{ fontSize: "20px" }}
+                  ></i>
+                </div>
+               <div className="d-flex justify-content-center align-items-center gap-2">
+                 <p className="text-center text-muted">
+      {selectedShopWithShopkepper?.isLive === true
+        ? "Online"
+        : selectedShopWithShopkepper?.createdAt}
+    </p>
+    {shopDistance && (
+      <p className="text-center text-muted ">
+        | <b>{shopDistance}</b> km away
+      </p>
+    )}
+                </div>
+                
+
+                <div className="d-flex justify-content-center gap-2 mt-1">
+                  {/* Call Button */}
+                  <a
+                    href={`tel:${selectedShopWithShopkepper?.phone}`}
+                    className="btn btn-info btn-sm text-dark"
+                  >
+                    <i className="fa-solid fa-phone-volume me-1"></i>Call Now
+                  </a>
+
+                  {/* WhatsApp Button */}
+                  <a
+                    href={`https://wa.me/${`+92${selectedShopWithShopkepper?.phone?.slice(
+                      1
+                    )}`}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn btn-success btn-sm"
+                  >
+                    <i
+                      className="fa-brands fa-whatsapp me-1"
+                      style={{ fontSize: "16px" }}
+                    ></i>
+                    Whatsapp
+                  </a>
+
+                  {/* Live Chat Button */}
+                  <button className="btn btn-primary btn-sm">
+                    <i className="fa-solid fa-comments me-1"></i>Live Chat
+                  </button>
+                </div>
+
+                <p className="mt-3">
+                  <b>Shop Address: </b>
+                  {selectedShopWithShopkepper?.shop?.location?.area}{" "}
+                  <b className="text-primary">View on map</b>
+                </p>
+                <hr />
+                <h6 className="bg-info p-2 rounded-3 text-center mb-3">
+                  <i class="fa-solid fa-screwdriver-wrench me-2"></i>
+                  SERVICES OFFERED
+                </h6>
+
+                <div
+                  className="table-responsive"
+                  style={{ maxHeight: "350px", overflowY: "auto" }}
+                >
+                  <table className="table table-dark table-striped mb-0 text-center">
+                    <thead>
+                      <tr>
+                        <th>#</th>
+                        <th>Category</th>
+                        <th>Sub Category</th>
+                        <th>Price</th>
+                        <th>Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {selectedShopWithShopkepper !== null ? (
+                        selectedShopWithShopkepper?.shop?.servicesOffered?.map(
+                          (sub, index) => (
+                            <tr key={index}>
+                              <td>{index + 1}</td>
+                              <td>{sub.category}</td>
+                              <td className="text-nowrap">
+                                {sub.subCategory.name}
+                              </td>
+                              <td>{sub.subCategory.price}</td>
+                              <td>
+                                <button
+                                  className="btn btn-outline-warning btn-sm text-nowrap w-100"
+                                  onClick={() => addTocart(sub)}
+                                >
+                                  <i class="fa-solid fa-cart-plus me-1"></i>
+                                  Add to cart
+                                </button>
+                              </td>
+                            </tr>
+                          )
+                        )
+                      ) : (
+                        <tr>
+                          <td colSpan="5" className="text-center">
+                            No services found
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+<h6 className="bg-warning p-2 rounded-3 text-center mt-3">
+  <i className="fa-solid fa-star-half-stroke me-2"></i>
+  RATING & REVIEWS
+</h6>
+
+<div>
+  {selectedShopWithShopkepper?.shop?.reviews?.length > 0 ? (
+    <>
+      {/* Average rating */}
+      <div className="d-flex align-items-center mb-2 mt-1 justify-content-center" style={{fontSize: "16px"}}>
+        <i className="fa-solid fa-star text-warning me-2"></i>
+        <span className="fw-bold fs-6">
+          {findAverageRating(selectedShopWithShopkepper?.shop?.reviews)}/5
+        </span>
+        <span className="text-muted ms-2 small">
+          ({selectedShopWithShopkepper?.shop?.reviews.length} reviews)
+        </span>
+      </div>
+
+      {/* Reviews list */}
+      <div className="list-group">
+        {selectedShopWithShopkepper?.shop?.reviews.map((review, index) => (
+          <div
+            key={index}
+            className="list-group-item border rounded-3 mb-2 shadow-sm"
+          >
+            <div className="d-flex justify-content-between align-items-center mb-1">
+              <div>
+                <strong>{review.name}</strong>
+                <i class="fa-solid fa-circle-check text-success"></i>
+              </div>
+              <small className="text-muted">
+  {new Date(review.date).toLocaleDateString()}
+</small>
+            </div>
+            <p className="mb-1 text-muted small">{review.msg}</p>
+            <div>
+              {[...Array(5)].map((_, i) => (
+                <i
+                  key={i}
+                  className={`fa-solid fa-star ${
+                    i < review.rate ? "text-warning" : "text-secondary"
+                  }`}
+                  style={{ fontSize: "13px" }}
+                ></i>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </>
+  ) : (
+    <p className="text-muted text-center">No reviews yet</p>
+  )}
+</div>
+
+
+              </div>
+              {/* <div className="modal-footer">
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => setSubCatModal(false)}
+                >
+                  Close
+                </button>
                  {
                   cartData.length > 0 && (
                      <button
@@ -1132,18 +1413,11 @@ const getShopWithShopkeppers = async (provider) => {
                 </button>
                   )
                  }
-              </div>
-               
+              </div> */}
             </div>
           </div>
         </div>
       )}
-
-      {
-        infoModal  && (
-          <UserInfoModal singleUserData ={selectedShopWithShopkepper} setDetailsModal ={setInfoModal}/>
-        )
-      }
     </div>
   );
 }
