@@ -39,6 +39,7 @@ function UserDashboard({ shopWithShopkepper, setUpdateAppjs, onRequestAdded }) {
 
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [availableServices, setAvailableServices] = useState([]);
+  const [page, setPage] = useState(0);
   const [selectedShopWithShopkepper, setSelectedShopWithShopkepper] =
     useState(null);
   const [infoModal, setInfoModal] = useState(false);
@@ -47,6 +48,24 @@ function UserDashboard({ shopWithShopkepper, setUpdateAppjs, onRequestAdded }) {
   const user = JSON.parse(sessionStorage.getItem("user"));
 
   const [cartData, setCartData] = useState([]);
+
+  const reviews = selectedShopWithShopkepper?.shop?.reviews || [];
+  const reviewsPerPage = 4;
+  const startIndex = page * reviewsPerPage;
+  const currentReviews = reviews.slice(startIndex, startIndex + reviewsPerPage);
+
+  const handleNextPage = () => {
+    console.log(currentReviews);
+    
+    if (startIndex + reviewsPerPage < reviews.length) {
+      setPage((prev) => prev + 1);
+    }
+  };
+  const handleBackPage = () => {
+    if (page > 0) {
+      setPage((prev) => prev - 1);
+    }
+  };
 
   const addTocart = (shop) => {
     const exists = cartData.find((item) => item._id === shop._id);
@@ -1246,7 +1265,7 @@ function UserDashboard({ shopWithShopkepper, setUpdateAppjs, onRequestAdded }) {
                   {/* Call Button */}
                   <a
                     href={`tel:${selectedShopWithShopkepper?.phone}`}
-                    className="btn btn-info btn-sm text-dark"
+                    className="btn btn-info btn-sm text-dark rounded-pill px-2"
                   >
                     <i className="fa-solid fa-phone-volume me-1"></i>Call Now
                   </a>
@@ -1258,7 +1277,7 @@ function UserDashboard({ shopWithShopkepper, setUpdateAppjs, onRequestAdded }) {
                     )}`}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="btn btn-success btn-sm"
+                    className="btn btn-success btn-sm rounded-pill px-2"
                   >
                     <i
                       className="fa-brands fa-whatsapp me-1"
@@ -1268,16 +1287,19 @@ function UserDashboard({ shopWithShopkepper, setUpdateAppjs, onRequestAdded }) {
                   </a>
 
                   {/* Live Chat Button */}
-                  <button className="btn btn-primary btn-sm">
+                  <button className="btn btn-primary btn-sm rounded-pill px-2">
                     <i className="fa-solid fa-comments me-1"></i>Live Chat
                   </button>
                 </div>
-
-                <p className="mt-3">
-                  <b>Shop Address: </b>
-                  {selectedShopWithShopkepper?.shop?.location?.area}{" "}
-                  <b className="text-primary">View on map</b>
-                </p>
+                <di className="d-flex justify-content-center mt-2">
+                  <button
+                    className="btn btn-primary text-light btn-sm rounded-pill"
+                    style={{ width: "313px" }}
+                  >
+                    <i class="fa-solid fa-map-location-dot me-2"></i>Shop
+                    Address
+                  </button>
+                </di>
                 <hr />
                 <h6 className="bg-info p-2 rounded-3 text-center mb-3">
                   <i class="fa-solid fa-screwdriver-wrench me-2"></i>
@@ -1288,7 +1310,7 @@ function UserDashboard({ shopWithShopkepper, setUpdateAppjs, onRequestAdded }) {
                   className="table-responsive"
                   style={{ maxHeight: "350px", overflowY: "auto" }}
                 >
-                  <table className="table table-dark table-striped mb-0 text-center">
+                  <table className="table table-hover mb-0 text-center">
                     <thead>
                       <tr>
                         <th>#</th>
@@ -1304,18 +1326,17 @@ function UserDashboard({ shopWithShopkepper, setUpdateAppjs, onRequestAdded }) {
                           (sub, index) => (
                             <tr key={index}>
                               <td>{index + 1}</td>
-                              <td>{sub.category}</td>
+                              <td className="text-nowrap">{sub.category}</td>
                               <td className="text-nowrap">
                                 {sub.subCategory.name}
                               </td>
                               <td>{sub.subCategory.price}</td>
                               <td>
                                 <button
-                                  className="btn btn-outline-warning btn-sm text-nowrap w-100"
+                                  className="btn btn-outline-primary btn-sm  w-100"
                                   onClick={() => addTocart(sub)}
                                 >
                                   <i class="fa-solid fa-cart-plus me-1"></i>
-                                  Add to cart
                                 </button>
                               </td>
                             </tr>
@@ -1359,46 +1380,55 @@ function UserDashboard({ shopWithShopkepper, setUpdateAppjs, onRequestAdded }) {
 
                       {/* Reviews list */}
                       <div className="list-group">
-                        {selectedShopWithShopkepper?.shop?.reviews.map(
-                          (review, index) => (
-                            <div
-                              key={index}
-                              className="list-group-item border rounded-3 mb-2 shadow-sm "
-                              style={{ backgroundColor: "aqua" }}
-                            >
-                              <div className="d-flex justify-content-between align-items-center mb-1">
-                                <div>
-                                  <strong>{review.name}</strong>
-                                  <i class="fa-solid fa-circle-check text-success"></i>
-                                </div>
-                                <small className="text-muted">
-                                  {new Date(review.date).toLocaleDateString()}
-                                </small>
-                              </div>
-                              <p className="mb-1 text-muted small">
-                                {review.msg}
-                              </p>
+                        {currentReviews?.map((review, index) => (
+                          <div
+                            key={index}
+                            className="list-group-item border rounded-3 mb-2 shadow-sm "
+                            style={{ backgroundColor: "#F8F8FF" }}
+                          >
+                            <div className="d-flex justify-content-between align-items-center mb-1">
                               <div>
-                                {[...Array(5)].map((_, i) => (
-                                  <i
-                                    key={i}
-                                    className={`fa-solid fa-star ${
-                                      i < review.rate
-                                        ? "text-warning"
-                                        : "text-secondary"
-                                    }`}
-                                    style={{ fontSize: "13px" }}
-                                  ></i>
-                                ))}
+                                <strong>{review.name}</strong>
+                                <i class="fa-solid fa-circle-check text-success"></i>
                               </div>
+                              <small className="text-muted">
+                                {new Date(review.date).toLocaleDateString()}
+                              </small>
                             </div>
-                          )
-                        )}
+                            <p className="mb-1 text-muted small">
+                              {review.msg}
+                            </p>
+                            <div>
+                              {[...Array(5)].map((_, i) => (
+                                <i
+                                  key={i}
+                                  className={`fa-solid fa-star ${
+                                    i < review.rate
+                                      ? "text-warning"
+                                      : "text-secondary"
+                                  }`}
+                                  style={{ fontSize: "13px" }}
+                                ></i>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     </>
                   ) : (
                     <p className="text-muted text-center">No reviews yet</p>
                   )}
+                </div>
+
+                <div className="d-flex justify-content-center gap-5 mt-3">
+                  <button className="btn btn-danger rounded-pill px-3" onClick={handleBackPage} disabled={page === 0}>
+                    <i class="fa-solid fa-circle-arrow-left me-2"></i>
+                    Back
+                  </button>
+                  <button className="btn btn-success  rounded-pill px-3" onClick={handleNextPage} disabled={startIndex + reviewsPerPage >= reviews.length}>
+                    Next
+                    <i class="fa-solid fa-circle-arrow-right ms-2"></i>
+                  </button>
                 </div>
               </div>
               {/* <div className="modal-footer">
