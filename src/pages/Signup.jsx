@@ -25,6 +25,7 @@ function Signup({ onUserAdded, onShopKepperAdded }) {
   const [isChecked, setIsChecked] = useState(false);
   const [loading, setLoading] = useState(false);
   const [successAnimation, setSuccessAnimation] = useState(false);
+   
 
   const handleChange = async (e) => {
     const { name, files, value } = e.target;

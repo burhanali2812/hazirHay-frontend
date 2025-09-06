@@ -43,6 +43,35 @@ function ShopForm() {
 
   const id = localStorage.getItem("userId");
 
+  const [recommendedPrice, setRecommendedPrice] = useState(0);
+
+  const getRecomendedPrice = async () => {
+    const payload = {
+      category: selectedCategory,
+      subCategory: selectedSubCategory,
+    };
+
+    try {
+      const response = await axios.post(
+        "https://hazir-hay-backend.wckd.pk/shops/getPriceEstimate",
+        payload
+      );
+
+      if (response.data.success) {
+        setRecommendedPrice(response.data.averagePrices || 0);
+        console.log(`Recommended Price: ${response.data.averagePrices}`);
+      }
+    } catch (error) {
+      console.error("Error fetching price:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (selectedCategory && selectedSubCategory) {
+      getRecomendedPrice();
+    }
+  }, [selectedCategory, selectedSubCategory]);
+
   useEffect(() => {
     if (successAnimation) {
       const audio = new Audio(successAudio);
@@ -95,18 +124,17 @@ function ShopForm() {
     }
   };
   useEffect(() => {
-  if (priceModal) {
-    // Scroll up near the center/top
-    window.scrollTo({ top: 500, behavior: "smooth" });
-  } else {
-    // Scroll back to the bottom
-    window.scrollTo({
-      top: document.documentElement.scrollHeight,
-      behavior: "smooth",
-    });
-  }
-}, [priceModal]);
-
+    if (priceModal) {
+      // Scroll up near the center/top
+      window.scrollTo({ top: 500, behavior: "smooth" });
+    } else {
+      // Scroll back to the bottom
+      window.scrollTo({
+        top: document.documentElement.scrollHeight,
+        behavior: "smooth",
+      });
+    }
+  }, [priceModal]);
 
   useEffect(() => {
     const fetchLocation = async () => {
@@ -479,7 +507,7 @@ function ShopForm() {
           Services Summary
         </h4>
         {selectedServices.length !== 0 && (
-          <p className="note-text mt-2">
+          <p className="note-text mt-3 text-center">
             <strong>Note:</strong> Tap on any data entry below to{" "}
             <span className="text-danger fw-bold">delete</span> it from the
             summary table.
@@ -492,7 +520,7 @@ function ShopForm() {
               <tr>
                 <th scope="col">#</th>
                 <th scope="col">Category</th>
-                <th scope="col">Sub Category</th>
+                <th scope="col" className="text-nowrap">Sub Category</th>
                 <th scope="col">Price</th>
               </tr>
             </thead>
@@ -687,7 +715,14 @@ function ShopForm() {
                   type="button"
                   className="btn-close btn-close-white"
                   aria-label="Close"
-                  onClick={() => setPriceModal(false)}
+                  onClick={() => {
+                    setPriceModal(false);
+                    setRecommendedPrice([]);
+                    setSelectedCategory(null);
+                    setSelectedSubCategory(null);
+                      setPrice("");
+                    setDescription("");
+                  }}
                 ></button>
               </div>
 
@@ -707,11 +742,34 @@ function ShopForm() {
                 </label>
                 <input
                   type="number"
-                  className="form-control form-control-sm mb-3"
+                  className="form-control form-control-sm "
                   placeholder="E.g. 200"
                   value={price}
                   onChange={(e) => setPrice(e.target.value)}
                 />
+
+                <p className="fw-bold mt-2">
+                  Recommended Price{" "}
+                  <i className="fa-solid fa-lightbulb text-warning"></i>
+                </p>
+
+                {recommendedPrice?.length > 0 ? (
+                  <div className="d-flex flex-wrap gap-2 mb-2">
+                    {recommendedPrice?.map((price, index) => (
+                      <button
+                        key={index}
+                        className=" btn btn-outline-primary"
+                        onClick={() => setPrice(price)}
+                      >
+                        {price} PKR
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <>
+                  <p className="mb-3 mt-0 text-primary fw-bold text-center">No Recommended Price Found<i class="fa-solid fa-face-frown ms-1"></i></p>
+                  </>
+                )}
 
                 {/* Description Input */}
                 <label className="form-label fw-semibold small mb-1">
@@ -732,6 +790,9 @@ function ShopForm() {
                     setPrice("");
                     setDescription("");
                     setPriceModal(false);
+                    setSelectedCategory(null);
+                    setSelectedSubCategory(null);
+                    setRecommendedPrice([]);
                   }}
                 >
                   <i className="fas fa-save"></i> Save Service

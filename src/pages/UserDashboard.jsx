@@ -4,6 +4,7 @@ import location from "../images/location.png";
 import "./style.css";
 import noData from "../images/noData.png";
 import { useNavigate } from "react-router-dom";
+import notFound from "../videos/notFound.mp4";
 
 import {
   MapContainer,
@@ -33,6 +34,7 @@ function UserDashboard({ shopWithShopkepper, setUpdateAppjs, onRequestAdded }) {
   const [chooseLocationModal, setChooseLocationModal] = useState(false);
   const [userLocations, setUserLocations] = useState([]);
   const [saveLocationsModal, setSaveLocationsModal] = useState(false);
+  const [filterModal, setFilterModal] = useState(false);
   const [subCatModal, setSubCatModal] = useState(false);
   const [locationName, setLocationName] = useState("");
   const [selectedSubCategory, setSelectedSubCategory] = useState(null);
@@ -48,6 +50,24 @@ function UserDashboard({ shopWithShopkepper, setUpdateAppjs, onRequestAdded }) {
   const user = JSON.parse(sessionStorage.getItem("user"));
 
   const [cartData, setCartData] = useState([]);
+  const [distanceRange, setDistanceRange] = useState(10);
+  const [Price, setPrice] = useState(100);
+  const [isFilter, setIsFilter] = useState(false);
+  const [notFoundModal, setNotFoundModal] = useState(false);
+
+  const [filterText, setFilterText] = useState("");
+  const [FilterServices, setFilterServices] = useState([]);
+  const [filters, setFilters] = useState({
+    status: "All",
+    price: "All",
+    rating: "All",
+    distance: "All",
+  });
+  const handleFilterChange = (type, value) => {
+    console.log("type", type, "option", value);
+
+    setFilters((prev) => ({ ...prev, [type.toLowerCase()]: value }));
+  };
 
   const reviews = selectedShopWithShopkepper?.shop?.reviews || [];
   const reviewsPerPage = 4;
@@ -56,7 +76,7 @@ function UserDashboard({ shopWithShopkepper, setUpdateAppjs, onRequestAdded }) {
 
   const handleNextPage = () => {
     console.log(currentReviews);
-    
+
     if (startIndex + reviewsPerPage < reviews.length) {
       setPage((prev) => prev + 1);
     }
@@ -67,16 +87,86 @@ function UserDashboard({ shopWithShopkepper, setUpdateAppjs, onRequestAdded }) {
     }
   };
 
-  const addTocart = (shop) => {
-    const exists = cartData.find((item) => item._id === shop._id);
-    if (exists) {
-      alert("This item is already in the cart");
-    } else {
-      setCartData([...cartData, shop]);
-      alert("Shop added in a cart");
-      console.log("cart data", cartData);
-    }
+  const handleOpenFilter = (e, filterType) => {
+    e.preventDefault();
+    setFilterModal(true);
+    setFilterText(filterType);
   };
+
+const addToCart = async (shop, from) => {
+  let finalShopId, finalCategory, finalSubCategory, finalPrice, finalShopName;
+
+  if (from === "detail") {
+    finalShopId = selectedShopWithShopkepper?.shop?._id;
+    finalCategory = shop.category;
+    finalSubCategory = shop.subCategory.name;
+    finalPrice = shop.subCategory.price;
+    finalShopName = selectedShopWithShopkepper?.shop?.shopName;
+  } else {
+    const selectedService = shop.servicesOffered.find(
+      (service) => service.subCategory.name === selectedSubCategory
+    );
+
+    if (!selectedService) {
+      alert("Service not found in this shop");
+      return;
+    }
+
+    finalShopId = shop._id;
+    finalCategory = selectedService.category;
+    finalSubCategory = selectedService.subCategory.name;
+    finalPrice = selectedService.subCategory.price;
+    finalShopName = shop.shopName;
+  }
+
+  const payload = {
+    shopId: finalShopId,
+    category: finalCategory,
+    subCategory: finalSubCategory,
+    shopName: finalShopName,
+    price: finalPrice,
+  };
+
+  const exists = cartData.some(
+    (item) =>
+      item.shopId === payload.shopId &&
+      item.subCategory === payload.subCategory
+  );
+
+  if (exists) {
+    alert("This item is already in the cart");
+    return;
+  }
+
+  // Optimistic UI update
+
+
+  try {
+    const response = await axios.post(
+      "https://hazir-hay-backend.wckd.pk/cart/saveCartData",
+      payload,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+
+    if (response.data.success) {
+      console.log("Cart saved in DB:", response.data);
+        setCartData((prev) => [...prev, payload]);
+  alert("Item added to cart");
+      // only update state if backend sends updated cart
+      if (response.data.cart) {
+        setCartData(response.data.cart);
+      }
+    }
+  } catch (error) {
+    console.error("Error saving to cart:", error.response?.data || error.message);
+    alert("Failed to save cart item. Please try again.");
+  }
+};
+
+
+
 
   const getShopWithShopkeppers = async (provider) => {
     setLoading(true);
@@ -117,6 +207,23 @@ function UserDashboard({ shopWithShopkepper, setUpdateAppjs, onRequestAdded }) {
   };
 
   const findServicesProvider = async () => {
+    setLoading(true);
+
+    if (selectedCategory === null) {
+      alert("Please select a category");
+      setLoading(false);
+      return;
+    }
+    if (selectedSubCategory === null) {
+      alert("Please select a subCategory");
+      setLoading(false);
+      return;
+    }
+    if (latitude && longitude === null) {
+      alert("Please select a Location");
+      setLoading(false);
+      return;
+    }
     try {
       const response = await axios.get(
         "https://hazir-hay-backend.wckd.pk/shops/shopsDataByCategory",
@@ -132,20 +239,77 @@ function UserDashboard({ shopWithShopkepper, setUpdateAppjs, onRequestAdded }) {
       );
 
       if (response.data.success) {
+        setLoading(false);
         console.log("Providers found:", response.data.data);
         setAvailableServices(response.data.data || []);
         alert("Service Providers Found");
         setSubCatModal(true);
       } else {
+        setLoading(false);
         console.warn(response.data.message);
       }
     } catch (error) {
-      console.error(
-        "Error fetching service providers:",
-        error.response?.data?.message || error.message
-      );
+      setLoading(false);
+
+      if (error.response && error.response.status === 404) {
+        setNotFoundModal(true); // ✅ open modal here
+      } else {
+        console.error(
+          "Error fetching providers:",
+          error.response?.data?.message || error.message
+        );
+      }
+
+      setLoading(false);
     }
   };
+
+  const applyFilters = () => {
+    let filtered = [...availableServices];
+
+    if (filters.status !== "All") {
+      filtered = filtered.filter((shop) =>
+        filters.status === "Online" ? shop.isLive : !shop.isLive
+      );
+    }
+
+    // Price filter
+    if (filters.price === "Low-to-High") {
+      filtered.sort((a, b) => {
+        const minA = Math.min(
+          ...a.servicesOffered.map((s) => s.subCategory.price)
+        );
+        const minB = Math.min(
+          ...b.servicesOffered.map((s) => s.subCategory.price)
+        );
+        return minA - minB;
+      });
+    } else if (filters.price === "High-to-Low") {
+      filtered.sort((a, b) => {
+        const maxA = Math.max(
+          ...a.servicesOffered.map((s) => s.subCategory.price)
+        );
+        const maxB = Math.max(
+          ...b.servicesOffered.map((s) => s.subCategory.price)
+        );
+        return maxB - maxA;
+      });
+    }
+
+    // Rating filter
+    if (filters.rating !== "All") {
+      filtered = filtered.filter(
+        (shop) => findAverageRating(shop.reviews) >= parseInt(filters.rating)
+      );
+    }
+
+    setFilterServices(filtered);
+    console.log(filtered);
+  };
+
+  useEffect(() => {
+    applyFilters();
+  }, [filters, availableServices]);
 
   const sendRequestData = async () => {
     try {
@@ -527,6 +691,12 @@ function UserDashboard({ shopWithShopkepper, setUpdateAppjs, onRequestAdded }) {
       ? getDistanceFromCoordinates(shopCoords, userCoords)
       : null;
 
+  const priceRangeOptions = ["All", "Low-to-High", "High-to-Low"];
+  const ratingRangeOptions = ["All", "1", "2", "3", "4", "5"];
+  const statusOptions = ["All", "Online", "Offline"];
+
+  const finalServices = isFilter ? FilterServices : availableServices;
+
   return (
     <div>
       <div style={{ height: "400px", width: "100%" }}>
@@ -680,9 +850,11 @@ function UserDashboard({ shopWithShopkepper, setUpdateAppjs, onRequestAdded }) {
         >
           {loading ? (
             <>
-              <div class="spinner-grow" role="status">
-                <span class="visually-hidden">Searching...</span>
-              </div>
+              Searching...
+              <div
+                className="spinner-border spinner-border-sm text-light ms-2"
+                role="status"
+              ></div>
             </>
           ) : (
             <>
@@ -937,117 +1109,50 @@ function UserDashboard({ shopWithShopkepper, setUpdateAppjs, onRequestAdded }) {
               </div>
               <div className="modal-body " style={{ height: "auto" }}>
                 <div
-                  className="d-flex flex-nowrap overflow-auto mb-3 mt-0"
+                  className="d-flex flex-nowrap overflow-auto mb-3"
                   style={{ gap: "10px", padding: "10px 0" }}
                 >
-                  {/* Filter Icon */}
-
-                  {/* Sort by Price */}
-                  <div className="dropdown position-static">
-                    <button
-                      className="btn btn-outline-primary dropdown-toggle btn-sm rounded-pill px-2"
-                      type="button"
-                      data-bs-toggle="dropdown"
-                      aria-expanded="false"
-                    >
-                      <i className="fa-solid fa-tag me-1"></i> Price
-                    </button>
-                    <ul className="dropdown-menu">
-                      {[
-                        "All",
-                        "Under Rs. 500",
-                        "Rs. 500-1000",
-                        "Rs. 1000-2000",
-                        "Above Rs. 2000",
-                      ].map((range, i) => (
-                        <li key={i}>
-                          <button className="dropdown-item">{range}</button>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  {/* Rating */}
-                  <div className="dropdown position-static">
-                    <button
-                      className="btn btn-outline-success dropdown-toggle btn-sm rounded-pill px-2"
-                      type="button"
-                      data-bs-toggle="dropdown"
-                      aria-expanded="false"
-                    >
-                      <i className="fa-solid fa-star me-1"></i> Rating
-                    </button>
-                    <ul className="dropdown-menu">
-                      {["All Ratings", "5 Stars", "4+ Stars", "3+ Stars"].map(
-                        (rate, i) => (
-                          <li key={i}>
-                            <button className="dropdown-item">{rate}</button>
-                          </li>
-                        )
-                      )}
-                    </ul>
-                  </div>
-
-                  {/* Distance */}
-                  <div className="dropdown position-static">
-                    <button
-                      className="btn btn-outline-warning dropdown-toggle btn-sm rounded-pill px-2"
-                      type="button"
-                      data-bs-toggle="dropdown"
-                      aria-expanded="false"
-                    >
-                      <i className="fa-solid fa-location-dot me-1"></i> Distance
-                    </button>
-                    <ul className="dropdown-menu">
-                      {[
-                        "All",
-                        "Within 1 km",
-                        "1-5 km",
-                        "5-10 km",
-                        "10+ km",
-                      ].map((range, i) => (
-                        <li key={i}>
-                          <button className="dropdown-item">{range}</button>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  {/* Availability */}
-                  <div className="dropdown position-static">
-                    <button
-                      className="btn btn-outline-info dropdown-toggle btn-sm rounded-pill px-2"
-                      type="button"
-                      data-bs-toggle="dropdown"
-                      aria-expanded="false"
-                    >
-                      <i className="fa-solid fa-clock me-1"></i> Availability
-                    </button>
-                    <ul className="dropdown-menu">
-                      {[
-                        "All",
-                        "Open Now",
-                        "Morning",
-                        "Afternoon",
-                        "Evening",
-                      ].map((time, i) => (
-                        <li key={i}>
-                          <button className="dropdown-item">{time}</button>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  {/* Featured Shops */}
-                  <button className="btn btn-outline-dark rounded-pill btn-sm text-nowrap">
-                    <i className="fa-solid fa-crown me-1 text-warning"></i>{" "}
-                    Featured
+                  <i
+                    class="fa-solid fa-sliders mt-2 ms-2"
+                    style={{ fontSize: "18px" }}
+                  ></i>
+                  <button
+                    className="btn btn-outline-dark rounded-pill btn-sm text-nowrap"
+                    onClick={(e) => handleOpenFilter(e, "Status")}
+                  >
+                    <i class="fa-solid fa-wifi me-1"></i>
+                    Status: {filters.status}{" "}
+                    <i class="fa-solid fa-caret-down"></i>
+                  </button>
+                  <button
+                    className="btn btn-outline-success rounded-pill btn-sm text-nowrap"
+                    onClick={(e) => handleOpenFilter(e, "Distance")}
+                  >
+                    <i className="fa-solid fa-location-dot me-1"></i>
+                    Distance: {filters.distance}{" "}
+                    <i class="fa-solid fa-caret-down"></i>
+                  </button>
+                  <button
+                    className="btn btn-outline-primary rounded-pill btn-sm text-nowrap"
+                    onClick={(e) => handleOpenFilter(e, "Price")}
+                  >
+                    <i class="fa-solid fa-tags me-1"></i>
+                    Price: {filters.price}{" "}
+                    <i class="fa-solid fa-caret-down"></i>
+                  </button>
+                  <button
+                    className="btn btn-outline-warning rounded-pill btn-sm text-nowrap"
+                    onClick={(e) => handleOpenFilter(e, "Rating")}
+                  >
+                    <i class="fa-solid fa-star me-1"></i>
+                    Rating: {filters.rating}{" "}
+                    <i class="fa-solid fa-caret-down"></i>
                   </button>
                 </div>
 
-                {availableServices.length > 0 ? (
+                {finalServices.length > 0 ? (
                   <div className="row g-3">
-                    {availableServices.map((shop, index) => {
+                    {finalServices.map((shop, index) => {
                       const shopCoords = {
                         lat: shop?.location?.coordinates[0],
                         lng: shop?.location?.coordinates[1],
@@ -1063,7 +1168,12 @@ function UserDashboard({ shopWithShopkepper, setUpdateAppjs, onRequestAdded }) {
                       const averageRating = findAverageRating(shop.reviews);
                       return (
                         <div className="col-12 col-md-6 col-lg-4" key={index}>
-                          <div className="card shadow-sm border-1 rounded-4 overflow-hidden">
+                          <div
+                            className="card shadow-sm rounded-4 overflow-hidden"
+                            style={{
+                              border: shop.isLive ? "" : "2px dotted red",
+                            }}
+                          >
                             <div className="card-body ">
                               <div className="d-flex align-items-center">
                                 {/* Shop Image */}
@@ -1109,6 +1219,7 @@ function UserDashboard({ shopWithShopkepper, setUpdateAppjs, onRequestAdded }) {
                                         ? `${shop.shopName.slice(0, 10)}...`
                                         : shop.shopName}
                                     </p>
+
                                     <p className="mb-0 text-muted small d-flex align-items-center">
                                       <i className="fa-solid fa-star text-warning me-1"></i>
                                       <strong>{averageRating}</strong>/5
@@ -1134,12 +1245,15 @@ function UserDashboard({ shopWithShopkepper, setUpdateAppjs, onRequestAdded }) {
 
                                   {/* Distance */}
                                   <p className="mb-0 text-muted small">
-                                    <b>{distance}</b> km away
+                                    {shop.isLive ? "Online" : "Offline"} |
+                                    <b className="ms-1">{distance}</b> km away
                                   </p>
                                   <div className="d-flex justify-content-start gap-1 mt-1">
                                     <button
-                                      className="btn btn-success btn-sm w-100"
-                                      onClick={() => addTocart(shop)}
+                                      className={`btn btn-${
+                                        shop.isLive ? "success" : "danger"
+                                      } btn-sm w-100`}
+                                      onClick={() => addToCart(shop,"main")}
                                     >
                                       <i class="fa-solid fa-cart-plus me-1"></i>
                                       Add to cart
@@ -1252,7 +1366,7 @@ function UserDashboard({ shopWithShopkepper, setUpdateAppjs, onRequestAdded }) {
                   <p className="text-center text-muted">
                     {selectedShopWithShopkepper?.isLive === true
                       ? "Online"
-                      : selectedShopWithShopkepper?.createdAt}
+                      : "Offline"}
                   </p>
                   {shopDistance && (
                     <p className="text-center text-muted ">
@@ -1334,7 +1448,7 @@ function UserDashboard({ shopWithShopkepper, setUpdateAppjs, onRequestAdded }) {
                               <td>
                                 <button
                                   className="btn btn-outline-primary btn-sm  w-100"
-                                  onClick={() => addTocart(sub)}
+                                  onClick={() => addToCart(sub,"detail")}
                                 >
                                   <i class="fa-solid fa-cart-plus me-1"></i>
                                 </button>
@@ -1421,11 +1535,19 @@ function UserDashboard({ shopWithShopkepper, setUpdateAppjs, onRequestAdded }) {
                 </div>
 
                 <div className="d-flex justify-content-center gap-5 mt-3">
-                  <button className="btn btn-danger rounded-pill px-3" onClick={handleBackPage} disabled={page === 0}>
+                  <button
+                    className="btn btn-danger rounded-pill px-3"
+                    onClick={handleBackPage}
+                    disabled={page === 0}
+                  >
                     <i class="fa-solid fa-circle-arrow-left me-2"></i>
                     Back
                   </button>
-                  <button className="btn btn-success  rounded-pill px-3" onClick={handleNextPage} disabled={startIndex + reviewsPerPage >= reviews.length}>
+                  <button
+                    className="btn btn-success  rounded-pill px-3"
+                    onClick={handleNextPage}
+                    disabled={startIndex + reviewsPerPage >= reviews.length}
+                  >
                     Next
                     <i class="fa-solid fa-circle-arrow-right ms-2"></i>
                   </button>
@@ -1454,6 +1576,162 @@ function UserDashboard({ shopWithShopkepper, setUpdateAppjs, onRequestAdded }) {
                   )
                  }
               </div> */}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {filterModal && (
+        <div
+          className="modal fade show d-block"
+          tabIndex="-1"
+          style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+        >
+          <div className="modal-dialog modal-sm modal-dialog-centered">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">{filterText} Filter</h5>
+                <button
+                  className="btn-close "
+                  style={{ top: 10, right: 15 }}
+                  onClick={() => setFilterModal(false)}
+                ></button>
+              </div>
+              <div className="modal-body" style={{ height: "auto" }}>
+                {filterText === "Price" && (
+                  <div className="d-flex flex-wrap gap-2 justify-content-center">
+                    {priceRangeOptions.map((price, index) => (
+                      <button
+                        key={index}
+                        className="btn btn-outline-primary rounded-pill"
+                        onClick={() => handleFilterChange("Price", price)}
+                      >
+                        {price}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {filterText === "Status" && (
+                  <div className="d-flex flex-wrap gap-2 justify-content-center">
+                    {statusOptions.map((status, index) => (
+                      <button
+                        key={index}
+                        className="btn btn-outline-primary rounded-pill"
+                        onClick={() => handleFilterChange("Status", status)}
+                      >
+                        {status}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {filterText === "Rating" && (
+                  <div className="d-flex flex-wrap gap-2 justify-content-center">
+                    {ratingRangeOptions.map((rate, index) => (
+                      <button
+                        key={index}
+                        className="btn btn-outline-primary rounded-pill"
+                        onClick={() => handleFilterChange("Rating", rate)}
+                      >
+                        {rate}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {filterText === "Distance" && (
+                  <>
+                    <label className="form-label">
+                      Distance: <b>{distanceRange}</b> km
+                    </label>
+                    <input
+                      type="range"
+                      className="form-range"
+                      min={0}
+                      max={100}
+                      step={10}
+                      value={distanceRange}
+                      onChange={(e) => setDistanceRange(e.target.value)}
+                    />
+                  </>
+                )}
+
+                <hr />
+
+                <div className="d-flex justify-content-center align-items-center mt-3">
+                  <button
+                    className="rounded-pill btn btn-primary"
+                    onClick={() => {
+                      setIsFilter(true);
+                      setFilterModal(false);
+                    }}
+                  >
+                    Show Result {FilterServices?.length}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {notFoundModal && (
+        <div
+          className="modal fade show d-block"
+          tabIndex="-1"
+          style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+        >
+          <div className="modal-dialog modal-sm modal-dialog-centered">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">
+                  Not Found<i class="fa-solid fa-face-frown ms-1"></i>
+                </h5>
+                <button
+                  className="btn-close "
+                  style={{ top: 10, right: 15 }}
+                  onClick={() => setNotFoundModal(false)}
+                ></button>
+              </div>
+             <div className="modal-body ">
+              <div className="d-flex justify-content-center align-items-center">
+                  <video
+    src={notFound}
+    autoPlay
+    muted
+    loop
+    style={{
+      width: "250px",   // set your width
+      height: "250px",  // set your height
+      objectFit: "cover", // keeps aspect ratio nicely
+      borderRadius: "10px" // optional: rounded corners
+    }}
+  />
+              </div>
+
+
+  <div className="alert alert-light text-center shadow-sm mt-3" role="alert">
+      <strong style={{ color: "black" }}>Sorry!</strong>{" "}
+      No provider found for{" "}
+      <strong style={{ color: "black" }}>
+        {selectedCategory || "{}"}
+      </strong>{" "}
+      /{" "}
+      <strong style={{ color: "black" }}>
+        {selectedSubCategory || "{}"}
+      </strong>.
+      <br />
+      Don’t worry{" "}
+      <i className="fa-regular fa-face-smile text-warning"></i>, you can{" "}
+      <span style={{ fontWeight: "bold", color: "#0d6efd" }}>request admin</span>.
+
+
+      <button className="btn btn-success w-100 mt-3" onClick={()=>{alert("Request Send To Admin for", selectedCategory , "-->", selectedSubCategory);
+        setNotFoundModal(false)
+      }}>Send Request To Admin</button>
+    </div>
+
+
+</div>
+
             </div>
           </div>
         </div>
