@@ -20,8 +20,7 @@ import markerShadow from "leaflet/dist/images/marker-shadow.png";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { services } from "../components/servicesData";
-import UserInfoModal from "../components/UserInfo";
-function UserDashboard({ shopWithShopkepper, setUpdateAppjs, onRequestAdded }) {
+function UserDashboard({setUpdateAppjs, onRequestAdded , cartData}) {
   const token = localStorage.getItem("token");
   const [position, setPosition] = useState([33.6844, 73.0479]);
   const [latitude, setLatitude] = useState(33.6844);
@@ -49,7 +48,6 @@ function UserDashboard({ shopWithShopkepper, setUpdateAppjs, onRequestAdded }) {
 
   const user = JSON.parse(sessionStorage.getItem("user"));
 
-  const [cartData, setCartData] = useState([]);
   const [distanceRange, setDistanceRange] = useState(10);
   const [Price, setPrice] = useState(100);
   const [isFilter, setIsFilter] = useState(false);
@@ -127,7 +125,7 @@ const addToCart = async (shop, from) => {
     price: finalPrice,
   };
 
-  const exists = cartData.some(
+  const exists = cartData?.items?.some(
     (item) =>
       item.shopId === payload.shopId &&
       item.subCategory === payload.subCategory
@@ -138,7 +136,6 @@ const addToCart = async (shop, from) => {
     return;
   }
 
-  // Optimistic UI update
 
 
   try {
@@ -152,12 +149,8 @@ const addToCart = async (shop, from) => {
 
     if (response.data.success) {
       console.log("Cart saved in DB:", response.data);
-        setCartData((prev) => [...prev, payload]);
+        setUpdateAppjs(true)
   alert("Item added to cart");
-      // only update state if backend sends updated cart
-      if (response.data.cart) {
-        setCartData(response.data.cart);
-      }
     }
   } catch (error) {
     console.error("Error saving to cart:", error.response?.data || error.message);
@@ -1279,14 +1272,16 @@ const addToCart = async (shop, from) => {
                 >
                   Close
                 </button>
-                {cartData.length > 0 && (
+                {cartData?.items?.length > 0 && (
                   <button
                     type="button"
                     className="btn btn-success"
-                    onClick={() => setSubCatModal(false)}
+                    onClick={() => {setSubCatModal(false);
+                      navigate("/admin/user/cart")
+                    }}
                   >
                     <i class="fa-solid fa-cart-shopping me-1"></i>
-                    View Cart {cartData.length > 0 && `(${cartData.length})`}
+                    View Cart {cartData?.items?.length  > 0 && `(${cartData?.items?.length })`}
                   </button>
                 )}
               </div>
@@ -1319,9 +1314,10 @@ const addToCart = async (shop, from) => {
                   <i
                     className="fa-solid fa-cart-shopping"
                     style={{ fontSize: "25px" }}
+                    onClick={()=> navigate("admin/user/cart")}
                   ></i>
                   <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                    {cartData.length}
+                    {cartData?.items?.length}
                     <span className="visually-hidden">unread messages</span>
                   </span>
                 </div>

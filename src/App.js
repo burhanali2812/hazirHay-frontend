@@ -16,6 +16,7 @@ import ShopKepperDashboard from "./pages/ShopKepperDashboard";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 import ShopkepperRequests from "./pages/ShopkepperRequests";
 import UserDashboard from "./pages/UserDashboard";
+import Cart from "./components/Cart";
 
 function App() {
   const [topText, setTopText] = useState("");
@@ -29,6 +30,7 @@ function App() {
   const [UpdateAppjs, setUpdateAppjs] = useState(false);
   const [shopWithShopkepper, setShopWithShopkepper] = useState([]);
     const [refreshFlag, setRefreshFlag] = useState(false);
+    const [cartData, setCartData] = useState([]);
 
   const handleRequestAdded = () => {
     setRefreshFlag(prev => !prev); // toggle flag to trigger re-fetch
@@ -97,16 +99,35 @@ function App() {
     }
   };
 
+  const getCartData  = async()=>{
+    try {
+      const response = await axios("https://hazir-hay-backend.wckd.pk/cart/getCartData" , {
+         headers: { Authorization: `Bearer ${token}` },
+      });
+     setCartData(response.data.data?.[0] || {});
+console.log("CartDAta", response.data.data?.[0]);
+
+      
+      console.log(response.data.message || "Cart Data Fetch Successfully!");
+    } catch (error) {
+      console.log("Error Fetching CArt data", error);
+      
+    }
+  }
+
   useEffect(() => {
     
     getAllUser();
     getAllShopKepper();
+    getCartData();
   }, []);
 
   useEffect(() => {
     if (UpdateAppjs) {
       getAllUser();
       getAllShopKepper();
+       getCartData();
+       setUpdateAppjs(false);
     }
   }, [UpdateAppjs]);
 
@@ -201,11 +222,16 @@ function App() {
             path="user/dashboard"
             element={
               <UserDashboard
-                totalActiveShopkepper={totalActiveShopkepper}
                 setUpdateAppjs={setUpdateAppjs}
                onRequestAdded={handleRequestAdded}
+               cartData ={cartData}
               />
             }
+          />
+
+            <Route
+            path="user/cart"
+            element={<Cart  cartData ={cartData}  setUpdateAppjs={setUpdateAppjs}/>}
           />
         </Route>
       </Routes>

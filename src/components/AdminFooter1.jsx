@@ -140,13 +140,13 @@ function AdminFooter({ topText, setUpdate, setShopKepperStatus }) {
         key: "home",
         icon: "fas fa-home",
         label: "Home",
-        path: "/user/dashboard",
+        path: "/admin/user/dashboard",
       },
       {
         key: "cart",
         icon: "fas fa-shopping-cart",
         label: "Cart",
-        path: "/user/cart",
+        path: "/admin/user/cart",
       },
       {
         key: "favorites",
