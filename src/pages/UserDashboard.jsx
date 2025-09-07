@@ -20,13 +20,13 @@ import markerShadow from "leaflet/dist/images/marker-shadow.png";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { services } from "../components/servicesData";
-function UserDashboard({setUpdateAppjs, onRequestAdded , cartData}) {
+function UserDashboard({setUpdateAppjs, onRequestAdded , cartData, areaName, setAreaName ,coordinates ,setCoordinates}) {
   const token = localStorage.getItem("token");
   const [position, setPosition] = useState([33.6844, 73.0479]);
   const [latitude, setLatitude] = useState(33.6844);
   const [longitude, setLongitude] = useState(73.0479);
-  const [areaName, setAreaName] = useState("");
-  const [coordinates, setCoordinates] = useState([]);
+
+
   const [loading, setLoading] = useState(false);
   const [verifiedShops, setVerifiedShops] = useState([]);
   const [verifiedLiveShops, setVerifiedLiveShops] = useState([]);

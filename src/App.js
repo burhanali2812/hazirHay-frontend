@@ -31,6 +31,8 @@ function App() {
   const [shopWithShopkepper, setShopWithShopkepper] = useState([]);
     const [refreshFlag, setRefreshFlag] = useState(false);
     const [cartData, setCartData] = useState([]);
+      const [areaName, setAreaName] = useState("");
+        const [coordinates, setCoordinates] = useState([]);
 
   const handleRequestAdded = () => {
     setRefreshFlag(prev => !prev); // toggle flag to trigger re-fetch
@@ -225,13 +227,17 @@ console.log("CartDAta", response.data.data?.[0]);
                 setUpdateAppjs={setUpdateAppjs}
                onRequestAdded={handleRequestAdded}
                cartData ={cartData}
+               areaName= {areaName}
+               setAreaName = {setAreaName}
+               coordinates={coordinates}
+               setCoordinates={setCoordinates}
               />
             }
           />
 
             <Route
             path="user/cart"
-            element={<Cart  cartData ={cartData}  setUpdateAppjs={setUpdateAppjs}/>}
+            element={<Cart  cartData ={cartData}  setUpdateAppjs={setUpdateAppjs} areaName= {areaName} coordinates={coordinates}/>}
           />
         </Route>
       </Routes>

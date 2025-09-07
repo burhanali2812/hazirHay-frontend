@@ -1,14 +1,15 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-function Cart({ cartData, setUpdateAppjs }) {
+function Cart({ cartData, setUpdateAppjs, areaName, coordinates }) {
   // safely get items
 
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
   const [loadingItemId, setLoadingItemId] = useState(null);
   const [orderSummaryModal, setOrderSummaryModal] = useState(false);
-            
+  const user = JSON.parse(sessionStorage.getItem("user"));
+
   const groupedCart = (cartData?.items || []).reduce((acc, item) => {
     const shop = acc.find((s) => s.shopId === item.shopId);
 
@@ -34,7 +35,7 @@ function Cart({ cartData, setUpdateAppjs }) {
   );
 
   const deleteItem = async (service) => {
-    setLoadingItemId(service._id); // only this item is loading
+    setLoadingItemId(service._id);
     try {
       const response = await axios.delete(
         `https://hazir-hay-backend.wckd.pk/cart/deleteCartItem/${service._id}`,
@@ -53,6 +54,11 @@ function Cart({ cartData, setUpdateAppjs }) {
       setLoadingItemId(null); // reset after deletion
     }
   };
+
+
+//   const findShopCoordinates = (item)=>{
+//     const shop = ShopDetail.find((shop)=> shop.shop._id === item.shopId)
+//   }
 
   return (
     <div>
@@ -81,7 +87,10 @@ function Cart({ cartData, setUpdateAppjs }) {
                     className="card shadow-sm mb-3 border-0"
                     style={{ borderRadius: "12px" }}
                   >
-                    <div className="card-header  fw-bold d-flex align-items-center" style={{background : "#AFEEEE"}}>
+                    <div
+                      className="card-header  fw-bold d-flex align-items-center"
+                      style={{ background: "#AFEEEE" }}
+                    >
                       <i className="fa-solid fa-shop me-2 text-primary"></i>
                       <span>
                         {shop.shopName}
@@ -143,7 +152,7 @@ function Cart({ cartData, setUpdateAppjs }) {
               <button
                 type="button"
                 className="btn btn-success px-4 rounded-pill shadow-sm"
-                 onClick={() => setOrderSummaryModal(true)}
+                onClick={() => setOrderSummaryModal(true)}
               >
                 Next <i className="fa-solid fa-angles-right ms-"></i>
               </button>
@@ -152,44 +161,113 @@ function Cart({ cartData, setUpdateAppjs }) {
         </div>
       </div>
 
-      {
-        orderSummaryModal && (
-             <div
-        className="modal fade show d-block"
-        tabIndex="-1"
-        style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
-      >
-        <div className="modal-dialog modal-fullscreen modal-dialog-centered">
-          <div className="modal-content">
-            <div className="modal-header d-flex justify-content-between">
-              <div className="d-flex mt-2">
-                <i
-                  class="fa-solid fa-circle-chevron-left mt-1"
-                  style={{ fontSize: "18px" }}
-                  onClick={() => setOrderSummaryModal(false)}
-                ></i>
-                <h5 className="ms-2  fw-bold">Order Summary</h5>
+      {orderSummaryModal && (
+        <div
+          className="modal fade show d-block"
+          tabIndex="-1"
+          style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+        >
+          <div className="modal-dialog modal-fullscreen modal-dialog-centered">
+            <div className="modal-content">
+              <div className="modal-header d-flex justify-content-between">
+                <div className="d-flex mt-2">
+                  <i
+                    class="fa-solid fa-circle-chevron-left mt-1"
+                    style={{ fontSize: "18px" }}
+                    onClick={() => setOrderSummaryModal(false)}
+                  ></i>
+                  <h5 className="ms-2  fw-bold">Order Summary</h5>
+                </div>
               </div>
-            </div>
-            <div className="modal-body" style={{ height: "auto" }}>
+              <div className="modal-body" style={{ height: "auto" }}>
+                <div className="card container border-0 shadow-sm">
+                  <h4 className="text-center text-success fw-bold">
+                    Order Summary
+                  </h4>
+                  <div className="card container p-2">
+                    <div className="d-flex">
+                      <div
+                        className="d-flex align-items-center mt-2"
+                        // onClick={() => setChooseLocationModal(true)}
+                      >
+                        <i
+                          className="fa-solid fa-street-view text-danger me-3 mb-3"
+                          style={{ fontSize: "25px" }}
+                        ></i>
+                      </div>
 
-            </div>
-            <div className="modal-footer">
-            
+                      <div>
+                        <div className="d-flex">
+                          <p className="fw-bold">{user.name}</p>
+                          <p className="text-muted ms-2">{user.phone}</p>
+                        </div>
+                        <p style={{ fontSize: "16px", marginTop: "-14px" }}>
+                          {areaName
+                            ? areaName.length > 58
+                              ? areaName.slice(0, 58) + "..."
+                              : areaName
+                            : "No location found! please click on me to update your location"}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  <hr />
+                  {groupedCart.length > 0 &&
+                    groupedCart.map((shop, index) => (
+                      <div
+                        key={index}
+                        className="card shadow-sm mb-3 border-0"
+                        style={{ borderRadius: "12px" }}
+                      >
+                        <div
+                          className="card-header  fw-bold d-flex align-items-center"
+                          style={{ background: "#AFEEEE" }}
+                        >
+                          <i className="fa-solid fa-shop me-2 text-primary"></i>
+                          <span>{shop.shopName}</span>
+                        </div>
 
-              <button
-                type="button"
-                className="btn btn-success px-4 rounded-pill shadow-sm"
-                 onClick={() => {setOrderSummaryModal(false)}}
-              >
-                Check Out <i className="fa-solid fa-angles-right ms-"></i>
-              </button>
+                        <div className="card-body">
+                          {shop.items.map((service, i) => (
+                            <div
+                              key={i}
+                              className="p-2 mb-2 border-bottom"
+                              style={{ fontSize: "15px" }}
+                            >
+                              <div className="d-flex justify-content-between align-items-center">
+                                <p className="mb-1 fw-semibold text-primary">
+                                  {service.subCategory}
+                                </p>
+                              </div>
+
+                              <p className="mb-1 text-muted">
+                                Category: <b>{service.category}</b>
+                              </p>
+                              <p className="mb-0 text-success fw-bold">
+                                Rs. {service.price}/-
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button
+                  type="button"
+                  className="btn btn-success px-4 rounded-pill shadow-sm"
+                  onClick={() => {
+                    setOrderSummaryModal(false);
+                  }}
+                >
+                  Check Out <i className="fa-solid fa-angles-right ms-"></i>
+                </button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-        )
-      }
+      )}
     </div>
   );
 }
