@@ -5,6 +5,7 @@ import "./style.css";
 import noData from "../images/noData.png";
 import { useNavigate } from "react-router-dom";
 import notFound from "../videos/notFound.mp4";
+import Swal from "sweetalert2";
 
 import {
   MapContainer,
@@ -20,12 +21,19 @@ import markerShadow from "leaflet/dist/images/marker-shadow.png";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { services } from "../components/servicesData";
-function UserDashboard({setUpdateAppjs, onRequestAdded , cartData, areaName, setAreaName ,coordinates ,setCoordinates}) {
+function UserDashboard({
+  setUpdateAppjs,
+  onRequestAdded,
+  cartData,
+  areaName,
+  setAreaName,
+  coordinates,
+  setCoordinates,
+}) {
   const token = localStorage.getItem("token");
   const [position, setPosition] = useState([33.6844, 73.0479]);
   const [latitude, setLatitude] = useState(33.6844);
   const [longitude, setLongitude] = useState(73.0479);
-
 
   const [loading, setLoading] = useState(false);
   const [verifiedShops, setVerifiedShops] = useState([]);
@@ -52,6 +60,7 @@ function UserDashboard({setUpdateAppjs, onRequestAdded , cartData, areaName, set
   const [Price, setPrice] = useState(100);
   const [isFilter, setIsFilter] = useState(false);
   const [notFoundModal, setNotFoundModal] = useState(false);
+  const [addCartLoading, setAddCartLoading] = useState(null);
 
   const [filterText, setFilterText] = useState("");
   const [FilterServices, setFilterServices] = useState([]);
@@ -91,75 +100,99 @@ function UserDashboard({setUpdateAppjs, onRequestAdded , cartData, areaName, set
     setFilterText(filterType);
   };
 
-const addToCart = async (shop, from) => {
-  let finalShopId, finalCategory, finalSubCategory, finalPrice, finalShopName;
+  const addToCart = async (shop, from) => {
+      if (!shop.isLive) {
+  const result = await Swal.fire({
+    title: "This provider is offline",
+    html: `<p class="mb-1">
+             The shop <strong>${shop.shopName}</strong> is currently not live.
+           </p>
+           <p class="text-muted">
+             Don’t worry 😊 — your request will be sent, and when the provider comes online, 
+             they will contact you shortly.
+           </p>`,
+    icon: "info",
+    showCancelButton: true,
+    confirmButtonColor: "#28a745",
+    cancelButtonColor: "#6c757d",
+    confirmButtonText: "Yes, Add to cart",
+    cancelButtonText: "Cancel",
+  });
 
-  if (from === "detail") {
-    finalShopId = selectedShopWithShopkepper?.shop?._id;
-    finalCategory = shop.category;
-    finalSubCategory = shop.subCategory.name;
-    finalPrice = shop.subCategory.price;
-    finalShopName = selectedShopWithShopkepper?.shop?.shopName;
-  } else {
-    const selectedService = shop.servicesOffered.find(
-      (service) => service.subCategory.name === selectedSubCategory
+  if (!result.isConfirmed) return;
+}
+
+    setAddCartLoading(shop._id);
+    let finalShopId, finalCategory, finalSubCategory, finalPrice, finalShopName;
+
+    if (from === "detail") {
+      finalShopId = selectedShopWithShopkepper?.shop?._id;
+      finalCategory = shop.category;
+      finalSubCategory = shop.subCategory.name;
+      finalPrice = shop.subCategory.price;
+      finalShopName = selectedShopWithShopkepper?.shop?.shopName;
+    } else {
+      const selectedService = shop.servicesOffered.find(
+        (service) => service.subCategory.name === selectedSubCategory
+      );
+
+      if (!selectedService) {
+        alert("Service not found in this shop");
+        setAddCartLoading(null);
+        return;
+      }
+
+      finalShopId = shop._id;
+      finalCategory = selectedService.category;
+      finalSubCategory = selectedService.subCategory.name;
+      finalPrice = selectedService.subCategory.price;
+      finalShopName = shop.shopName;
+    }
+
+    const payload = {
+      shopId: finalShopId,
+      category: finalCategory,
+      subCategory: finalSubCategory,
+      shopName: finalShopName,
+      price: finalPrice,
+    };
+
+    const exists = cartData?.items?.some(
+      (item) =>
+        item.shopId === payload.shopId &&
+        item.subCategory === payload.subCategory
     );
 
-    if (!selectedService) {
-      alert("Service not found in this shop");
+    if (exists) {
+      alert("This item is already in the cart");
+      setAddCartLoading(null);
       return;
     }
 
-    finalShopId = shop._id;
-    finalCategory = selectedService.category;
-    finalSubCategory = selectedService.subCategory.name;
-    finalPrice = selectedService.subCategory.price;
-    finalShopName = shop.shopName;
-  }
+    try {
+      const response = await axios.post(
+        "https://hazir-hay-backend.wckd.pk/cart/saveCartData",
+        payload,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
 
-  const payload = {
-    shopId: finalShopId,
-    category: finalCategory,
-    subCategory: finalSubCategory,
-    shopName: finalShopName,
-    price: finalPrice,
-  };
-
-  const exists = cartData?.items?.some(
-    (item) =>
-      item.shopId === payload.shopId &&
-      item.subCategory === payload.subCategory
-  );
-
-  if (exists) {
-    alert("This item is already in the cart");
-    return;
-  }
-
-
-
-  try {
-    const response = await axios.post(
-      "https://hazir-hay-backend.wckd.pk/cart/saveCartData",
-      payload,
-      {
-        headers: { Authorization: `Bearer ${token}` },
+      if (response.data.success) {
+        console.log("Cart saved in DB:", response.data);
+        setAddCartLoading(null);
+        setUpdateAppjs(true);
+        alert("Item added to cart");
       }
-    );
-
-    if (response.data.success) {
-      console.log("Cart saved in DB:", response.data);
-        setUpdateAppjs(true)
-  alert("Item added to cart");
+    } catch (error) {
+      console.error(
+        "Error saving to cart:",
+        error.response?.data || error.message
+      );
+      alert("Failed to save cart item. Please try again.");
+      setAddCartLoading(null);
     }
-  } catch (error) {
-    console.error("Error saving to cart:", error.response?.data || error.message);
-    alert("Failed to save cart item. Please try again.");
-  }
-};
-
-
-
+  };
 
   const getShopWithShopkeppers = async (provider) => {
     setLoading(true);
@@ -833,7 +866,7 @@ const addToCart = async (shop, from) => {
           <span
             style={{ color: "#007bff", fontWeight: "bold", marginLeft: "5px" }}
           >
-            Rs. 15/km
+            Rs. 15-25/km
           </span>
         </p>
         <button
@@ -970,15 +1003,7 @@ const addToCart = async (shop, from) => {
                     </p>
                   </div>
                 )}
-                <div>
-                  <button
-                    className="btn btn-success w-100 mt-3"
-                    onClick={() => setSaveLocationsModal(true)}
-                  >
-                    <i class="fa-solid fa-map-location-dot me-2"></i>
-                    Add Address
-                  </button>
-                </div>
+                <div></div>
               </div>
               <div className="modal-footer">
                 <button
@@ -987,6 +1012,13 @@ const addToCart = async (shop, from) => {
                   onClick={() => setChooseLocationModal(false)}
                 >
                   Close
+                </button>
+                <button
+                  className="btn btn-success"
+                  onClick={() => setSaveLocationsModal(true)}
+                >
+                  <i class="fa-solid fa-map-location-dot me-2"></i>
+                  Add Address
                 </button>
               </div>
             </div>
@@ -1246,10 +1278,23 @@ const addToCart = async (shop, from) => {
                                       className={`btn btn-${
                                         shop.isLive ? "success" : "danger"
                                       } btn-sm w-100`}
-                                      onClick={() => addToCart(shop,"main")}
+                                      onClick={() => addToCart(shop, "main")}
+                                      disabled={addCartLoading === shop._id}
                                     >
-                                      <i class="fa-solid fa-cart-plus me-1"></i>
-                                      Add to cart
+                                      {addCartLoading === shop._id ? (
+                                        <>
+                                          Adding to cart...
+                                          <div
+                                            className="spinner-border spinner-border-sm text-light ms-2"
+                                            role="status"
+                                          ></div>
+                                        </>
+                                      ) : (
+                                        <>
+                                          <i class="fa-solid fa-cart-plus me-1"></i>
+                                          Add to cart
+                                        </>
+                                      )}
                                     </button>
                                   </div>
                                 </div>
@@ -1276,12 +1321,15 @@ const addToCart = async (shop, from) => {
                   <button
                     type="button"
                     className="btn btn-success"
-                    onClick={() => {setSubCatModal(false);
-                      navigate("/admin/user/cart")
+                    onClick={() => {
+                      setSubCatModal(false);
+                      navigate("/admin/user/cart");
                     }}
                   >
                     <i class="fa-solid fa-cart-shopping me-1"></i>
-                    View Cart {cartData?.items?.length  > 0 && `(${cartData?.items?.length })`}
+                    View Cart{" "}
+                    {cartData?.items?.length > 0 &&
+                      `(${cartData?.items?.length})`}
                   </button>
                 )}
               </div>
@@ -1314,7 +1362,7 @@ const addToCart = async (shop, from) => {
                   <i
                     className="fa-solid fa-cart-shopping"
                     style={{ fontSize: "25px" }}
-                    onClick={()=> navigate("admin/user/cart")}
+                    onClick={() => navigate("admin/user/cart")}
                   ></i>
                   <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
                     {cartData?.items?.length}
@@ -1444,7 +1492,7 @@ const addToCart = async (shop, from) => {
                               <td>
                                 <button
                                   className="btn btn-outline-primary btn-sm  w-100"
-                                  onClick={() => addToCart(sub,"detail")}
+                                  onClick={() => addToCart(sub, "detail")}
                                 >
                                   <i class="fa-solid fa-cart-plus me-1"></i>
                                 </button>
@@ -1687,47 +1735,60 @@ const addToCart = async (shop, from) => {
                   onClick={() => setNotFoundModal(false)}
                 ></button>
               </div>
-             <div className="modal-body ">
-              <div className="d-flex justify-content-center align-items-center">
+              <div className="modal-body ">
+                <div className="d-flex justify-content-center align-items-center">
                   <video
-    src={notFound}
-    autoPlay
-    muted
-    loop
-    style={{
-      width: "250px",   // set your width
-      height: "250px",  // set your height
-      objectFit: "cover", // keeps aspect ratio nicely
-      borderRadius: "10px" // optional: rounded corners
-    }}
-  />
+                    src={notFound}
+                    autoPlay
+                    muted
+                    loop
+                    style={{
+                      width: "250px", // set your width
+                      height: "250px", // set your height
+                      objectFit: "cover", // keeps aspect ratio nicely
+                      borderRadius: "10px", // optional: rounded corners
+                    }}
+                  />
+                </div>
+
+                <div
+                  className="alert alert-light text-center shadow-sm mt-3"
+                  role="alert"
+                >
+                  <strong style={{ color: "black" }}>Sorry!</strong> No provider
+                  found for{" "}
+                  <strong style={{ color: "black" }}>
+                    {selectedCategory || "{}"}
+                  </strong>{" "}
+                  /{" "}
+                  <strong style={{ color: "black" }}>
+                    {selectedSubCategory || "{}"}
+                  </strong>
+                  .
+                  <br />
+                  Don’t worry{" "}
+                  <i className="fa-regular fa-face-smile text-warning"></i>, you
+                  can{" "}
+                  <span style={{ fontWeight: "bold", color: "#0d6efd" }}>
+                    request admin
+                  </span>
+                  .
+                  <button
+                    className="btn btn-success w-100 mt-3"
+                    onClick={() => {
+                      alert(
+                        "Request Send To Admin for",
+                        selectedCategory,
+                        "-->",
+                        selectedSubCategory
+                      );
+                      setNotFoundModal(false);
+                    }}
+                  >
+                    Send Request To Admin
+                  </button>
+                </div>
               </div>
-
-
-  <div className="alert alert-light text-center shadow-sm mt-3" role="alert">
-      <strong style={{ color: "black" }}>Sorry!</strong>{" "}
-      No provider found for{" "}
-      <strong style={{ color: "black" }}>
-        {selectedCategory || "{}"}
-      </strong>{" "}
-      /{" "}
-      <strong style={{ color: "black" }}>
-        {selectedSubCategory || "{}"}
-      </strong>.
-      <br />
-      Don’t worry{" "}
-      <i className="fa-regular fa-face-smile text-warning"></i>, you can{" "}
-      <span style={{ fontWeight: "bold", color: "#0d6efd" }}>request admin</span>.
-
-
-      <button className="btn btn-success w-100 mt-3" onClick={()=>{alert("Request Send To Admin for", selectedCategory , "-->", selectedSubCategory);
-        setNotFoundModal(false)
-      }}>Send Request To Admin</button>
-    </div>
-
-
-</div>
-
             </div>
           </div>
         </div>
