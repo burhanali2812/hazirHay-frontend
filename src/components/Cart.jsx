@@ -457,20 +457,35 @@ function getRateByTime() {
               </div>
 
               {/* FOOTER */}
-              <div className="modal-footer border-0 d-flex justify-content-between align-items-center bg-light">
-                <div>
-                  <h6 className="mb-0 text-muted">Subtotal</h6>
-                  <h4 className="text-dark fw-bold">Rs. {subTotal}</h4>
-                </div>
-                <button
-                  type="button"
-                  className="btn btn-success px-4 py-2 rounded-pill shadow-sm"
-                  onClick={() => setOrderSummaryModal(false)}
-                >
-                  Proceed to Checkout{" "}
-                  <i className="fa-solid fa-angles-right ms-2"></i>
-                </button>
-              </div>
+           <div className="modal-footer border-0 d-flex justify-content-between align-items-center bg-light">
+  {areaName === "" ? (
+    <div className="w-100">
+      <p className="text-danger fw-bold mb-1 d-flex align-items-center">
+        <i className="fa-solid fa-triangle-exclamation me-2"></i>
+        Location Required to Checkout
+      </p>
+      <p className="text-muted mb-0" style={{ fontSize: "15px" }}>
+        We couldn’t find your location. Please update your <strong>home location </strong> 
+        to proceed with checkout and complete your order.
+      </p>
+    </div>
+  ) : (
+    <>
+      <div>
+        <h6 className="mb-0 text-muted">Subtotal</h6>
+        <h4 className="text-dark fw-bold">Rs. {subTotal}</h4>
+      </div>
+      <button
+        type="button"
+        className="btn btn-success btn-sm p-2 rounded-pill shadow-sm"
+        onClick={() => setOrderSummaryModal(false)}
+      >
+        Proceed to Checkout <i className="fa-solid fa-angles-right ms-1"></i>
+      </button>
+    </>
+  )}
+</div>
+
             </div>
           </div>
         </div>
