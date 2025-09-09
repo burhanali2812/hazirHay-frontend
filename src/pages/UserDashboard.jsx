@@ -337,61 +337,7 @@ function UserDashboard({
     applyFilters();
   }, [filters, availableServices]);
 
-  const sendRequestData = async () => {
-    try {
-      if (!selectedCategory) {
-        return alert("Please select a category");
-      }
-      if (!selectedSubCategory) {
-        return alert("Please select a sub-category");
-      }
-      if (!coordinates.length) {
-        return alert("Please select your location on the map");
-      }
 
-      const payload = {
-        category: selectedCategory,
-        subCategory: selectedSubCategory,
-        location: {
-          coordinates,
-          area: areaName || "Unknown Area",
-        },
-        userId: user?._id,
-      };
-
-      console.log("Payload:", payload);
-
-      const response = await axios.post(
-        "https://hazir-hay-backend.wckd.pk/requests/sendRequestData",
-        payload,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-          params: { t: Date.now() }, // Prevents caching
-        }
-      );
-      if (response.data.success) {
-        onRequestAdded();
-        setSelectedCategory(null);
-        setSelectedSubCategory(null);
-
-        alert(response?.data?.message || "Request sent successfully!");
-      }
-    } catch (error) {
-      console.error("Error sending request:", error);
-
-      if (error.response) {
-        alert(
-          `Failed: ${
-            error.response.data?.message || "Server returned an error"
-          }`
-        );
-      } else if (error.request) {
-        alert("Network error. Please check your internet connection.");
-      } else {
-        alert("Unexpected error. Please try again.");
-      }
-    }
-  };
 
   const getUserLocations = async () => {
     try {
@@ -934,6 +880,13 @@ function UserDashboard({
                       quick access. You can also add a new address by clicking
                       the <strong>"Add Address"</strong> button below.
                     </p>
+                                  <button
+                  className="btn btn-success w-100 mb-3"
+                  onClick={() => setSaveLocationsModal(true)}
+                >
+                  <i class="fa-solid fa-map-location-dot me-2"></i>
+                  Add Address
+                </button>
 
                     <div className="row g-3">
                       {userLocations.map((location, index) => (
@@ -1001,7 +954,16 @@ function UserDashboard({
                       <strong> "Add Address" </strong> button below to save your
                       address once for easy access next time.
                     </p>
+
+                                  <button
+                  className="btn btn-success"
+                  onClick={() => setSaveLocationsModal(true)}
+                >
+                  <i class="fa-solid fa-map-location-dot me-2"></i>
+                  Add Address
+                </button>
                   </div>
+                  
                 )}
                 <div></div>
               </div>
@@ -1011,15 +973,9 @@ function UserDashboard({
                   className="btn btn-secondary"
                   onClick={() => setChooseLocationModal(false)}
                 >
-                  Close
+                  Save
                 </button>
-                <button
-                  className="btn btn-success"
-                  onClick={() => setSaveLocationsModal(true)}
-                >
-                  <i class="fa-solid fa-map-location-dot me-2"></i>
-                  Add Address
-                </button>
+  
               </div>
             </div>
           </div>

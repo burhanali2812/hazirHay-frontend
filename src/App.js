@@ -237,7 +237,7 @@ console.log("CartDAta", response.data.data?.[0]);
 
             <Route
             path="user/cart"
-            element={<Cart  cartData ={cartData}  setUpdateAppjs={setUpdateAppjs} areaName= {areaName} coordinates={coordinates}/>}
+            element={<Cart  cartData ={cartData}  setUpdateAppjs={setUpdateAppjs} areaName= {areaName} coordinates={coordinates} setCartData={setCartData}/>}
           />
         </Route>
       </Routes>

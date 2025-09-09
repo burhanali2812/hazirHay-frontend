@@ -3,7 +3,13 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import cart from "../images/cart.png";
 import Swal from "sweetalert2";
-function Cart({ cartData, setUpdateAppjs, areaName, coordinates }) {
+function Cart({
+  cartData,
+  setUpdateAppjs,
+  areaName,
+  coordinates,
+  setCartData,
+}) {
   // safely get items
 
   const navigate = useNavigate();
@@ -11,6 +17,8 @@ function Cart({ cartData, setUpdateAppjs, areaName, coordinates }) {
   const [loadingItemId, setLoadingItemId] = useState(null);
   const [shopWithShopKepper, setShopWithShopKepper] = useState([]);
   const [orderSummaryModal, setOrderSummaryModal] = useState(false);
+  const [postOrderModal, setPostOrderModal] = useState(false);
+
   const user = JSON.parse(sessionStorage.getItem("user"));
 
   const groupedCart = (cartData?.items || []).reduce((acc, item) => {
@@ -139,43 +147,42 @@ function Cart({ cartData, setUpdateAppjs, areaName, coordinates }) {
   }, 0);
 
   totalDistance = totalDistance.toFixed(2); // e.g., "28.97"
-function getRateByTime() {
-  const now = new Date();
-  const hour = now.getHours();
+  function getRateByTime() {
+    const now = new Date();
+    const hour = now.getHours();
 
-  // 2AM - 6AM => highest rate (night time)
-  if (hour >= 2 && hour < 6) {
-    return Math.floor(Math.random() * (25 - 23 + 1)) + 23; // 23–25
+    // 2AM - 6AM => highest rate (night time)
+    if (hour >= 2 && hour < 6) {
+      return Math.floor(Math.random() * (25 - 23 + 1)) + 23; // 23–25
+    }
+
+    // 6AM - 9AM => lower rate (early morning)
+    if (hour >= 6 && hour < 9) {
+      return Math.floor(Math.random() * (16 - 15 + 1)) + 15; // 15–16
+    }
+
+    // 9AM - 1PM => mid rate (day time)
+    if (hour >= 9 && hour < 13) {
+      return Math.floor(Math.random() * (18 - 17 + 1)) + 17; // 17–18
+    }
+
+    // 2PM - 6PM => mid rate (evening)
+    if (hour >= 14 && hour < 18) {
+      return Math.floor(Math.random() * (20 - 19 + 1)) + 19; // 19–20
+    }
+
+    // 7PM - 10PM => mid rate (night time)
+    if (hour >= 19 && hour < 22) {
+      return Math.floor(Math.random() * (22 - 21 + 1)) + 21; // 21–22
+    }
+
+    // 11PM - 1AM => mid rate (late night)
+    if ((hour >= 23 && hour <= 24) || hour < 2) {
+      return Math.floor(Math.random() * (24 - 23 + 1)) + 23; // 23–24
+    }
+
+    return null; // just in case no range matches
   }
-
-  // 6AM - 9AM => lower rate (early morning)
-  if (hour >= 6 && hour < 9) {
-    return Math.floor(Math.random() * (16 - 15 + 1)) + 15; // 15–16
-  }
-
-  // 9AM - 1PM => mid rate (day time)
-  if (hour >= 9 && hour < 13) {
-    return Math.floor(Math.random() * (18 - 17 + 1)) + 17; // 17–18
-  }
-
-  // 2PM - 6PM => mid rate (evening)
-  if (hour >= 14 && hour < 18) {
-    return Math.floor(Math.random() * (20 - 19 + 1)) + 19; // 19–20
-  }
-
-  // 7PM - 10PM => mid rate (night time)
-  if (hour >= 19 && hour < 22) {
-    return Math.floor(Math.random() * (22 - 21 + 1)) + 21; // 21–22
-  }
-
-  // 11PM - 1AM => mid rate (late night)
-  if ((hour >= 23 && hour <= 24) || hour < 2) {
-    return Math.floor(Math.random() * (24 - 23 + 1)) + 23; // 23–24
-  }
-
-  return null; // just in case no range matches
-}
-
 
   const rate = getRateByTime();
   if (rate === null) {
@@ -187,6 +194,125 @@ function getRateByTime() {
   const totalServiceCharges = (rate * totalDistance).toFixed(0);
 
   const subTotal = Number(totalServiceCharges) + Number(grandTotal);
+
+  const generateOrderId = () => {
+    const uniquePart = (
+      Date.now().toString(36) + Math.random().toString(36).slice(2, 4)
+    )
+      .toUpperCase()
+      .slice(-6); // take 6 chars
+
+    // Split into groups of 3 and join with "-"
+    const formatted = uniquePart.match(/.{1,3}/g).join("-");
+
+    return `ORD-${formatted}`;
+  };
+  const generateCheckoutId = () => {
+    const firstLetter = user.name.charAt(0).toUpperCase(); // first letter of name
+    const lastPhoneDigit = user.phone.slice(-1); // last digit of phone
+    const randomDigit = Math.floor(Math.random() * 10); // 0–9
+    const randomThree = Math.random().toString(36).slice(2, 5).toUpperCase(); // 3 chars (0-9 + A-Z)
+
+    return `CHK-${firstLetter}${lastPhoneDigit}${randomDigit}-${randomThree}`;
+  };
+
+  const checkoutId = generateCheckoutId();
+  const sendRequestAll = async () => {
+    const payload = groupedCart.map((shop) => ({
+      checkoutId,
+      shopId: shop.shopId,
+      userId: user?._id,
+      category: shop.items[0].category,
+      subCategory: shop.items[0].subCategory,
+      orderId: generateOrderId(),
+      cost: shop.items.reduce((sum, item) => sum + item.price, 0),
+      location: [
+        {
+          coordinates,
+          area: areaName || "Unknown Area",
+        },
+      ],
+      serviceCharges: {
+        rate,
+        distance: findShopDistance(shop.shopId),
+      },
+    }));
+
+    try {
+      console.log("Payload:", payload);
+
+      const response = await axios.post(
+        "https://hazir-hay-backend.wckd.pk/requests/sendBulkRequests",
+        { requests: payload },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          params: { t: Date.now() },
+        }
+      );
+      if (response.data.success) {
+        // await clearCart("update");
+
+        alert(response?.data?.message || "Request sent successfully!");
+        setPostOrderModal(true)
+        setOrderSummaryModal(false)
+      }
+    } catch (error) {
+      console.error("Error sending request:", error);
+
+      if (error.response) {
+        alert(
+          `Failed: ${
+            error.response.data?.message || "Server returned an error"
+          }`
+        );
+      } else if (error.request) {
+        alert("Network error. Please check your internet connection.");
+      } else {
+        alert("Unexpected error. Please try again.");
+      }
+    }
+  };
+
+  const clearCart = async (type) => {
+    if (type === "clear") {
+      const result = await Swal.fire({
+        title: "Are you sure?",
+        html: "Are you sure you want to clear the cart?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#d33",
+        cancelButtonColor: "#3085d6",
+        confirmButtonText: "Yes, clear it!",
+      });
+
+      if (!result.isConfirmed) return;
+    }
+
+    try {
+      const response = await axios.delete(
+        "https://hazir-hay-backend.wckd.pk/cart/deleteUserCart",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      if (response.data.success) {
+        if (type === "clear") {
+          setCartData([]);
+          Swal.fire("Cleared!", "Cart has been cleared.", "success");
+        }
+        setCartData([]);
+      }
+    } catch (error) {
+      console.error("Error clearing cart:", error);
+      Swal.fire(
+        "Error",
+        "Something went wrong while clearing the cart.",
+        "error"
+      );
+    }
+  };
+
   return (
     <div>
       <div
@@ -205,6 +331,13 @@ function getRateByTime() {
                 ></i>
                 <h5 className="ms-2  fw-bold">My Cart</h5>
               </div>
+              <button
+                className="btn btn-danger rounded-pill"
+                onClick={() => clearCart("clear")}
+                disabled={groupedCart.length === 0}
+              >
+                Clear Cart<i class="fa-solid fa-trash ms-1"></i>
+              </button>
             </div>
             <div className="modal-body" style={{ height: "auto" }}>
               {groupedCart.length > 0 ? (
@@ -294,21 +427,34 @@ function getRateByTime() {
                 </div>
               )}
             </div>
-            <div className= {`modal-footer ${groupedCart.length === 0 ? ("") : ("d-flex justify-content-between align-items-center bg-light")}`}>
-             {
-              groupedCart.length === 0 ? (""):(
-                 <div>
-                <p className="mb-1 fs-5 fw-semibold text-primary">
-                  Total:{" "}
-                  <span className="text-success">Rs. {grandTotal}/-</span>
-                </p>
-                <p className="mb-0 text-muted">
-                  Total Items:{" "}
-                  <b className="text-dark">{cartData?.items?.length}</b>
-                </p>
-              </div>
-              )
-             }
+            <div
+              className={`modal-footer ${
+                groupedCart.length === 0
+                  ? ""
+                  : "d-flex justify-content-between align-items-center bg-light"
+              }`}
+            >
+              {groupedCart.length === 0 ? (
+                ""
+              ) : (
+                <div>
+                  <p className="mb-1 fs-5 fw-semibold text-primary">
+                    Total:{" "}
+                    <span className="text-success">Rs. {grandTotal}/-</span>
+                  </p>
+                  <p className="mb-0 text-muted">
+                    Total Items:{" "}
+                    <b className="text-dark">{cartData?.items?.length}</b>
+                  </p>
+                </div>
+              )}
+               <button
+                type="button"
+                className="btn btn-success px-4 rounded-pill shadow-sm"
+                onClick={() => setPostOrderModal(true)}
+              >
+                Next <i className="fa-solid fa-angles-right ms-"></i>
+              </button>
 
               <button
                 type="button"
@@ -429,7 +575,6 @@ function getRateByTime() {
                             className="d-flex justify-content-between  border-bottom py-2"
                           >
                             <span className="text-muted">
-                              Distance from{" "}
                               <b className="text-dark">{shop.shopName}</b>
                             </span>
                             <span className="fw-bold text-success">
@@ -457,39 +602,135 @@ function getRateByTime() {
               </div>
 
               {/* FOOTER */}
-           <div className="modal-footer border-0 d-flex justify-content-between align-items-center bg-light">
-  {areaName === "" ? (
-    <div className="w-100">
-      <p className="text-danger fw-bold mb-1 d-flex align-items-center">
-        <i className="fa-solid fa-triangle-exclamation me-2"></i>
-        Location Required to Checkout
-      </p>
-      <p className="text-muted mb-0" style={{ fontSize: "15px" }}>
-        We couldn’t find your location. Please update your <strong>home location </strong> 
-        to proceed with checkout and complete your order.
-      </p>
-    </div>
-  ) : (
-    <>
-      <div>
-        <h6 className="mb-0 text-muted">Subtotal</h6>
-        <h4 className="text-dark fw-bold">Rs. {subTotal}</h4>
-      </div>
-      <button
-        type="button"
-        className="btn btn-success btn-sm p-2 rounded-pill shadow-sm"
-        onClick={() => setOrderSummaryModal(false)}
-      >
-        Proceed to Checkout <i className="fa-solid fa-angles-right ms-1"></i>
-      </button>
-    </>
-  )}
-</div>
-
+              <div className="modal-footer border-0 d-flex justify-content-between align-items-center bg-light">
+                {areaName === "" ? (
+                  <div className="w-100">
+                    <p className="text-danger fw-bold mb-1 d-flex align-items-center">
+                      <i className="fa-solid fa-triangle-exclamation me-2"></i>
+                      Location Required to Checkout
+                    </p>
+                    <p className="text-muted mb-0" style={{ fontSize: "15px" }}>
+                      We couldn’t find your location. Please update your{" "}
+                      <strong>
+                        <a href="/admin/user/dashboard">home location </a>
+                      </strong>
+                      to proceed with checkout and complete your order.
+                    </p>
+                  </div>
+                ) : (
+                  <>
+                    <div>
+                      <h6 className="mb-0 text-muted">Subtotal</h6>
+                      <h4 className="text-dark fw-bold">Rs. {subTotal}</h4>
+                    </div>
+                    <button
+                      type="button"
+                      className="btn btn-success btn-sm p-2 rounded-pill shadow-sm"
+                      onClick={sendRequestAll}
+                    >
+                      Proceed to Checkout{" "}
+                      <i className="fa-solid fa-angles-right ms-1"></i>
+                    </button>
+                  </>
+                )}
+              </div>
             </div>
           </div>
         </div>
       )}
+
+    {postOrderModal && (
+  <div
+    className="modal fade show d-block"
+    tabIndex="-1"
+    style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+  >
+    <div className="modal-dialog modal-fullscreen-sm-down modal-lg modal-dialog-centered">
+      <div className="modal-content shadow-lg  border-0">
+        <div className="modal-body p-4">
+          {/* Success Header */}
+          <div className="text-center">
+            <i
+              className="fa-solid fa-circle-check text-success"
+              style={{ fontSize: "80px" }}
+            ></i>
+            <h3 className="fw-semibold mt-3 text-success">
+              Thank You, {user.name}!
+            </h3>
+            <p className="text-muted">
+              Your order <b className="text-success">{checkoutId}</b> has been
+              placed successfully.
+            </p>
+          </div>
+
+          {/* Order Confirmation */}
+          <div className="card border-0 shadow-sm mt-4">
+            <div className="card-body">
+              <h5 className="fw-bold mb-2">Order Confirmed</h5>
+              <p className="text-muted mb-0">
+                We have sent your order to the respective shops. Once they
+                accept it, you will be notified by email. After that, you can
+                track your order in real-time and start a live chat with the
+                shop for updates.
+              </p>
+            </div>
+          </div>
+
+          {/* Responsive Layout */}
+          <div className="row g-3 mt-3">
+            {/* Billing Address */}
+            <div className="col-12 col-lg-6">
+              <div className="card border-0 shadow-sm h-100">
+                <div className="card-body">
+                  <h6 className="fw-bold mb-2">
+                    <i className="fa-solid fa-location-dot me-2 text-primary"></i>
+                    Billing Address
+                  </h6>
+                  <p className="text-muted small mb-0">
+                    {areaName || "No address available"}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Order Details */}
+            <div className="col-12 col-lg-6">
+              <div className="card border-0 shadow-sm h-100">
+                <div className="card-body">
+                  <h6 className="fw-bold mb-2">
+                    <i className="fa-solid fa-box-open me-2 text-warning"></i>
+                    Order Details
+                  </h6>
+                  <ul className="list-unstyled small text-muted mb-0">
+                    {groupedCart.map((shop, index) => (
+                      <li key={index}>
+                        <i className="fa-solid fa-store me-2 text-secondary"></i>
+                        {shop.shopName} ({shop.items.length} items)
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Footer Actions */}
+          <div className="d-flex justify-content-end mt-4">
+            <button
+              type="button"
+              className="btn btn-success px-4 rounded-pill shadow-sm"
+              onClick={() => clearCart("clear")}
+              disabled={groupedCart.length === 0}
+            >
+              Next <i className="fa-solid fa-angles-right ms-2"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
+
     </div>
   );
 }
