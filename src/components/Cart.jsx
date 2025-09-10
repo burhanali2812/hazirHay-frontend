@@ -3,11 +3,9 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import cart from "../images/cart.png";
 import Swal from "sweetalert2";
-import stamp from "../images/stamp.png"
+import stamp from "../images/stamp.png";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
-
-
 
 function Cart({
   cartData,
@@ -24,9 +22,9 @@ function Cart({
   const [shopWithShopKepper, setShopWithShopKepper] = useState([]);
   const [orderSummaryModal, setOrderSummaryModal] = useState(false);
   const [postOrderModal, setPostOrderModal] = useState(false);
-   const [isReciept, setIsReciept] = useState(false);
-      const [loading, setLoading] = useState(false);
-  
+  const [isReciept, setIsReciept] = useState(false);
+  const [loading, setLoading] = useState(false);
+
   const [checkoutId, setCheckoutId] = useState("");
 
   const user = JSON.parse(sessionStorage.getItem("user"));
@@ -50,40 +48,41 @@ function Cart({
     console.log("gropCart ", groupedCart);
   }, [groupedCart]);
 
-const downloadReceiptAsPDF = async () => {
-  try {
-    const element = document.getElementById("receipt-content");
-    if (!element) return;
+  const downloadReceiptAsPDF = async () => {
+    setLoading(true);
+    try {
+      const element = document.getElementById("receipt-content");
+      if (!element) return;
 
-    const canvas = await html2canvas(element, {
-      scale: 2,
-      scrollX: 0,
-      scrollY: -window.scrollY,
-      windowWidth: element.scrollWidth,
-      windowHeight: element.scrollHeight,
-    });
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        scrollX: 0,
+        scrollY: -window.scrollY,
+        windowWidth: element.scrollWidth,
+        windowHeight: element.scrollHeight,
+      });
 
-    const imgData = canvas.toDataURL("image/png");
+      const imgData = canvas.toDataURL("image/png");
 
-    const pdf = new jsPDF("p", "mm", "a4");
-    const pageWidth = pdf.internal.pageSize.getWidth();
-    const pageHeight = pdf.internal.pageSize.getHeight();
+      const pdf = new jsPDF("p", "mm", "a4");
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
 
-    const imgWidth = pageWidth;
-    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      const imgWidth = pageWidth;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
-    pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight);
-    pdf.save(`Order-${checkoutId}.pdf`);
+      pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight);
+      pdf.save(`Order-${checkoutId}.pdf`);
 
-    // ✅ Show success alert after saving
-    alert("✅ PDF downloaded successfully!");
-  } catch (error) {
-    console.error("Error generating PDF:", error);
-    alert("❌ Failed to download PDF. Please try again.");
-  }
-};
-
-
+      // ✅ Show success alert after saving
+      setLoading(false);
+      alert(" PDF downloaded successfully!");
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      setLoading(false);
+      alert(" Failed to download PDF. Please try again.");
+    }
+  };
 
   const grandTotal = groupedCart.reduce(
     (acc, cart) => acc + cart.items.reduce((sum, item) => sum + item.price, 0),
@@ -211,21 +210,20 @@ const downloadReceiptAsPDF = async () => {
       return Math.floor(Math.random() * (18 - 17 + 1)) + 17; // 17–18
     }
 
-// 1PM - 6PM => mid rate (evening)
-if (hour >= 13 && hour < 18) {
-  return Math.floor(Math.random() * (20 - 19 + 1)) + 19; // 19–20
-}
+    // 1PM - 6PM => mid rate (evening)
+    if (hour >= 13 && hour < 18) {
+      return Math.floor(Math.random() * (20 - 19 + 1)) + 19; // 19–20
+    }
 
-// 6PM - 10PM => mid rate (night time)
-if (hour >= 18 && hour < 22) {
-  return Math.floor(Math.random() * (22 - 21 + 1)) + 21; // 21–22
-}
+    // 6PM - 10PM => mid rate (night time)
+    if (hour >= 18 && hour < 22) {
+      return Math.floor(Math.random() * (22 - 21 + 1)) + 21; // 21–22
+    }
 
-// 10PM - 1AM => mid rate (late night)
-if (hour >= 22 || hour < 1) {
-  return Math.floor(Math.random() * (24 - 23 + 1)) + 23; // 23–24
-}
-
+    // 10PM - 1AM => mid rate (late night)
+    if (hour >= 22 || hour < 1) {
+      return Math.floor(Math.random() * (24 - 23 + 1)) + 23; // 23–24
+    }
 
     return null; // just in case no range matches
   }
@@ -262,13 +260,12 @@ if (hour >= 22 || hour < 1) {
     return `CHK-${firstLetter}${lastPhoneDigit}${randomDigit}-${randomThree}`;
   };
 
-
   const sendRequestAll = async () => {
-    setLoading(true)
-      const newcheckoutId = generateCheckoutId();
-      setCheckoutId(newcheckoutId)
+    setLoading(true);
+    const newcheckoutId = generateCheckoutId();
+    setCheckoutId(newcheckoutId);
     const payload = groupedCart.map((shop) => ({
-      checkoutId : newcheckoutId,
+      checkoutId: newcheckoutId,
       shopId: shop.shopId,
       userId: user?._id,
       category: shop.items[0].category,
@@ -300,14 +297,14 @@ if (hour >= 22 || hour < 1) {
       );
       if (response.data.success) {
         // await clearCart("update");
-          setLoading(true)
+        setLoading(true);
         alert(response?.data?.message || "Request sent successfully!");
-        setPostOrderModal(true)
-        setOrderSummaryModal(false)
+        setPostOrderModal(true);
+        setOrderSummaryModal(false);
       }
     } catch (error) {
       console.error("Error sending request:", error);
-        setLoading(true)
+      setLoading(true);
 
       if (error.response) {
         alert(
@@ -315,13 +312,13 @@ if (hour >= 22 || hour < 1) {
             error.response.data?.message || "Server returned an error"
           }`
         );
-          setLoading(true)
+        setLoading(true);
       } else if (error.request) {
         alert("Network error. Please check your internet connection.");
-          setLoading(true)
+        setLoading(true);
       } else {
         alert("Unexpected error. Please try again.");
-          setLoading(true)
+        setLoading(true);
       }
     }
   };
@@ -384,15 +381,17 @@ if (hour >= 22 || hour < 1) {
                 ></i>
                 <h5 className="ms-2  fw-bold">My Cart</h5>
               </div>
-             {
-              groupedCart.length === 0 ? (""):( <button
-                className="btn btn-danger btn-sm rounded-pill"
-                onClick={() => clearCart("clear")}
-                disabled={groupedCart.length === 0}
-              >
-                Clear Cart<i class="fa-solid fa-trash ms-1"></i>
-              </button>)
-             }
+              {groupedCart.length === 0 ? (
+                ""
+              ) : (
+                <button
+                  className="btn btn-danger btn-sm rounded-pill"
+                  onClick={() => clearCart("clear")}
+                  disabled={groupedCart.length === 0}
+                >
+                  Clear Cart<i class="fa-solid fa-trash ms-1"></i>
+                </button>
+              )}
             </div>
             <div className="modal-body" style={{ height: "auto" }}>
               {groupedCart.length > 0 ? (
@@ -503,15 +502,17 @@ if (hour >= 22 || hour < 1) {
                   </p>
                 </div>
               )}
-            {
-              groupedCart.length === 0 ? (""):(  <button
-                type="button"
-                className="btn btn-success px-4 rounded-pill shadow-sm"
-                onClick={() => setOrderSummaryModal(true)}
-              >
-                Next <i className="fa-solid fa-angles-right ms-"></i>
-              </button>)
-            }
+              {groupedCart.length === 0 ? (
+                ""
+              ) : (
+                <button
+                  type="button"
+                  className="btn btn-success px-4 rounded-pill shadow-sm"
+                  onClick={() => setOrderSummaryModal(true)}
+                >
+                  Next <i className="fa-solid fa-angles-right ms-"></i>
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -675,23 +676,22 @@ if (hour >= 22 || hour < 1) {
                       type="button"
                       className="btn btn-success  rounded-pill "
                       onClick={sendRequestAll}
-                      disabled= {loading}
+                      disabled={loading}
                     >
-                       {loading ? (
-                                        <>
-                                          Proceeding...
-                                          <div
-                                            className="spinner-border spinner-border-sm text-light ms-2"
-                                            role="status"
-                                          ></div>
-                                        </>
-                                      ) : (
-                                        <>
-                                          Proceed to Checkout{" "}
-                      <i className="fa-solid fa-angles-right ms-1"></i>
-                                        </>
-                                      )}
-                     
+                      {loading ? (
+                        <>
+                          Proceeding...
+                          <div
+                            className="spinner-border spinner-border-sm text-light ms-2"
+                            role="status"
+                          ></div>
+                        </>
+                      ) : (
+                        <>
+                          Proceed to Checkout{" "}
+                          <i className="fa-solid fa-angles-right ms-1"></i>
+                        </>
+                      )}
                     </button>
                   </>
                 )}
@@ -701,123 +701,139 @@ if (hour >= 22 || hour < 1) {
         </div>
       )}
 
-    {postOrderModal && (
-  <div
-    className="modal fade show d-block"
-    tabIndex="-1"
-    style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
-  >
-    <div className="modal-dialog modal-fullscreen-sm-down modal-lg modal-dialog-centered">
-      <div className="modal-content shadow-lg  border-0">
-        <div className="modal-body p-4">
-          {/* Success Header */}
-          <div className="text-center">
-            <i
-              className="fa-solid fa-circle-check text-success"
-              style={{ fontSize: "80px" }}
-            ></i>
-            <h3 className="fw-semibold mt-3 text-success">
-              Thank You, {user.name}!
-            </h3>
-            <p className="text-muted">
-              Your order <b className="text-success">{checkoutId}</b> has been
-              placed successfully.
-            </p>
-          </div>
-
-          {/* Order Confirmation */}
-          <div className="card border-0 shadow-sm mt-4">
-            <div className="card-body">
-              <h6 className="fw-bold mb-2"><i class="fa-solid fa-clipboard-check me-2"></i>Order Confirmed</h6>
-              <p className="text-muted small mb-0">
-                We have sent your order <b className="text-success">{checkoutId}</b> to the respective shops. Once they
-                accept it, you will be notified by email. After that, you can
-                track your order in real-time and start a live chat with the
-                shop for updates.
-              </p>
-            </div>
-          </div>
-          <div className="row g-3 mt-3">
-            <div className="col-12 col-lg-6">
-              <div className="card border-0 shadow-sm h-100">
-                <div className="card-body">
-                  <h6 className="fw-bold mb-2">
-                    <i className="fa-solid fa-location-dot me-2 text-primary"></i>
-                    Billing Address
-                  </h6>
-                  <p className="text-muted small mb-0">
-                    {areaName || "No address available"}
+      {postOrderModal && (
+        <div
+          className="modal fade show d-block"
+          tabIndex="-1"
+          style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+        >
+          <div className="modal-dialog modal-fullscreen-sm-down modal-lg modal-dialog-centered">
+            <div className="modal-content shadow-lg  border-0">
+              <div className="modal-body p-4">
+                {/* Success Header */}
+                <div className="text-center">
+                  <i
+                    className="fa-solid fa-circle-check text-success"
+                    style={{ fontSize: "80px" }}
+                  ></i>
+                  <h3 className="fw-semibold mt-3 text-success">
+                    Thank You, {user.name}!
+                  </h3>
+                  <p className="text-muted">
+                    Your order <b className="text-success">{checkoutId}</b> has
+                    been placed successfully.
                   </p>
                 </div>
-              </div>
-            </div>
 
-            {/* Order Details */}
-            <div className="col-12 col-lg-6">
-              <div className="card border-0 shadow-sm h-100">
-                <div className="card-body">
-                  <h6 className="fw-bold mb-2">
-                    <i className="fa-solid fa-box-open me-2 text-warning"></i>
-                    Order Details
-                  </h6>
-                  <ul className="list-unstyled small text-muted mb-0">
-                    {groupedCart.map((shop, index) => (
-                      <li key={index} className="mt-3">
-                        <i className="fa-solid fa-store me-2 text-secondary"></i>
-                        <span className="fw-bold ">{shop.shopName} ({shop.items.length} items)</span>
-                        {
-                          shop.items.map((item, index)=>(
-                            <li key={index} className="mt-2">
-                              {index + 1}: {item.subCategory} ({item.category})  <span className="text-primary ms-2 fw-semibold">Rs. {item.price}/-</span>
-                      
+                {/* Order Confirmation */}
+                <div className="card border-0 shadow-sm mt-4">
+                  <div className="card-body">
+                    <h6 className="fw-bold mb-2">
+                      <i class="fa-solid fa-clipboard-check me-2"></i>Order
+                      Confirmed
+                    </h6>
+                    <p className="text-muted small mb-0">
+                      We have sent your order{" "}
+                      <b className="text-success">{checkoutId}</b> to the
+                      respective shops. Once they accept it, you will be
+                      notified by email. After that, you can track your order in
+                      real-time and start a live chat with the shop for updates.
+                    </p>
+                  </div>
+                </div>
+                <div className="row g-3 mt-3">
+                  <div className="col-12 col-lg-6">
+                    <div className="card border-0 shadow-sm h-100">
+                      <div className="card-body">
+                        <h6 className="fw-bold mb-2">
+                          <i className="fa-solid fa-location-dot me-2 text-primary"></i>
+                          Billing Address
+                        </h6>
+                        <p className="text-muted small mb-0">
+                          {areaName || "No address available"}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Order Details */}
+                  <div className="col-12 col-lg-6">
+                    <div className="card border-0 shadow-sm h-100">
+                      <div className="card-body">
+                        <h6 className="fw-bold mb-2">
+                          <i className="fa-solid fa-box-open me-2 text-warning"></i>
+                          Order Details
+                        </h6>
+                        <ul className="list-unstyled small text-muted mb-0">
+                          {groupedCart.map((shop, index) => (
+                            <li key={index} className="mt-3">
+                              <i className="fa-solid fa-store me-2 text-secondary"></i>
+                              <span className="fw-bold ">
+                                {shop.shopName} ({shop.items.length} items)
+                              </span>
+                              {shop.items.map((item, index) => (
+                                <li key={index} className="mt-2">
+                                  {index + 1}: {item.subCategory} (
+                                  {item.category}){" "}
+                                  <span className="text-primary ms-2 fw-semibold">
+                                    Rs. {item.price}/-
+                                  </span>
+                                </li>
+                              ))}
                             </li>
-                            
-                          ))
-                        }
-                      </li>
-                    ))}
+                          ))}
 
-                   <div className="d-flex justify-content-between">
-                     <p className="fw-bold mt-2 text-success">Total Service Charges:</p>
-                     <p className="fw-bold mt-2 text-success"> Rs. {totalServiceCharges}/-</p>
-                   </div>
-                    <hr/>
-                     <div className="d-flex justify-content-between">
-                     <h4 className="fw-bold mt-2 text-primary">Sub Total:</h4>
-                     <h4 className="fw-bold mt-2 text-primary"> Rs. {subTotal}/-</h4>
-                   </div>
-                  </ul>
-                  
+                          <div className="d-flex justify-content-between">
+                            <p className="fw-bold mt-2 text-success">
+                              Total Service Charges:
+                            </p>
+                            <p className="fw-bold mt-2 text-success">
+                              {" "}
+                              Rs. {totalServiceCharges}/-
+                            </p>
+                          </div>
+                          <hr />
+                          <div className="d-flex justify-content-between">
+                            <h4 className="fw-bold mt-2 text-primary">
+                              Sub Total:
+                            </h4>
+                            <h4 className="fw-bold mt-2 text-primary">
+                              {" "}
+                              Rs. {subTotal}/-
+                            </h4>
+                          </div>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Footer Actions */}
+                <div className="d-flex justify-content-between mt-4">
+                  <button
+                    type="button"
+                    className="btn btn-danger px-4 rounded-pill shadow-sm"
+                    onClick={() => clearCart("update")}
+                    disabled={groupedCart.length === 0}
+                  >
+                    Close
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-success px-4 rounded-pill shadow-sm"
+                    onClick={() => setIsReciept(true)}
+                    disabled={groupedCart.length === 0}
+                  >
+                    Generate Receipt{" "}
+                    <i className="fa-solid fa-angles-right ms-2"></i>
+                  </button>
                 </div>
               </div>
             </div>
           </div>
-
-          {/* Footer Actions */}
-          <div className="d-flex justify-content-between mt-4">
-                        <button
-              type="button"
-              className="btn btn-danger px-4 rounded-pill shadow-sm"
-              onClick={() => clearCart("update")}
-              disabled={groupedCart.length === 0}
-            >
-              Close 
-            </button>
-            <button
-              type="button"
-              className="btn btn-success px-4 rounded-pill shadow-sm"
-              onClick={() => setIsReciept(true)}
-              disabled={groupedCart.length === 0}
-            >
-              Generate Receipt <i className="fa-solid fa-angles-right ms-2"></i>
-            </button>
-          </div>
         </div>
-      </div>
-    </div>
-  </div>
-)}
- {isReciept && (
+      )}
+      {isReciept && (
         <div
           className="modal fade show d-block"
           tabIndex="-1"
@@ -940,8 +956,21 @@ if (hour >= 22 || hour < 1) {
                     type="button"
                     className="btn btn-warning rounded-pill px-4 me-2"
                     onClick={downloadReceiptAsPDF}
+                    disabled={loading}
                   >
-                    <i className="fa-solid fa-download me-2"></i> Download
+                    {loading ? (
+                      <>
+                        Downloading...
+                        <div
+                          className="spinner-border spinner-border-sm text-light ms-2"
+                          role="status"
+                        ></div>
+                      </>
+                    ) : (
+                      <>
+                        <i className="fa-solid fa-download me-2"></i> Download
+                      </>
+                    )}
                   </button>
                 </div>
               </div>
@@ -949,10 +978,6 @@ if (hour >= 22 || hour < 1) {
           </div>
         </div>
       )}
-
-
-
-
     </div>
   );
 }

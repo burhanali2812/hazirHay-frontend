@@ -149,9 +149,10 @@ function AdminFooter({ topText, setUpdate, setShopKepperStatus }) {
         path: "/admin/user/cart",
       },
       {
-        key: "favorites",
-        icon: "fas fa-heart",
-        label: "Favorites",
+       
+        key: "tracking",
+        icon: "fa-solid fa-person-biking",
+        label: "Tracking",
         path: "/user/favorites",
       },
       {
