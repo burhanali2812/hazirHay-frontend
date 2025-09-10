@@ -3,6 +3,12 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import cart from "../images/cart.png";
 import Swal from "sweetalert2";
+import stamp from "../images/stamp.png"
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
+
+
+
 function Cart({
   cartData,
   setUpdateAppjs,
@@ -18,6 +24,10 @@ function Cart({
   const [shopWithShopKepper, setShopWithShopKepper] = useState([]);
   const [orderSummaryModal, setOrderSummaryModal] = useState(false);
   const [postOrderModal, setPostOrderModal] = useState(false);
+   const [isReciept, setIsReciept] = useState(false);
+      const [loading, setLoading] = useState(false);
+  
+  const [checkoutId, setCheckoutId] = useState("");
 
   const user = JSON.parse(sessionStorage.getItem("user"));
 
@@ -39,6 +49,41 @@ function Cart({
   useEffect(() => {
     console.log("gropCart ", groupedCart);
   }, [groupedCart]);
+
+const downloadReceiptAsPDF = async () => {
+  try {
+    const element = document.getElementById("receipt-content");
+    if (!element) return;
+
+    const canvas = await html2canvas(element, {
+      scale: 2,
+      scrollX: 0,
+      scrollY: -window.scrollY,
+      windowWidth: element.scrollWidth,
+      windowHeight: element.scrollHeight,
+    });
+
+    const imgData = canvas.toDataURL("image/png");
+
+    const pdf = new jsPDF("p", "mm", "a4");
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+
+    const imgWidth = pageWidth;
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+    pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight);
+    pdf.save(`Order-${checkoutId}.pdf`);
+
+    // ✅ Show success alert after saving
+    alert("✅ PDF downloaded successfully!");
+  } catch (error) {
+    console.error("Error generating PDF:", error);
+    alert("❌ Failed to download PDF. Please try again.");
+  }
+};
+
+
 
   const grandTotal = groupedCart.reduce(
     (acc, cart) => acc + cart.items.reduce((sum, item) => sum + item.price, 0),
@@ -152,7 +197,7 @@ function Cart({
     const hour = now.getHours();
 
     // 2AM - 6AM => highest rate (night time)
-    if (hour >= 2 && hour < 6) {
+    if (hour >= 1 && hour < 6) {
       return Math.floor(Math.random() * (25 - 23 + 1)) + 23; // 23–25
     }
 
@@ -166,20 +211,21 @@ function Cart({
       return Math.floor(Math.random() * (18 - 17 + 1)) + 17; // 17–18
     }
 
-    // 2PM - 6PM => mid rate (evening)
-    if (hour >= 14 && hour < 18) {
-      return Math.floor(Math.random() * (20 - 19 + 1)) + 19; // 19–20
-    }
+// 1PM - 6PM => mid rate (evening)
+if (hour >= 13 && hour < 18) {
+  return Math.floor(Math.random() * (20 - 19 + 1)) + 19; // 19–20
+}
 
-    // 7PM - 10PM => mid rate (night time)
-    if (hour >= 19 && hour < 22) {
-      return Math.floor(Math.random() * (22 - 21 + 1)) + 21; // 21–22
-    }
+// 6PM - 10PM => mid rate (night time)
+if (hour >= 18 && hour < 22) {
+  return Math.floor(Math.random() * (22 - 21 + 1)) + 21; // 21–22
+}
 
-    // 11PM - 1AM => mid rate (late night)
-    if ((hour >= 23 && hour <= 24) || hour < 2) {
-      return Math.floor(Math.random() * (24 - 23 + 1)) + 23; // 23–24
-    }
+// 10PM - 1AM => mid rate (late night)
+if (hour >= 22 || hour < 1) {
+  return Math.floor(Math.random() * (24 - 23 + 1)) + 23; // 23–24
+}
+
 
     return null; // just in case no range matches
   }
@@ -216,10 +262,13 @@ function Cart({
     return `CHK-${firstLetter}${lastPhoneDigit}${randomDigit}-${randomThree}`;
   };
 
-  const checkoutId = generateCheckoutId();
+
   const sendRequestAll = async () => {
+    setLoading(true)
+      const newcheckoutId = generateCheckoutId();
+      setCheckoutId(newcheckoutId)
     const payload = groupedCart.map((shop) => ({
-      checkoutId,
+      checkoutId : newcheckoutId,
       shopId: shop.shopId,
       userId: user?._id,
       category: shop.items[0].category,
@@ -251,13 +300,14 @@ function Cart({
       );
       if (response.data.success) {
         // await clearCart("update");
-
+          setLoading(true)
         alert(response?.data?.message || "Request sent successfully!");
         setPostOrderModal(true)
         setOrderSummaryModal(false)
       }
     } catch (error) {
       console.error("Error sending request:", error);
+        setLoading(true)
 
       if (error.response) {
         alert(
@@ -265,10 +315,13 @@ function Cart({
             error.response.data?.message || "Server returned an error"
           }`
         );
+          setLoading(true)
       } else if (error.request) {
         alert("Network error. Please check your internet connection.");
+          setLoading(true)
       } else {
         alert("Unexpected error. Please try again.");
+          setLoading(true)
       }
     }
   };
@@ -331,13 +384,15 @@ function Cart({
                 ></i>
                 <h5 className="ms-2  fw-bold">My Cart</h5>
               </div>
-              <button
-                className="btn btn-danger rounded-pill"
+             {
+              groupedCart.length === 0 ? (""):( <button
+                className="btn btn-danger btn-sm rounded-pill"
                 onClick={() => clearCart("clear")}
                 disabled={groupedCart.length === 0}
               >
                 Clear Cart<i class="fa-solid fa-trash ms-1"></i>
-              </button>
+              </button>)
+             }
             </div>
             <div className="modal-body" style={{ height: "auto" }}>
               {groupedCart.length > 0 ? (
@@ -448,22 +503,15 @@ function Cart({
                   </p>
                 </div>
               )}
-               <button
-                type="button"
-                className="btn btn-success px-4 rounded-pill shadow-sm"
-                onClick={() => setPostOrderModal(true)}
-              >
-                Next <i className="fa-solid fa-angles-right ms-"></i>
-              </button>
-
-              <button
+            {
+              groupedCart.length === 0 ? (""):(  <button
                 type="button"
                 className="btn btn-success px-4 rounded-pill shadow-sm"
                 onClick={() => setOrderSummaryModal(true)}
-                disabled={groupedCart.length === 0}
               >
                 Next <i className="fa-solid fa-angles-right ms-"></i>
-              </button>
+              </button>)
+            }
             </div>
           </div>
         </div>
@@ -621,15 +669,29 @@ function Cart({
                   <>
                     <div>
                       <h6 className="mb-0 text-muted">Subtotal</h6>
-                      <h4 className="text-dark fw-bold">Rs. {subTotal}</h4>
+                      <h4 className="text-primary fw-bold">Rs. {subTotal}</h4>
                     </div>
                     <button
                       type="button"
-                      className="btn btn-success btn-sm p-2 rounded-pill shadow-sm"
+                      className="btn btn-success  rounded-pill "
                       onClick={sendRequestAll}
+                      disabled= {loading}
                     >
-                      Proceed to Checkout{" "}
+                       {loading ? (
+                                        <>
+                                          Proceeding...
+                                          <div
+                                            className="spinner-border spinner-border-sm text-light ms-2"
+                                            role="status"
+                                          ></div>
+                                        </>
+                                      ) : (
+                                        <>
+                                          Proceed to Checkout{" "}
                       <i className="fa-solid fa-angles-right ms-1"></i>
+                                        </>
+                                      )}
+                     
                     </button>
                   </>
                 )}
@@ -666,19 +728,16 @@ function Cart({
           {/* Order Confirmation */}
           <div className="card border-0 shadow-sm mt-4">
             <div className="card-body">
-              <h5 className="fw-bold mb-2">Order Confirmed</h5>
-              <p className="text-muted mb-0">
-                We have sent your order to the respective shops. Once they
+              <h6 className="fw-bold mb-2"><i class="fa-solid fa-clipboard-check me-2"></i>Order Confirmed</h6>
+              <p className="text-muted small mb-0">
+                We have sent your order <b className="text-success">{checkoutId}</b> to the respective shops. Once they
                 accept it, you will be notified by email. After that, you can
                 track your order in real-time and start a live chat with the
                 shop for updates.
               </p>
             </div>
           </div>
-
-          {/* Responsive Layout */}
           <div className="row g-3 mt-3">
-            {/* Billing Address */}
             <div className="col-12 col-lg-6">
               <div className="card border-0 shadow-sm h-100">
                 <div className="card-body">
@@ -703,26 +762,54 @@ function Cart({
                   </h6>
                   <ul className="list-unstyled small text-muted mb-0">
                     {groupedCart.map((shop, index) => (
-                      <li key={index}>
+                      <li key={index} className="mt-3">
                         <i className="fa-solid fa-store me-2 text-secondary"></i>
-                        {shop.shopName} ({shop.items.length} items)
+                        <span className="fw-bold ">{shop.shopName} ({shop.items.length} items)</span>
+                        {
+                          shop.items.map((item, index)=>(
+                            <li key={index} className="mt-2">
+                              {index + 1}: {item.subCategory} ({item.category})  <span className="text-primary ms-2 fw-semibold">Rs. {item.price}/-</span>
+                      
+                            </li>
+                            
+                          ))
+                        }
                       </li>
                     ))}
+
+                   <div className="d-flex justify-content-between">
+                     <p className="fw-bold mt-2 text-success">Total Service Charges:</p>
+                     <p className="fw-bold mt-2 text-success"> Rs. {totalServiceCharges}/-</p>
+                   </div>
+                    <hr/>
+                     <div className="d-flex justify-content-between">
+                     <h4 className="fw-bold mt-2 text-primary">Sub Total:</h4>
+                     <h4 className="fw-bold mt-2 text-primary"> Rs. {subTotal}/-</h4>
+                   </div>
                   </ul>
+                  
                 </div>
               </div>
             </div>
           </div>
 
           {/* Footer Actions */}
-          <div className="d-flex justify-content-end mt-4">
+          <div className="d-flex justify-content-between mt-4">
+                        <button
+              type="button"
+              className="btn btn-danger px-4 rounded-pill shadow-sm"
+              onClick={() => clearCart("update")}
+              disabled={groupedCart.length === 0}
+            >
+              Close 
+            </button>
             <button
               type="button"
               className="btn btn-success px-4 rounded-pill shadow-sm"
-              onClick={() => clearCart("clear")}
+              onClick={() => setIsReciept(true)}
               disabled={groupedCart.length === 0}
             >
-              Next <i className="fa-solid fa-angles-right ms-2"></i>
+              Generate Receipt <i className="fa-solid fa-angles-right ms-2"></i>
             </button>
           </div>
         </div>
@@ -730,6 +817,141 @@ function Cart({
     </div>
   </div>
 )}
+ {isReciept && (
+        <div
+          className="modal fade show d-block"
+          tabIndex="-1"
+          style={{ backgroundColor: "rgba(0,0,0,0.6)" }}
+        >
+          <div className="modal-dialog modal-fullscreen-sm-down modal-lg modal-dialog-centered">
+            <div className="modal-content shadow border-0 r overflow-hidden">
+              {/* Body */}
+              <div
+                className="modal-body p-4 position-relative"
+                id="receipt-content"
+              >
+                {/* Watermark Overlay */}
+                <img
+                  src={stamp}
+                  alt="stamp"
+                  style={{
+                    position: "absolute",
+                    top: "50%",
+                    left: "50%",
+                    transform: "translate(-50%, -50%)",
+                    opacity: 0.2,
+                    width: "300px",
+                    zIndex: 10000,
+                    pointerEvents: "none",
+                  }}
+                />
+
+                {/* Receipt Content */}
+                <div className="position-relative">
+                  {/* Header */}
+                  <div className="text-center border-bottom pb-3 mb-4">
+                    <i
+                      className="fa-solid fa-circle-check text-success"
+                      style={{ fontSize: "70px" }}
+                    ></i>
+                    <h3 className="fw-bold mt-3 text-success">
+                      Order Confirmed
+                    </h3>
+                    <p className="text-muted mb-0">
+                      Order ID:{" "}
+                      <span className="fw-bold text-dark">{checkoutId}</span>
+                    </p>
+                    <small className="text-secondary">
+                      Customer: {user.name}
+                    </small>
+                  </div>
+
+                  {/* Order Summary */}
+                  <h5 className="fw-bold mb-3 text-dark">
+                    <i className="fa-solid fa-box-open me-2 text-warning"></i>{" "}
+                    Order Summary
+                  </h5>
+                  <div className="bg-light rounded-3 p-3 mb-3">
+                    <ul className="list-unstyled small mb-0">
+                      {groupedCart.map((shop, index) => (
+                        <li key={index} className="mb-3">
+                          <span className="fw-bold text-dark">
+                            <i className="fa-solid fa-store me-2 text-primary"></i>
+                            {shop.shopName}
+                          </span>
+                          <ul className="list-unstyled ms-4 mt-2">
+                            {shop.items.map((item, idx) => (
+                              <li
+                                key={idx}
+                                className="d-flex justify-content-between align-items-center py-1 border-bottom"
+                              >
+                                <span>
+                                  {idx + 1}. {item.subCategory}
+                                </span>
+                                <span className="fw-semibold text-primary">
+                                  Rs. {item.price}/-
+                                </span>
+                              </li>
+                            ))}
+                          </ul>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  {/* Charges */}
+                  <div className="mt-3">
+                    <div className="d-flex justify-content-between">
+                      <p className="fw-bold text-success mb-1">
+                        Service Charges
+                      </p>
+                      <p className="fw-bold text-success mb-1">
+                        Rs. {totalServiceCharges}/-
+                      </p>
+                    </div>
+                    <hr />
+                    <div className="d-flex justify-content-between">
+                      <h4 className="fw-bold text-primary mb-0">Sub Total</h4>
+                      <h4 className="fw-bold text-primary mb-0">
+                        Rs. {subTotal}/-
+                      </h4>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div className="modal-footer border-0 bg-light d-flex justify-content-between px-4 py-3">
+                <button
+                  type="button"
+                  className="btn btn-outline-secondary rounded-pill px-4"
+                  onClick={() => {
+                    setIsReciept(false);
+                    clearCart("update");
+                    setPostOrderModal(false);
+                    setOrderSummaryModal(false);
+                    navigate("/admin/user/dashboard");
+                  }}
+                >
+                  Close
+                </button>
+                <div>
+                  <button
+                    type="button"
+                    className="btn btn-warning rounded-pill px-4 me-2"
+                    onClick={downloadReceiptAsPDF}
+                  >
+                    <i className="fa-solid fa-download me-2"></i> Download
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+
+
 
     </div>
   );

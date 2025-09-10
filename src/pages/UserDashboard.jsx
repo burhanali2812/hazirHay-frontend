@@ -61,6 +61,7 @@ function UserDashboard({
   const [isFilter, setIsFilter] = useState(false);
   const [notFoundModal, setNotFoundModal] = useState(false);
   const [addCartLoading, setAddCartLoading] = useState(null);
+    const [detailLoading, setDetailLoading] = useState(null);
 
   const [filterText, setFilterText] = useState("");
   const [FilterServices, setFilterServices] = useState([]);
@@ -101,11 +102,12 @@ function UserDashboard({
   };
 
   const addToCart = async (shop, from) => {
-      if (!shop.isLive) {
+    const shopStatus = from === "detail" ? selectedShopWithShopkepper?.shop?.isLive : shop.isLive
+      if (!shopStatus) {
   const result = await Swal.fire({
     title: "This provider is offline",
     html: `<p class="mb-1">
-             The shop <strong>${shop.shopName}</strong> is currently not live.
+             The shop <strong>${shop.shopName || selectedShopWithShopkepper?.shop?.shopName}</strong> is currently not live.
            </p>
            <p class="text-muted">
              Don’t worry 😊 — your request will be sent, and when the provider comes online, 
@@ -195,7 +197,7 @@ function UserDashboard({
   };
 
   const getShopWithShopkeppers = async (provider) => {
-    setLoading(true);
+    setDetailLoading(provider._id)
     try {
       const response = await axios.get(
         "https://hazir-hay-backend.wckd.pk/shopKeppers/allVerifiedShopkepperWithShops",
@@ -207,6 +209,7 @@ function UserDashboard({
       );
 
       if (response.status === 200) {
+        
         const shopWithShopkeppers = response.data.data || [];
         console.log("All shops with shopkeepers:", shopWithShopkeppers);
         console.log("Selected provider:", provider);
@@ -217,7 +220,7 @@ function UserDashboard({
             serviceProvider?.shop?.owner?.toString() ===
             provider?.owner?._id?.toString()
         );
-
+        setDetailLoading(false)
         console.log("Selected shop with shopkeeper:", selected);
 
         console.log("Selected shop with shopkeeper:", selected);
@@ -227,8 +230,9 @@ function UserDashboard({
       }
     } catch (error) {
       console.error("Error fetching shopkeepers with shops:", error);
+      setDetailLoading(false)
     } finally {
-      setLoading(false);
+      setDetailLoading(false)
     }
   };
 
@@ -1088,7 +1092,7 @@ function UserDashboard({
                 ></i>
                 <h5 className="ms-2 mt-2 fw-bold">Available Services</h5>
               </div>
-              <div className="modal-body " style={{ height: "auto" }}>
+              <div className="modal-body" style={{ height: "auto" }}>
                 <div
                   className="d-flex flex-nowrap overflow-auto mb-3"
                   style={{ gap: "10px", padding: "10px 0" }}
@@ -1148,12 +1152,9 @@ function UserDashboard({
                       );
                       const averageRating = findAverageRating(shop.reviews);
                       return (
-                        <div className="col-12 col-md-6 col-lg-4" key={index}>
+                        <div className="col-12 col-md-6 col-lg-4 " key={index}>
                           <div
-                            className="card shadow-sm rounded-4 overflow-hidden"
-                            style={{
-                              border: shop.isLive ? "" : "2px dotted red",
-                            }}
+                            className="mt-3 overflow-hidden container"
                           >
                             <div className="card-body ">
                               <div className="d-flex align-items-center">
@@ -1161,12 +1162,11 @@ function UserDashboard({
                                 <div
                                   className="rounded-circle border flex-shrink-0 d-flex align-items-center justify-content-center bg-light"
                                   style={{
-                                    width: "100px",
-                                    height: "100px",
+                                    width: "90px",
+                                    height: "90px",
                                     overflow: "hidden",
                                     cursor: "pointer",
                                   }}
-                                  onClick={() => getShopWithShopkeppers(shop)}
                                 >
                                   <img
                                     src={
@@ -1192,9 +1192,7 @@ function UserDashboard({
                                         cursor: "pointer",
                                       }}
                                       title={shop.shopName}
-                                      onClick={() =>
-                                        getShopWithShopkeppers(shop)
-                                      }
+                                    
                                     >
                                       {shop.shopName.length > 10
                                         ? `${shop.shopName.slice(0, 10)}...`
@@ -1220,26 +1218,22 @@ function UserDashboard({
                                         className="mb-0 text-primary fw-bold"
                                         style={{ fontSize: "15px" }}
                                       >
-                                        Rs. {service.subCategory.price}/-
+                                        Rs. {service.subCategory.price}/- | <span className="ms-1" style={{color : "#000080"}}>{distance} km away</span> 
                                       </p>
                                     ))}
 
-                                  {/* Distance */}
-                                  <p className="mb-0 text-muted small">
-                                    {shop.isLive ? "Online" : "Offline"} |
-                                    <b className="ms-1">{distance}</b> km away
-                                  </p>
-                                  <div className="d-flex justify-content-start gap-1 mt-1">
+                               
+                                  <div className="d-flex justify-content-between gap-1 mt-1">
                                     <button
                                       className={`btn btn-${
                                         shop.isLive ? "success" : "danger"
-                                      } btn-sm w-100`}
+                                      } btn-sm `}
                                       onClick={() => addToCart(shop, "main")}
                                       disabled={addCartLoading === shop._id}
                                     >
                                       {addCartLoading === shop._id ? (
                                         <>
-                                          Adding to cart...
+                                         Wait...
                                           <div
                                             className="spinner-border spinner-border-sm text-light ms-2"
                                             role="status"
@@ -1247,8 +1241,28 @@ function UserDashboard({
                                         </>
                                       ) : (
                                         <>
-                                          <i class="fa-solid fa-cart-plus me-1"></i>
+                                     
                                           Add to cart
+                                        </>
+                                      )}
+                                    </button>
+                                     <button
+                                      className="btn btn-info btn-sm "
+                                      onClick={() => getShopWithShopkeppers(shop)}
+                                      disabled={detailLoading === shop._id}
+                                    >
+                                      {detailLoading === shop._id ? (
+                                        <>
+                                          Loading...
+                                          <div
+                                            className="spinner-border spinner-border-sm text-light ms-2"
+                                            role="status"
+                                          ></div>
+                                        </>
+                                      ) : (
+                                        <>
+                                        
+                                         Shop Details
                                         </>
                                       )}
                                     </button>
@@ -1318,10 +1332,13 @@ function UserDashboard({
                   <i
                     className="fa-solid fa-cart-shopping"
                     style={{ fontSize: "25px" }}
-                    onClick={() => navigate("admin/user/cart")}
+                    onClick={() => {
+                      setSubCatModal(false);
+                      navigate("/admin/user/cart");
+                    }}
                   ></i>
                   <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                    {cartData?.items?.length}
+                    {cartData?.items?.length || 0}
                     <span className="visually-hidden">unread messages</span>
                   </span>
                 </div>
@@ -1534,7 +1551,9 @@ function UserDashboard({
                   )}
                 </div>
 
-                <div className="d-flex justify-content-center gap-5 mt-3">
+             {
+              selectedShopWithShopkepper?.shop?.reviews?.length === 0 ?(""):(
+                   <div className="d-flex justify-content-center gap-5 mt-3">
                   <button
                     className="btn btn-danger rounded-pill px-3"
                     onClick={handleBackPage}
@@ -1552,6 +1571,8 @@ function UserDashboard({
                     <i class="fa-solid fa-circle-arrow-right ms-2"></i>
                   </button>
                 </div>
+              )
+             }
               </div>
               {/* <div className="modal-footer">
                 <button
