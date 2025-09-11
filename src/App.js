@@ -17,6 +17,7 @@ import "@fortawesome/fontawesome-free/css/all.min.css";
 import ShopkepperRequests from "./pages/ShopkepperRequests";
 import UserDashboard from "./pages/UserDashboard";
 import Cart from "./components/Cart";
+import Tracking from "./components/Tracking";
 
 function App() {
   const [topText, setTopText] = useState("");
@@ -238,6 +239,10 @@ console.log("CartDAta", response.data.data?.[0]);
             <Route
             path="user/cart"
             element={<Cart  cartData ={cartData}  setUpdateAppjs={setUpdateAppjs} areaName= {areaName} coordinates={coordinates} setCartData={setCartData}/>}
+          />
+            <Route
+            path="user/tracking"
+            element={<Tracking/>}
           />
         </Route>
       </Routes>

@@ -297,14 +297,14 @@ function Cart({
       );
       if (response.data.success) {
         // await clearCart("update");
-        setLoading(true);
+        setLoading(false);
         alert(response?.data?.message || "Request sent successfully!");
         setPostOrderModal(true);
         setOrderSummaryModal(false);
       }
     } catch (error) {
       console.error("Error sending request:", error);
-      setLoading(true);
+      setLoading(false);
 
       if (error.response) {
         alert(
@@ -312,13 +312,13 @@ function Cart({
             error.response.data?.message || "Server returned an error"
           }`
         );
-        setLoading(true);
+        setLoading(false);
       } else if (error.request) {
         alert("Network error. Please check your internet connection.");
-        setLoading(true);
+        setLoading(false);
       } else {
         alert("Unexpected error. Please try again.");
-        setLoading(true);
+        setLoading(false);
       }
     }
   };
