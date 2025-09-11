@@ -745,7 +745,7 @@ function UserDashboard({
         <span
           className="mt-4"
           style={{
-            backgroundColor: "#a5d5f5ff",
+            backgroundColor: "#FFE4E1",
             color: "#010101ff",
             padding: "8px 12px",
             borderRadius: "6px",
@@ -760,7 +760,7 @@ function UserDashboard({
           onClick={() => setChooseLocationModal(true)}
         >
           <i
-            className="fa-solid fa-street-view text-danger me-3"
+            className="fa-solid fa-street-view text-success me-3"
             style={{ fontSize: "25px" }}
           ></i>
           <p style={{ fontSize: "16px", marginBottom: "-10px" }}>
@@ -774,7 +774,8 @@ function UserDashboard({
         <div style={{ marginTop: "17px" }}>
           <div>
             <select
-              className="form-select mb-2 bg-info"
+             style={{background : "#FFE4E1"}}
+              className="form-select mb-2"
               value={selectedCategory}
               onChange={handleCategoryChange}
             >
@@ -786,7 +787,8 @@ function UserDashboard({
               ))}
             </select>
             <select
-              className="form-select mb-3 bg-info"
+            style={{background : "#FFE4E1"}}
+              className="form-select mb-3 "
               value={selectedSubCategory}
               onChange={(e) => {
                 setSelectedSubCategory(e.target.value);
@@ -814,7 +816,8 @@ function UserDashboard({
           ></i>
           Service Charges:
           <span
-            style={{ color: "#007bff", fontWeight: "bold", marginLeft: "5px" }}
+            style={{ fontWeight: "bold", marginLeft: "5px" }}
+            className="text-success"
           >
             Rs. 15-25/km
           </span>

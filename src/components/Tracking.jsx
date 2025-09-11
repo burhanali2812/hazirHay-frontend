@@ -65,7 +65,7 @@ const handleChange = (e) => {
             aria-label="Search"
             value={searchQuery}
             onChange={handleChange}
-            style={{ border: "2px solid #ffacb2ff" }}
+            style={{ border: "2px solid black" }}
           />
 
           {/* Search Icon (left inside input) */}
@@ -84,7 +84,7 @@ const handleChange = (e) => {
    serachData.map((data, index) => (
   <div 
     key={index} 
-    className="d-flex justify-content-between align-items-center p-3 mb-2 rounded shadow-sm border"
+    className="d-flex justify-content-between align-items-center p-3 mb-3 rounded shadow-lg border-0 bg-transparent"
     style={{ backgroundColor: "#fff" }}
   >
     {/* Left content */}
