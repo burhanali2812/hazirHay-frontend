@@ -18,6 +18,7 @@ import ShopkepperRequests from "./pages/ShopkepperRequests";
 import UserDashboard from "./pages/UserDashboard";
 import Cart from "./components/Cart";
 import Tracking from "./components/Tracking";
+import TrackingDetails from "./pages/TrackingDetails";
 
 function App() {
   const [topText, setTopText] = useState("");
@@ -34,6 +35,7 @@ function App() {
     const [cartData, setCartData] = useState([]);
       const [areaName, setAreaName] = useState("");
         const [coordinates, setCoordinates] = useState([]);
+       
 
   const handleRequestAdded = () => {
     setRefreshFlag(prev => !prev); // toggle flag to trigger re-fetch
@@ -242,8 +244,9 @@ console.log("CartDAta", response.data.data?.[0]);
           />
             <Route
             path="user/tracking"
-            element={<Tracking/>}
+            element={<Tracking />}
           />
+         
         </Route>
       </Routes>
     </>

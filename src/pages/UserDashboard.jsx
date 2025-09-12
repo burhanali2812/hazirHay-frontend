@@ -57,7 +57,6 @@ function UserDashboard({
   const user = JSON.parse(sessionStorage.getItem("user"));
 
   const [distanceRange, setDistanceRange] = useState(10);
-  const [Price, setPrice] = useState(100);
   const [isFilter, setIsFilter] = useState(false);
   const [notFoundModal, setNotFoundModal] = useState(false);
   const [addCartLoading, setAddCartLoading] = useState(null);
@@ -254,6 +253,11 @@ function UserDashboard({
       setLoading(false);
       return;
     }
+       if (areaName === "") {
+      alert("Please select a Location");
+      setLoading(false);
+      return;
+    }
     try {
       const response = await axios.get(
         "https://hazir-hay-backend.wckd.pk/shops/shopsDataByCategory",
@@ -355,6 +359,8 @@ function UserDashboard({
 
       if (response.data.success) {
         setUserLocations(response.data.data.location || []);
+        console.log("ShopLocation", response.data.data.location);
+        
         // alert("successFull getUser Locations")
       } else {
         console.error("Failed to fetch user locations");
@@ -617,6 +623,9 @@ function UserDashboard({
 
   // Calculate distance between two coordinates in kilometers
   function getDistanceFromCoordinates(shopCoords, userCoords) {
+    console.log("shopCords", shopCoords );
+    console.log("userCords", userCoords );
+    
     const toRad = (value) => (value * Math.PI) / 180;
 
     const R = 6371; // Earth's radius in KM
@@ -674,6 +683,7 @@ function UserDashboard({
   const finalServices = isFilter ? FilterServices : availableServices;
 
   return (
+    
     <div>
       <div style={{ height: "400px", width: "100%" }}>
         <MapContainer
@@ -1080,6 +1090,7 @@ function UserDashboard({
         </div>
       )}
       {subCatModal && (
+        
         <div
           className="modal fade show d-block"
           tabIndex="-1"

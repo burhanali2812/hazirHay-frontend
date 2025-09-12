@@ -24,6 +24,7 @@ function Cart({
   const [postOrderModal, setPostOrderModal] = useState(false);
   const [isReciept, setIsReciept] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [rate, setRate] = useState(false);
 
   const [checkoutId, setCheckoutId] = useState("");
 
@@ -48,41 +49,53 @@ function Cart({
     console.log("gropCart ", groupedCart);
   }, [groupedCart]);
 
-  const downloadReceiptAsPDF = async () => {
-    setLoading(true);
-    try {
-      const element = document.getElementById("receipt-content");
-      if (!element) return;
+const downloadReceiptAsPDF = async () => {
+  setLoading(true);
+  try {
+    const element = document.getElementById("receipt-content");
+    if (!element) return;
 
-      const canvas = await html2canvas(element, {
-        scale: 2,
-        scrollX: 0,
-        scrollY: -window.scrollY,
-        windowWidth: element.scrollWidth,
-        windowHeight: element.scrollHeight,
-      });
+    // High-resolution canvas
+    const canvas = await html2canvas(element, {
+      scale: 10, // higher scale = sharper
+      useCORS: true,
+      logging: false
+    });
 
-      const imgData = canvas.toDataURL("image/png");
+    const imgData = canvas.toDataURL("image/png", 1.0); // best quality
+    const pdf = new jsPDF("p", "mm", "a4");
 
-      const pdf = new jsPDF("p", "mm", "a4");
-      const pageWidth = pdf.internal.pageSize.getWidth();
-      const pageHeight = pdf.internal.pageSize.getHeight();
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
 
-      const imgWidth = pageWidth;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+    const imgWidth = pageWidth;
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
-      pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight);
-      pdf.save(`Order-${checkoutId}.pdf`);
+    let heightLeft = imgHeight;
+    let position = 0;
 
-      // ✅ Show success alert after saving
-      setLoading(false);
-      alert(" PDF downloaded successfully!");
-    } catch (error) {
-      console.error("Error generating PDF:", error);
-      setLoading(false);
-      alert(" Failed to download PDF. Please try again.");
+    // Add first page
+    pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+    heightLeft -= pageHeight;
+
+    // Add extra pages if needed
+    while (heightLeft > 0) {
+      position = heightLeft - imgHeight;
+      pdf.addPage();
+      pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
     }
-  };
+
+    pdf.save(`Order-${checkoutId}.pdf`);
+
+    setLoading(false);
+    alert("✅ PDF downloaded successfully!");
+  } catch (error) {
+    console.error("Error generating PDF:", error);
+    setLoading(false);
+    alert("❌ Failed to download PDF. Please try again.");
+  }
+};
 
   const grandTotal = groupedCart.reduce(
     (acc, cart) => acc + cart.items.reduce((sum, item) => sum + item.price, 0),
@@ -228,14 +241,18 @@ function Cart({
     return null; // just in case no range matches
   }
 
-  const rate = getRateByTime();
-  if (rate === null) {
-    console.log("Service unavailable right now");
-  } else {
-    console.log("Current rate:", rate);
-  }
+  useEffect(() => {
+    const rateTime = getRateByTime();
+    if (rateTime === null) {
+      console.log("Service unavailable right now");
+    } else {
+      setRate(rateTime);
+      console.log("Current rate:", rateTime);
+    }
+  }, []);
 
-  const totalServiceCharges = (rate * totalDistance).toFixed(0);
+  const totalServiceCharges = ((rate ? rate : 0) * totalDistance).toFixed(0);
+
 
   const subTotal = Number(totalServiceCharges) + Number(grandTotal);
 
