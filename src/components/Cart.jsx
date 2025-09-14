@@ -25,6 +25,7 @@ function Cart({
   const [isReciept, setIsReciept] = useState(false);
   const [loading, setLoading] = useState(false);
   const [rate, setRate] = useState(false);
+  const saved = JSON.parse(localStorage.getItem("selectedLocation"));
 
   const [checkoutId, setCheckoutId] = useState("");
 
@@ -145,65 +146,72 @@ const downloadReceiptAsPDF = async () => {
     }
   };
 
-  function getDistanceFromCoordinates(shopCoords, userCoords) {
-    const toRad = (value) => (value * Math.PI) / 180;
+   async function getDistance(userCoords, shopCoords) {
+  console.log("shopCoordsdd", shopCoords);
+  
+  if (!shopCoords || shopCoords.length < 2) return { distance: null, duration: null };
+  const accessToken = "pk.eyJ1Ijoic3llZGJ1cmhhbmFsaTI4MTIiLCJhIjoiY21mamM0NjZiMHg4NTJqczRocXhvdndiYiJ9.Z4l8EQQ47ejlWdVGcimn4A";
+  const url = `https://api.mapbox.com/directions/v5/mapbox/driving/${userCoords[0]},${userCoords[1]};${shopCoords[0]},${shopCoords[1]}?access_token=${accessToken}&overview=false`;
 
-    const R = 6371; // Earth's radius in KM
-    const lat1 = shopCoords.lat;
-    const lon1 = shopCoords.lng;
-    const lat2 = userCoords.lat;
-    const lon2 = userCoords.lng;
+  const res = await axios.get(url);
+  const route = res.data.routes[0];
 
-    const dLat = toRad(lat2 - lat1);
-    const dLon = toRad(lon2 - lon1);
+      if (!res.data.routes || res.data.routes.length === 0) {
+      console.warn("No route found for:", shopCoords);
+      return { distance: null, duration: null };
+    }
 
-    const a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(toRad(lat1)) *
-        Math.cos(toRad(lat2)) *
-        Math.sin(dLon / 2) *
-        Math.sin(dLon / 2);
-
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-    return (R * c).toFixed(2);
-  }
-
-  const findShopDistance = (shopId) => {
-    console.log(shopId);
-
-    const shop = shopWithShopKepper.find((shop) => shop.shop._id === shopId);
-    console.log("shop", shop);
-    const shopCoords = shop?.shop?.location?.coordinates
-      ? {
-          lat: shop?.shop?.location.coordinates[0],
-          lng: shop?.shop?.location.coordinates[1],
-        }
-      : null;
-
-    console.log("shopCoords", shopCoords);
-
-    const userCoords = coordinates
-      ? {
-          lat: coordinates[0],
-          lng: coordinates[1],
-        }
-      : null;
-
-    const shopDistance =
-      shopCoords && userCoords
-        ? getDistanceFromCoordinates(shopCoords, userCoords)
-        : null;
-
-    console.log("shopDistance", shopDistance);
-
-    return shopDistance;
+  return {
+    distance: (route.distance / 1000).toFixed(2), // km
+    duration: (route.duration / 60).toFixed(0),   // minutes
   };
-  let totalDistance = groupedCart.reduce((acc, shop) => {
-    return acc + Number(findShopDistance(shop.shopId));
-  }, 0);
+}
 
-  totalDistance = totalDistance.toFixed(2); // e.g., "28.97"
+
+
+const findShopDistance = async (shopId) => {
+  const shop = shopWithShopKepper.find((shop) => shop.shop._id === shopId);
+  if (!shop || !shop.shop.location?.coordinates || !coordinates) return null;
+
+  const shopCoords = [
+    shop.shop.location.coordinates[1], // lng
+    shop.shop.location.coordinates[0], // lat
+  ];
+  const userCoords = [saved?.lng || 73.04732533048735, saved?.lat || 33.69832701012015]; // lng, lat
+  console.log("shopCords", shopCoords);
+   console.log("UserCords", userCoords);
+  
+
+  const distance = await getDistance(userCoords, shopCoords);
+  return distance.distance; // km
+};
+const [totalDistance, setTotalDistance] = useState(0);
+const [shopDistances, setShopDistances] = useState({});
+useEffect(() => {
+  const fetchAllDistances = async () => {
+    if (!coordinates || !groupedCart.length) return;
+
+    let total = 0;
+    const distances = {};
+
+    for (const shop of groupedCart) {
+      const dist = await findShopDistance(shop.shopId);
+      distances[shop.shopId] = dist;
+      total += Number(dist) || 0;
+    }
+
+    setShopDistances(distances);
+    setTotalDistance(total.toFixed(2));
+  };
+
+  fetchAllDistances();
+}, [groupedCart, coordinates]);
+
+
+
+
+
+ // e.g., "28.97"
   function getRateByTime() {
     const now = new Date();
     const hour = now.getHours();
@@ -297,7 +305,7 @@ const downloadReceiptAsPDF = async () => {
       ],
       serviceCharges: {
         rate,
-        distance: findShopDistance(shop.shopId),
+        distance: shopDistances[shop.shopId] || 0,
       },
     }));
 
@@ -574,10 +582,10 @@ const downloadReceiptAsPDF = async () => {
                           <p className="text-muted ms-2 mb-0">{user.phone}</p>
                         </div>
                         <p className="small text-muted mt-1">
-                          {areaName
-                            ? areaName.length > 58
-                              ? areaName.slice(0, 58) + "..."
-                              : areaName
+                          {saved?.areaName
+                            ? saved?.areaName?.length > 58
+                              ? saved?.areaName?.slice(0, 58) + "..."
+                              : saved?.areaName
                             : "No location found! Please update your location."}
                         </p>
                       </div>
@@ -634,7 +642,7 @@ const downloadReceiptAsPDF = async () => {
 
                     {groupedCart.length > 0 &&
                       groupedCart.map((shop, index) => {
-                        const distance = findShopDistance(shop.shopId);
+                        const distance = shopDistances[shop.shopId] || 0;
                         return (
                           <div
                             key={index}

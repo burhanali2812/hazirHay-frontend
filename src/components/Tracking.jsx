@@ -8,16 +8,14 @@ import {
   TileLayer,
   Marker,
   useMapEvents,
-  Popup,
-  Tooltip,
+
   Polyline,
 } from "react-leaflet";
-import markerIcon from "leaflet/dist/images/marker-icon.png";
-import markerShadow from "leaflet/dist/images/marker-shadow.png";
+
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import "leaflet-routing-machine";
-import { useMap } from "react-leaflet";
+
 
 function Tracking() {
   const token = localStorage.getItem("token");
@@ -58,21 +56,20 @@ function Tracking() {
 
   const fetchShopData = async (data) => {
     console.log("selectedTrackShopData?.shopOwnerId", data?.shopOwnerId);
-    
+
     try {
       const res = await axios.get(
-        `https://hazir-hay-backend.wckd.pk/shops/shopData/${data?.shopOwnerId}`,
+        `https://hazir-hay-backend.wckd.pk/shopKeppers/shopWithShopKepper/${data?.shopOwnerId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
           params: { t: Date.now() },
         }
       );
       if (res.data.success) {
-        setSelectedShop(res.data.shop);
+        setSelectedShop(res.data.data);
         console.log("shop", res.data.shop);
-        setShopCoordinates(res.data.shop.location.coordinates)
-        console.log("shop Coordinates", res.data.shop.location.coordinates);
-        
+        setShopCoordinates(res.data.data.shop.location.coordinates);
+        console.log("shop Coordinates", res.data.data.shop.location.coordinates);
       }
     } catch (error) {
       console.error("Error Fetching reuests data:", error.message);
@@ -95,8 +92,31 @@ function Tracking() {
 
     setSearchData(data);
   };
+  function highlightText(text, query) {
+    if (!query) return text;
 
-  const handleGotoTrackingPage = async(data) => {
+    const regex = new RegExp(`(${query})`, "gi");
+    const parts = text.split(regex);
+
+    return parts.map((part, index) =>
+      part.toUpperCase() === query.toUpperCase() ? (
+        <span
+          key={index}
+          style={{
+            backgroundColor: "yellow",
+            borderRadius: "6px",
+            padding: "2px",
+          }}
+        >
+          {part}
+        </span>
+      ) : (
+        part
+      )
+    );
+  }
+
+  const handleGotoTrackingPage = async (data) => {
     console.log("data", data);
     await fetchShopData(data);
 
@@ -129,43 +149,35 @@ function Tracking() {
     iconAnchor: [10, 30], // Match smaller height
   });
 
-function Routing({ userPos, shopPos }) {
-  const map = useMap();
+  function RoutingWithOSRM({ userPos, shopPos }) {
+    const [route, setRoute] = useState(null);
 
-  useEffect(() => {
-    if (!map || !userPos || !shopPos) return;
+    useEffect(() => {
+      if (!userPos || !shopPos) return;
 
-    const L = require("leaflet");
+      const url = `https://router.project-osrm.org/route/v1/driving/${userPos[1]},${userPos[0]};${shopPos[1]},${shopPos[0]}?overview=full&geometries=geojson`;
 
-    const routingControl = L.Routing.control({
-      waypoints: [
-        L.latLng(userPos[0], userPos[1]),
-        L.latLng(shopPos[0], shopPos[1]),
-      ],
-      lineOptions: {
-        styles: [{ color: "blue", weight: 4 }],
-      },
-      addWaypoints: false,
-      draggableWaypoints: false,
-      fitSelectedRoutes: true,
-      createMarker: () => null, // only use your own markers
-      routeWhileDragging: false,
-      show: false, // <-- not enough alone
-    }).addTo(map);
+      fetch(url)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.routes && data.routes.length > 0) {
+            const routeData = data.routes[0];
+            const coords = data.routes[0].geometry.coordinates.map((c) => [
+              c[1],
+              c[0],
+            ]);
+            // flip [lng, lat] → [lat, lng]
+            setRoute(coords);
+            console.log("Distance", (routeData.distance / 1000).toFixed(2));
+          }
+        })
+        .catch((err) => console.error("OSRM error:", err));
+    }, [userPos, shopPos]);
 
-    // 🚀 Remove the instruction container if it appears
-    const container = routingControl.getContainer();
-    if (container) {
-      container.style.display = "none";
-    }
-
-    return () => map.removeControl(routingControl);
-  }, [map, userPos, shopPos]);
-
-  return null;
-}
-
-
+    return route ? (
+      <Polyline positions={route} color="blue" weight={4} />
+    ) : null;
+  }
 
   return (
     <div className="container mt-3 " style={{ overflowY: 0 }}>
@@ -198,7 +210,10 @@ function Routing({ userPos, shopPos }) {
           >
             {/* Left content */}
             <div>
-              <p className="fw-bold mb-1 text-dark">{data.orderId}</p>
+              <p className="fw-bold mb-1 text-dark">
+                {data.orderId} ({highlightText(data.checkoutId, searchQuery)})
+              </p>
+
               <p className="mb-1 text-muted">
                 {data.subCategory} <small>({data.category})</small>
               </p>
@@ -276,56 +291,183 @@ function Routing({ userPos, shopPos }) {
         ""
       )}
 
-      {trackingDetailsModal && (
-        <div
-          className="modal fade show d-block"
-          tabIndex="-1"
-          style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
-        >
-          <div className="modal-dialog modal-fullscreen modal-dialog-centered">
-            <div className="modal-content  shadow-lg">
-              {/* HEADER */}
-              <div className="modal-header  d-flex justify-content-between align-items-center">
-                <div className="d-flex align-items-center">
-                  <i
-                    className="fa-solid fa-circle-chevron-left text-dark"
-                    style={{ fontSize: "20px", cursor: "pointer" }}
-                    onClick={() => setTrackingDetailsModal(false)}
-                  ></i>
-                  <h5 className="ms-2 fw-bold mb-0">Tracking Details</h5>
-                </div>
-              </div>
-
-              {/* BODY */}
-              <div className="modal-body">
-                <div style={{ height: "400px", width: "100%" }}>
-                  <MapContainer
-                    center={[33.6844, 73.0479]}
-                    zoom={13}
-                    style={{ height: "100%", width: "100%" }}
-                  >
-                    <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-                    <FlyToUser position={position} />
-                    {position && <Marker position={position} icon={userIcon} />}
-
-                    <Marker
-                                 position={[shopCoordinates?.[0], shopCoordinates?.[1]]}
-                                 icon={shopIcon}
-                                 zIndexOffset={1000}
-                               >
-                               </Marker>
-                               {
-                                shopCoordinates && position && (
-                                     <Routing userPos={position} shopPos={shopCoordinates} />
-                                )
-                               }
-                  </MapContainer>
-                </div>
-              </div>
-            </div>
+   {trackingDetailsModal && (
+  <div
+    className="modal fade show d-block"
+    tabIndex="-1"
+    style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+  >
+    <div className="modal-dialog modal-fullscreen modal-dialog-centered">
+      <div className="modal-content border-0 shadow-lg rounded-4">
+        
+        {/* HEADER */}
+        <div className="modal-header border-0 bg-light">
+          <div className="d-flex align-items-center">
+            <i
+              className="fa-solid fa-circle-chevron-left text-secondary"
+              style={{ fontSize: "22px", cursor: "pointer" }}
+              onClick={() => setTrackingDetailsModal(false)}
+            ></i>
+            <h5 className="ms-2 fw-bold text-dark mb-0">Tracking Details</h5>
           </div>
         </div>
-      )}
+
+        {/* BODY */}
+        <div className="modal-body bg-white">
+          {/* MAP */}
+          <div
+            style={{
+              height: "350px",
+              width: "100%",
+              borderRadius: "15px",
+              overflow: "hidden",
+            }}
+            className="shadow-sm"
+          >
+            <MapContainer
+              center={[33.6844, 73.0479]}
+              zoom={12}
+              style={{ height: "100%", width: "100%" }}
+            >
+              <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+              <FlyToUser position={position} />
+              {position && <Marker position={position} icon={userIcon} />}
+
+              <Marker
+                position={[shopCoordinates?.[0], shopCoordinates?.[1]]}
+                icon={shopIcon}
+                zIndexOffset={1000}
+              ></Marker>
+              {shopCoordinates && position && (
+                <RoutingWithOSRM userPos={position} shopPos={shopCoordinates} />
+              )}
+            </MapContainer>
+          </div>
+
+          {/* CARD */}
+        {/* CARD */}
+<div
+  className="card border-0 shadow-sm mt-3"
+  style={{
+    borderRadius: "20px",
+    padding: "20px",
+    backgroundColor: "#f9fbfd",
+  }}
+>
+  {selectedShop && (
+    <>
+      {/* SHOP NAME */}
+      <h3 className="fw-bold text-center text-primary mb-3">
+        {selectedShop?.shop?.shopName}
+      </h3>
+
+      {/* ACTION BUTTONS */}
+      <div className="d-flex justify-content-center gap-2 flex-wrap mb-3">
+        <a
+          href={`tel:${selectedShop?.phone}`}
+          className="btn btn-outline-info btn-sm text-dark rounded-pill px-3"
+        >
+          <i className="fa-solid fa-phone-volume me-1"></i> Call Now
+        </a>
+
+        <a
+          href={`https://wa.me/${`+92${selectedShop?.phone?.slice(1)}`}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="btn btn-outline-success btn-sm rounded-pill px-3"
+        >
+          <i className="fa-brands fa-whatsapp me-1"></i> WhatsApp
+        </a>
+
+        <button className="btn btn-outline-primary btn-sm rounded-pill px-3">
+          <i className="fa-solid fa-comments me-1"></i> Live Chat
+        </button>
+      </div>
+
+      {/* DISTANCE + TIME */}
+      <div className="d-flex justify-content-around text-muted small mb-3">
+        <span>
+          <i className="fa-solid fa-clock me-1 text-secondary"></i>
+          <b>ETA:</b> {selectedTrackShopData?.serviceCharges?.distance * 5} mins
+        </span>
+        <span>
+          <i className="fa-solid fa-route me-1 text-secondary"></i>
+          <b>Distance:</b> {selectedTrackShopData?.serviceCharges?.distance} km
+        </span>
+      </div>
+
+      {/* ORDER DETAILS */}
+      <div className="mt-2">
+        <h5 className="text-center fw-bold text-dark mb-3">
+          Order Details
+        </h5>
+
+        <ul className="list-group list-group-flush">
+          <li className="list-group-item d-flex justify-content-between align-items-center">
+            <span><i className="fa-solid fa-signal me-2 text-secondary"></i>Status</span>
+            <span>
+              <span
+                className={`badge rounded-pill ${
+                  selectedTrackShopData?.status === "pending"
+                    ? "bg-warning text-dark"
+                    : selectedTrackShopData?.status === "completed"
+                    ? "bg-success"
+                    : selectedTrackShopData?.status === "cancelled"
+                    ? "bg-danger"
+                    : "bg-secondary"
+                }`}
+              >
+                {selectedTrackShopData?.status}
+              </span>
+            </span>
+          </li>
+
+          <li className="list-group-item d-flex justify-content-between align-items-center">
+            <span><i className="fa-solid fa-receipt me-2 text-secondary"></i>Order ID</span>
+            <span className="fw-semibold">{selectedTrackShopData?.orderId}</span>
+          </li>
+
+          <li className="list-group-item d-flex justify-content-between align-items-center">
+            <span><i className="fa-solid fa-barcode me-2 text-secondary"></i>Checkout ID</span>
+            <span>{selectedTrackShopData?.checkoutId}</span>
+          </li>
+
+          <li className="list-group-item d-flex justify-content-between align-items-center">
+            <span><i className="fa-solid fa-tags me-2 text-secondary"></i>Category</span>
+            <span>{selectedTrackShopData?.category}</span>
+          </li>
+
+          <li className="list-group-item d-flex justify-content-between align-items-center">
+            <span><i className="fa-solid fa-toolbox me-2 text-secondary"></i>Sub Category</span>
+            <span>{selectedTrackShopData?.subCategory}</span>
+          </li>
+
+          <li className="list-group-item d-flex justify-content-between align-items-center">
+            <span><i className="fa-solid fa-money-bill-wave me-2 text-secondary"></i>Total Cost</span>
+            <span className="fw-bold text-success">
+              Rs. {selectedTrackShopData?.cost}/-
+            </span>
+          </li>
+        </ul>
+      </div>
+
+      {/* CANCEL BUTTON */}
+      <div className="text-center mt-4">
+        <button className="btn btn-outline-danger rounded-pill px-4">
+          <i className="fa-solid fa-xmark me-1"></i>
+          Cancel Order ({selectedTrackShopData?.orderId})
+        </button>
+      </div>
+    </>
+  )}
+</div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+)}
+
     </div>
   );
 }

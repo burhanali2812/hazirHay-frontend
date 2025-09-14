@@ -6,6 +6,7 @@ import noData from "../images/noData.png";
 import { useNavigate } from "react-router-dom";
 import notFound from "../videos/notFound.mp4";
 import Swal from "sweetalert2";
+import MyMap from "../components/MyMap";
 
 import {
   MapContainer,
@@ -27,7 +28,6 @@ function UserDashboard({
   cartData,
   areaName,
   setAreaName,
-  coordinates,
   setCoordinates,
 }) {
   const token = localStorage.getItem("token");
@@ -45,6 +45,7 @@ function UserDashboard({
   const [subCatModal, setSubCatModal] = useState(false);
   const [locationName, setLocationName] = useState("");
   const [selectedSubCategory, setSelectedSubCategory] = useState(null);
+    const [selectedArea, setSelectedArea] = useState(null);
 
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [availableServices, setAvailableServices] = useState([]);
@@ -60,7 +61,7 @@ function UserDashboard({
   const [isFilter, setIsFilter] = useState(false);
   const [notFoundModal, setNotFoundModal] = useState(false);
   const [addCartLoading, setAddCartLoading] = useState(null);
-    const [detailLoading, setDetailLoading] = useState(null);
+  const [detailLoading, setDetailLoading] = useState(null);
 
   const [filterText, setFilterText] = useState("");
   const [FilterServices, setFilterServices] = useState([]);
@@ -101,27 +102,32 @@ function UserDashboard({
   };
 
   const addToCart = async (shop, from) => {
-    const shopStatus = from === "detail" ? selectedShopWithShopkepper?.shop?.isLive : shop.isLive
-      if (!shopStatus) {
-  const result = await Swal.fire({
-    title: "This provider is offline",
-    html: `<p class="mb-1">
-             The shop <strong>${shop.shopName || selectedShopWithShopkepper?.shop?.shopName}</strong> is currently not live.
+    const shopStatus =
+      from === "detail"
+        ? selectedShopWithShopkepper?.shop?.isLive
+        : shop.isLive;
+    if (!shopStatus) {
+      const result = await Swal.fire({
+        title: "This provider is offline",
+        html: `<p class="mb-1">
+             The shop <strong>${
+               shop.shopName || selectedShopWithShopkepper?.shop?.shopName
+             }</strong> is currently not live.
            </p>
            <p class="text-muted">
              Don’t worry 😊 — your request will be sent, and when the provider comes online, 
              they will contact you shortly.
            </p>`,
-    icon: "info",
-    showCancelButton: true,
-    confirmButtonColor: "#28a745",
-    cancelButtonColor: "#6c757d",
-    confirmButtonText: "Yes, Add to cart",
-    cancelButtonText: "Cancel",
-  });
+        icon: "info",
+        showCancelButton: true,
+        confirmButtonColor: "#28a745",
+        cancelButtonColor: "#6c757d",
+        confirmButtonText: "Yes, Add to cart",
+        cancelButtonText: "Cancel",
+      });
 
-  if (!result.isConfirmed) return;
-}
+      if (!result.isConfirmed) return;
+    }
 
     setAddCartLoading(shop._id);
     let finalShopId, finalCategory, finalSubCategory, finalPrice, finalShopName;
@@ -196,7 +202,7 @@ function UserDashboard({
   };
 
   const getShopWithShopkeppers = async (provider) => {
-    setDetailLoading(provider._id)
+    setDetailLoading(provider._id);
     try {
       const response = await axios.get(
         "https://hazir-hay-backend.wckd.pk/shopKeppers/allVerifiedShopkepperWithShops",
@@ -208,7 +214,6 @@ function UserDashboard({
       );
 
       if (response.status === 200) {
-        
         const shopWithShopkeppers = response.data.data || [];
         console.log("All shops with shopkeepers:", shopWithShopkeppers);
         console.log("Selected provider:", provider);
@@ -219,7 +224,7 @@ function UserDashboard({
             serviceProvider?.shop?.owner?.toString() ===
             provider?.owner?._id?.toString()
         );
-        setDetailLoading(false)
+        setDetailLoading(false);
         console.log("Selected shop with shopkeeper:", selected);
 
         console.log("Selected shop with shopkeeper:", selected);
@@ -229,9 +234,9 @@ function UserDashboard({
       }
     } catch (error) {
       console.error("Error fetching shopkeepers with shops:", error);
-      setDetailLoading(false)
+      setDetailLoading(false);
     } finally {
-      setDetailLoading(false)
+      setDetailLoading(false);
     }
   };
 
@@ -253,7 +258,7 @@ function UserDashboard({
       setLoading(false);
       return;
     }
-       if (areaName === "") {
+    if (areaName === "") {
       alert("Please select a Location");
       setLoading(false);
       return;
@@ -345,8 +350,6 @@ function UserDashboard({
     applyFilters();
   }, [filters, availableServices]);
 
-
-
   const getUserLocations = async () => {
     try {
       const response = await axios.get(
@@ -360,7 +363,7 @@ function UserDashboard({
       if (response.data.success) {
         setUserLocations(response.data.data.location || []);
         console.log("ShopLocation", response.data.data.location);
-        
+
         // alert("successFull getUser Locations")
       } else {
         console.error("Failed to fetch user locations");
@@ -379,8 +382,7 @@ function UserDashboard({
   const setSelectedLocation = (location) => {
     setAreaName(location.area);
     setLocationName(location.name);
-    setCoordinates(location.coordinates);
-    setPosition(location.coordinates);
+    setSelectedArea({lat: location.coordinates[0], lng: location.coordinates[1], areaName: location.area})
   };
   const handleSaveLocation = async () => {
     setLoading(true);
@@ -391,8 +393,8 @@ function UserDashboard({
 
     const payload = {
       name: locationName,
-      coordinates: coordinates,
-      area: areaName,
+      coordinates: [selectedArea?.lat, selectedArea?.lng],
+      area: selectedArea?.areaName,
     };
 
     try {
@@ -565,89 +567,32 @@ function UserDashboard({
     getVerifiedShopWithShopkeppers();
   }, []);
 
-  const customIcon = L.icon({
-    iconUrl: markerIcon,
-    shadowUrl: markerShadow,
-    iconSize: [20, 30],
-    iconAnchor: [10, 30], // Match smaller height
-  });
-  const shopIcon = L.divIcon({
-    html: `<i class="fa-solid fa-shop" style="color: red; font-size: 20px;"></i>`,
-    className: "custom-shop-icon",
-    iconSize: [20, 30],
-    iconAnchor: [10, 30], // Match smaller height
-  });
-
-  function LocationPicker({ onLocationSelect }) {
-    useMapEvents({
-      click(e) {
-        const { lat, lng } = e.latlng;
-        setPosition([lat, lng]);
-        onLocationSelect(lat, lng);
-        setCoordinates([lat, lng]);
-
-        console.log("points", lat, lng);
-      },
-    });
-    return null;
-  }
-  const fetchAreaName = async (lat, lon) => {
-    try {
-      const response = await axios.get(
-        "https://hazir-hay-backend.wckd.pk/admin/reverse-geocode",
-        { params: { lat: lat, lon: lon } }
-      );
-
-      const name =
-        response.data?.display_name ||
-        response.data.address?.city ||
-        response.data.address?.town ||
-        response.data.address?.village ||
-        response.data.address?.suburb ||
-        "Unknown Area";
-      setAreaName(name);
-      return name;
-    } catch (error) {
-      console.error("Error fetching area name:", error);
-    }
-  };
-
-  const handleLocationSelect = async (lat, lon) => {
-    const name = await fetchAreaName(lat, lon);
-    setAreaName(name);
-  };
   const handleCategoryChange = (e) => {
     setSelectedCategory(e.target.value);
     setSelectedSubCategory("");
   };
 
   // Calculate distance between two coordinates in kilometers
-  function getDistanceFromCoordinates(shopCoords, userCoords) {
-    console.log("shopCords", shopCoords );
-    console.log("userCords", userCoords );
-    
-    const toRad = (value) => (value * Math.PI) / 180;
+ async function getDistance(userCoords, shopCoords) {
+  console.log("shopCoordsdd", shopCoords);
+  
+  if (!shopCoords || shopCoords.length < 2) return { distance: null, duration: null };
+  const accessToken = "pk.eyJ1Ijoic3llZGJ1cmhhbmFsaTI4MTIiLCJhIjoiY21mamM0NjZiMHg4NTJqczRocXhvdndiYiJ9.Z4l8EQQ47ejlWdVGcimn4A";
+  const url = `https://api.mapbox.com/directions/v5/mapbox/driving/${userCoords[0]},${userCoords[1]};${shopCoords[0]},${shopCoords[1]}?access_token=${accessToken}&overview=false`;
 
-    const R = 6371; // Earth's radius in KM
-    const lat1 = shopCoords.lat;
-    const lon1 = shopCoords.lng;
-    const lat2 = userCoords.lat;
-    const lon2 = userCoords.lng;
+  const res = await axios.get(url);
+  const route = res.data.routes[0];
 
-    const dLat = toRad(lat2 - lat1);
-    const dLon = toRad(lon2 - lon1);
+      if (!res.data.routes || res.data.routes.length === 0) {
+      console.warn("No route found for:", shopCoords);
+      return { distance: null, duration: null };
+    }
 
-    const a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(toRad(lat1)) *
-        Math.cos(toRad(lat2)) *
-        Math.sin(dLon / 2) *
-        Math.sin(dLon / 2);
-
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-    return (R * c).toFixed(2);
-  }
+  return {
+    distance: (route.distance / 1000).toFixed(2), // km
+    duration: (route.duration / 60).toFixed(0),   // minutes
+  };
+}
 
   const findAverageRating = (ratings) => {
     if (!ratings || ratings.length === 0) return 0;
@@ -655,91 +600,71 @@ function UserDashboard({
     const total = ratings.reduce((acc, rating) => acc + rating.rate, 0);
     return (total / ratings.length).toFixed(1);
   };
+  console.log("Selected area", selectedArea)
 
-  const countryNumber = `+92${selectedShopWithShopkepper?.phone?.slice(1)}`;
-  const shopCoords = selectedShopWithShopkepper?.shop?.location?.coordinates
-    ? {
-        lat: selectedShopWithShopkepper.shop.location.coordinates[0],
-        lng: selectedShopWithShopkepper.shop.location.coordinates[1],
-      }
-    : null;
 
-  const userCoords = coordinates
-    ? {
-        lat: coordinates[0],
-        lng: coordinates[1],
-      }
-    : null;
+  const userCoords = [selectedArea?.lng || 73.04732533048735 , selectedArea?.lat || 33.69832701012015 ]
+  console.log("UserCords", userCoords);
+  
 
-  const shopDistance =
-    shopCoords && userCoords
-      ? getDistanceFromCoordinates(shopCoords, userCoords)
-      : null;
+  // const shopDistance =
+  //   shopCoords && userCoords
+  //     ? getDistanceFromCoordinates(shopCoords, userCoords)
+  //     : null;
+      const shopDistance = 0
 
   const priceRangeOptions = ["All", "Low-to-High", "High-to-Low"];
   const ratingRangeOptions = ["All", "1", "2", "3", "4", "5"];
   const statusOptions = ["All", "Online", "Offline"];
 
   const finalServices = isFilter ? FilterServices : availableServices;
+  console.log("finalServices", finalServices);
+  
+
+async function calculateDistances() {
+  console.log("Calculating distances for shops:", finalServices);
+
+  const shopDistances = await Promise.all(
+    finalServices.map(async (shop) => {
+      console.log("Processing shop:", shop);
+      const coords = shop?.location?.coordinates;
+      if (!coords) {
+        console.warn("No coordinates for shop", shop);
+        return { ...shop, distance: null, duration: null };
+      }
+      const shopCoords = [coords[1], coords[0]];
+      const { distance, duration } = await getDistance(userCoords, shopCoords);
+      return { ...shop, distance, duration };
+    })
+  );
+
+  console.log("shopDistances", shopDistances);
+  return shopDistances;
+}
+
+const [shopData, setShopData] = useState([]);
+useEffect(() => {
+  if (!finalServices || finalServices.length === 0) return;
+
+  async function fetchDistances() {
+    const result = await calculateDistances();
+    setShopData(result);
+    console.log("ShopData for distance", result);
+  }
+
+  fetchDistances();
+}, [finalServices, selectedArea]); // <- dependency array
+
+
 
   return (
-    
     <div>
-      <div style={{ height: "400px", width: "100%" }}>
-        <MapContainer
-          center={[latitude, longitude]}
-          zoom={13}
-          style={{ height: "100%", width: "100%" }}
-        >
-          <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-          <LocationPicker onLocationSelect={handleLocationSelect} />
-          <FlyToLocation coordinates={coordinates} />
-          <FlyToUser position={position} />
-          {position && <Marker position={position} icon={customIcon} />}
-          {/* {position && (
-            <Circle
-              center={position}
-              radius={1000}
-              pathOptions={{
-                color: "red",
-                fillColor: "blue",
-                fillOpacity: 0.1,
-              }}
-            />
-          )} */}
-          {verifiedShops.map((provider) => {
-            const coords = provider?.shop?.location?.coordinates;
-
-            if (
-              Array.isArray(coords) &&
-              coords.length === 2 &&
-              typeof coords[0] === "number" &&
-              typeof coords[1] === "number"
-            ) {
-              return (
-                <Marker
-                  key={provider?.shop?._id}
-                  position={[coords[0], coords[1]]}
-                  icon={shopIcon}
-                  zIndexOffset={1000}
-                >
-                  <Popup>{provider?.shop?.location?.area}</Popup>
-                  <Tooltip
-                    permanent
-                    direction="top"
-                    offset={[0, -25]}
-                    opacity={1}
-                  >
-                    <span>{provider?.shop?.shopName}</span>
-                  </Tooltip>
-                </Marker>
-              );
-            }
-            return null;
-          })}
-        </MapContainer>
-      </div>
-
+   <form onSubmit={(e) => e.preventDefault()}>
+  <div style={{ height: "390px", width: "100%" }}>
+    <MyMap onLocationSelect={setSelectedArea} 
+    initialLocation={selectedArea}/>
+  </div>
+</form>
       <div
         className="card bg-light container shadow-sm"
         style={{
@@ -773,18 +698,18 @@ function UserDashboard({
             className="fa-solid fa-street-view text-success me-3"
             style={{ fontSize: "25px" }}
           ></i>
-          <p style={{ fontSize: "16px", marginBottom: "-10px" }}>
-            {areaName
-              ? areaName.length > 58
-                ? areaName.slice(0, 58) + "..."
-                : areaName
-              : "No location found! please click on me to update your location"}
-          </p>
+      <p style={{ fontSize: "16px", marginBottom: "-10px" }}>
+        {selectedArea?.areaName
+          ? selectedArea.areaName.length > 58
+            ? selectedArea.areaName.slice(0, 58) + "..."
+            : selectedArea.areaName
+          : "No location found! please click on me to update your location"}
+      </p>
         </div>
         <div style={{ marginTop: "17px" }}>
           <div>
             <select
-             style={{background : "#FFE4E1"}}
+              style={{ background: "#FFE4E1" }}
               className="form-select mb-2"
               value={selectedCategory}
               onChange={handleCategoryChange}
@@ -797,7 +722,7 @@ function UserDashboard({
               ))}
             </select>
             <select
-            style={{background : "#FFE4E1"}}
+              style={{ background: "#FFE4E1" }}
               className="form-select mb-3 "
               value={selectedSubCategory}
               onChange={(e) => {
@@ -882,7 +807,7 @@ function UserDashboard({
                         name="currentLocation"
                         id="currentLocationInput"
                         placeholder="Your Current Location"
-                        value={`${areaName} (${locationName})`}
+                        value={`${selectedArea?.areaName} (${locationName})`}
                         style={{ height: "100px" }}
                         disabled={true}
                       ></textarea>
@@ -897,20 +822,21 @@ function UserDashboard({
                       quick access. You can also add a new address by clicking
                       the <strong>"Add Address"</strong> button below.
                     </p>
-                                  <button
-                  className="btn btn-success w-100 mb-3"
-                  onClick={() => setSaveLocationsModal(true)}
-                >
-                  <i class="fa-solid fa-map-location-dot me-2"></i>
-                  Add Address
-                </button>
+                    <button
+                      className="btn btn-success w-100 mb-3"
+                      onClick={() => setSaveLocationsModal(true)}
+                    >
+                      <i class="fa-solid fa-map-location-dot me-2"></i>
+                      Add Address
+                    </button>
 
                     <div className="row g-3">
                       {userLocations.map((location, index) => (
                         <div className="col-12" key={index}>
                           <div
-                            className="card shadow-sm border-0 rounded-3 locationCard bg-info"
+                            className="card shadow-sm border-0 rounded-3 locationCard "
                             onClick={() => setSelectedLocation(location)}
+                            style={{ background: "#FFE4E1" }}
                           >
                             <div className="card-body d-flex justify-content-between align-items-center">
                               <div>
@@ -972,15 +898,14 @@ function UserDashboard({
                       address once for easy access next time.
                     </p>
 
-                                  <button
-                  className="btn btn-success"
-                  onClick={() => setSaveLocationsModal(true)}
-                >
-                  <i class="fa-solid fa-map-location-dot me-2"></i>
-                  Add Address
-                </button>
+                    <button
+                      className="btn btn-success"
+                      onClick={() => setSaveLocationsModal(true)}
+                    >
+                      <i class="fa-solid fa-map-location-dot me-2"></i>
+                      Add Address
+                    </button>
                   </div>
-                  
                 )}
                 <div></div>
               </div>
@@ -992,7 +917,6 @@ function UserDashboard({
                 >
                   Save
                 </button>
-  
               </div>
             </div>
           </div>
@@ -1034,27 +958,18 @@ function UserDashboard({
                     name="currentLocation"
                     id="currentLocationInput"
                     placeholder="Your Current Location"
-                    value={areaName}
+                    value={selectedArea?.areaName}
                     style={{ height: "100px" }}
                     disabled={true}
                   ></textarea>
                   <label htmlFor="currentLocationInput">Current Location</label>
                 </div>
-                <div
-                  style={{ height: "350px", width: "100%", marginTop: "2px" }}
-                >
-                  <MapContainer
-                    center={[latitude, longitude]}
-                    zoom={13}
-                    style={{ height: "100%", width: "100%" }}
-                  >
-                    <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-                    <LocationPicker onLocationSelect={handleLocationSelect} />
-                    {position && (
-                      <Marker position={position} icon={customIcon} />
-                    )}
-                  </MapContainer>
-                </div>
+                 <form onSubmit={(e) => e.preventDefault()}>
+  <div style={{ height: "350px", width: "100%", marginTop: "2px" }}>
+    <MyMap onLocationSelect={setSelectedArea}
+    initialLocation={selectedArea}/>
+  </div>
+</form>
               </div>
               <div className="modal-footer">
                 <button
@@ -1090,7 +1005,6 @@ function UserDashboard({
         </div>
       )}
       {subCatModal && (
-        
         <div
           className="modal fade show d-block"
           tabIndex="-1"
@@ -1098,14 +1012,32 @@ function UserDashboard({
         >
           <div className="modal-dialog modal-fullscreen modal-dialog-centered">
             <div className="modal-content">
-              <div className="modal-header">
-                <i
-                  class="fa-solid fa-circle-chevron-left"
-                  style={{ fontSize: "20px" }}
-                  onClick={() => setSubCatModal(false)}
-                ></i>
-                <h5 className="ms-2 mt-2 fw-bold">Available Services</h5>
+              <div className="modal-header d-flex justify-content-between">
+                <div className="d-flex mt-1">
+                  <i
+                    class="fa-solid fa-circle-chevron-left mt-1"
+                    style={{ fontSize: "18px" }}
+                    onClick={() => subCatModal(false)}
+                  ></i>
+                  <h5 className="ms-2  fw-bold">Available Services</h5>
+                </div>
+
+                <div className="position-relative d-inline-block me-2">
+                  <i
+                    className="fa-solid fa-cart-shopping"
+                    style={{ fontSize: "25px" }}
+                    onClick={() => {
+                      setSubCatModal(false);
+                      navigate("/admin/user/cart");
+                    }}
+                  ></i>
+                  <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                    {cartData?.items?.length || 0}
+                    <span className="visually-hidden">unread messages</span>
+                  </span>
+                </div>
               </div>
+
               <div className="modal-body" style={{ height: "auto" }}>
                 <div
                   className="d-flex flex-nowrap overflow-auto mb-3"
@@ -1149,27 +1081,14 @@ function UserDashboard({
                   </button>
                 </div>
 
-                {finalServices.length > 0 ? (
+                {shopData.length > 0 ? (
                   <div className="row g-3">
-                    {finalServices.map((shop, index) => {
-                      const shopCoords = {
-                        lat: shop?.location?.coordinates[0],
-                        lng: shop?.location?.coordinates[1],
-                      };
-                      const userCoords = {
-                        lat: coordinates[0],
-                        lng: coordinates[1],
-                      };
-                      const distance = getDistanceFromCoordinates(
-                        shopCoords,
-                        userCoords
-                      );
+                    {shopData.map((shop, index) => {
+                    
                       const averageRating = findAverageRating(shop.reviews);
                       return (
                         <div className="col-12 col-md-6 col-lg-4 " key={index}>
-                          <div
-                            className="mt-3 overflow-hidden container"
-                          >
+                          <div className="mt-3 overflow-hidden container">
                             <div className="card-body ">
                               <div className="d-flex align-items-center">
                                 {/* Shop Image */}
@@ -1206,7 +1125,6 @@ function UserDashboard({
                                         cursor: "pointer",
                                       }}
                                       title={shop.shopName}
-                                    
                                     >
                                       {shop.shopName.length > 10
                                         ? `${shop.shopName.slice(0, 10)}...`
@@ -1232,11 +1150,16 @@ function UserDashboard({
                                         className="mb-0 text-primary fw-bold"
                                         style={{ fontSize: "15px" }}
                                       >
-                                        Rs. {service.subCategory.price}/- | <span className="ms-1" style={{color : "#000080"}}>{distance} km away</span> 
+                                        Rs. {service.subCategory.price}/- |{" "}
+                                        <span
+                                          className="ms-1"
+                                          style={{ color: "#000080" }}
+                                        >
+                                          {shop.distance} km away
+                                        </span>
                                       </p>
                                     ))}
 
-                               
                                   <div className="d-flex justify-content-between gap-1 mt-1">
                                     <button
                                       className={`btn btn-${
@@ -1247,22 +1170,21 @@ function UserDashboard({
                                     >
                                       {addCartLoading === shop._id ? (
                                         <>
-                                         Wait...
+                                          Wait...
                                           <div
                                             className="spinner-border spinner-border-sm text-light ms-2"
                                             role="status"
                                           ></div>
                                         </>
                                       ) : (
-                                        <>
-                                     
-                                          Add to cart
-                                        </>
+                                        <>Add to cart</>
                                       )}
                                     </button>
-                                     <button
+                                    <button
                                       className="btn btn-info btn-sm "
-                                      onClick={() => getShopWithShopkeppers(shop)}
+                                      onClick={() =>
+                                        getShopWithShopkeppers(shop)
+                                      }
                                       disabled={detailLoading === shop._id}
                                     >
                                       {detailLoading === shop._id ? (
@@ -1274,10 +1196,7 @@ function UserDashboard({
                                           ></div>
                                         </>
                                       ) : (
-                                        <>
-                                        
-                                         Shop Details
-                                        </>
+                                        <>Shop Details</>
                                       )}
                                     </button>
                                   </div>
@@ -1301,21 +1220,6 @@ function UserDashboard({
                 >
                   Close
                 </button>
-                {cartData?.items?.length > 0 && (
-                  <button
-                    type="button"
-                    className="btn btn-success"
-                    onClick={() => {
-                      setSubCatModal(false);
-                      navigate("/admin/user/cart");
-                    }}
-                  >
-                    <i class="fa-solid fa-cart-shopping me-1"></i>
-                    View Cart{" "}
-                    {cartData?.items?.length > 0 &&
-                      `(${cartData?.items?.length})`}
-                  </button>
-                )}
               </div>
             </div>
           </div>
@@ -1432,7 +1336,10 @@ function UserDashboard({
                   </a>
 
                   {/* Live Chat Button */}
-                  <button className="btn btn-primary btn-sm rounded-pill px-2">
+                  <button
+                    className="btn btn-primary btn-sm rounded-pill px-2"
+                    disabled={!selectedShopWithShopkepper?.isLive}
+                  >
                     <i className="fa-solid fa-comments me-1"></i>Live Chat
                   </button>
                 </div>
@@ -1565,28 +1472,28 @@ function UserDashboard({
                   )}
                 </div>
 
-             {
-              selectedShopWithShopkepper?.shop?.reviews?.length === 0 ?(""):(
-                   <div className="d-flex justify-content-center gap-5 mt-3">
-                  <button
-                    className="btn btn-danger rounded-pill px-3"
-                    onClick={handleBackPage}
-                    disabled={page === 0}
-                  >
-                    <i class="fa-solid fa-circle-arrow-left me-2"></i>
-                    Back
-                  </button>
-                  <button
-                    className="btn btn-success  rounded-pill px-3"
-                    onClick={handleNextPage}
-                    disabled={startIndex + reviewsPerPage >= reviews.length}
-                  >
-                    Next
-                    <i class="fa-solid fa-circle-arrow-right ms-2"></i>
-                  </button>
-                </div>
-              )
-             }
+                {selectedShopWithShopkepper?.shop?.reviews?.length === 0 ? (
+                  ""
+                ) : (
+                  <div className="d-flex justify-content-center gap-5 mt-3">
+                    <button
+                      className="btn btn-danger rounded-pill px-3"
+                      onClick={handleBackPage}
+                      disabled={page === 0}
+                    >
+                      <i class="fa-solid fa-circle-arrow-left me-2"></i>
+                      Back
+                    </button>
+                    <button
+                      className="btn btn-success  rounded-pill px-3"
+                      onClick={handleNextPage}
+                      disabled={startIndex + reviewsPerPage >= reviews.length}
+                    >
+                      Next
+                      <i class="fa-solid fa-circle-arrow-right ms-2"></i>
+                    </button>
+                  </div>
+                )}
               </div>
               {/* <div className="modal-footer">
                 <button
