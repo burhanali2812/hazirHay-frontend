@@ -3,15 +3,14 @@ import track from "../images/track.png";
 import notFound from "../images/notFound.png";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-
+import Swal from "sweetalert2";
 
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import "leaflet-routing-machine";
-import UserShopRoute from "./UserShopRoute"
+import UserShopRoute from "./UserShopRoute";
 
-
-function Tracking() {
+function Tracking({ setUpdateAppjs }) {
   const token = localStorage.getItem("token");
   const [requestsData, setRequestsData] = useState([]);
   const [searchQuery, setSearchQuery] = useState([]);
@@ -21,6 +20,8 @@ function Tracking() {
   const [shopCoordinates, setShopCoordinates] = useState([]);
   const [selectedShop, setSelectedShop] = useState(null);
   const [routeInfo, setRouteInfo] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [cencelOrderLoading, setCancelOrderLoading] = useState(false);
 
   const navigate = useNavigate();
   const position = selectedTrackShopData?.location?.[0]?.coordinates;
@@ -49,7 +50,50 @@ function Tracking() {
     fetchUserCart();
   }, []);
 
+  const deleteRequest = async (id) => {
+        const result = await Swal.fire({
+          title: "Are you sure?",
+          html: `Are you sure to Cancel Order :- <strong>${id}</strong> `,
+          icon: "warning",
+          showCancelButton: true,
+          confirmButtonColor: "#d33",
+          cancelButtonColor: "#3085d6",
+          confirmButtonText: "Yes, Cancel it!",
+        });
+    
+        if (!result.isConfirmed) return;
+    setCancelOrderLoading(true);
+    try {
+      const response = await axios.delete(
+        `https://hazir-hay-backend.wckd.pk/requests/deleteRequest/${id}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          params: { t: Date.now() }, // prevent caching
+        }
+      );
+
+      if (response.data?.success) {
+        setCancelOrderLoading(false);
+        alert(response.data.message || "Deleted Successfully");
+        fetchUserCart();
+        fetchShopData();
+        setTrackingDetailsModal(false);
+        setSearchQuery("");
+        setSearchData([]);
+        setUpdateAppjs(true);
+      } else {
+        alert(response.data.message || "Failed to delete");
+        setCancelOrderLoading(false);
+      }
+    } catch (error) {
+      console.error("Delete request error:", error);
+      alert("Something went wrong while deleting");
+      setCancelOrderLoading(false);
+    }
+  };
+
   const fetchShopData = async (data) => {
+    
     console.log("selectedTrackShopData?.shopOwnerId", data?.shopOwnerId);
 
     try {
@@ -61,12 +105,17 @@ function Tracking() {
         }
       );
       if (res.data.success) {
+        setLoading(false);
         setSelectedShop(res.data.data);
         console.log("shop", res.data.shop);
         setShopCoordinates(res.data.data.shop.location.coordinates);
-        console.log("shop Coordinates", res.data.data.shop.location.coordinates);
+        console.log(
+          "shop Coordinates",
+          res.data.data.shop.location.coordinates
+        );
       }
     } catch (error) {
+      setLoading(false);
       console.error("Error Fetching reuests data:", error.message);
     }
   };
@@ -113,18 +162,30 @@ function Tracking() {
 
   const handleGotoTrackingPage = async (data) => {
     console.log("data", data);
+    setLoading(true);
     await fetchShopData(data);
 
     setSelectedTrackShopData(data);
     setTrackingDetailsModal(true);
   };
 
-
-
-
-
   return (
     <div className="container mt-3 " style={{ overflowY: 0 }}>
+      {loading && (
+        <div
+          className="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center bg-dark bg-opacity-75"
+          style={{ zIndex: 1055 }}
+        >
+          <button className="btn btn-dark" type="button" disabled>
+            <span
+              className="spinner-border spinner-border-sm me-2"
+              role="status"
+              aria-hidden="true"
+            ></span>
+            Loading...
+          </button>
+        </div>
+      )}
       <form className="d-flex" role="search" style={{ width: "auto" }}>
         <div className="position-relative w-100 mb-4">
           <input
@@ -144,7 +205,7 @@ function Tracking() {
         </div>
       </form>
 
-      {serachData.length > 0 ? (
+      {serachData?.length > 0 ? (
         serachData.map((data, index) => (
           <div
             key={index}
@@ -235,169 +296,220 @@ function Tracking() {
         ""
       )}
 
-   {trackingDetailsModal && (
-  <div
-    className="modal fade show d-block"
-    tabIndex="-1"
-    style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
-  >
-    <div className="modal-dialog modal-fullscreen modal-dialog-centered">
-      <div className="modal-content border-0 shadow-lg rounded-4">
-        
-        {/* HEADER */}
-        <div className="modal-header border-0 bg-light">
-          <div className="d-flex align-items-center">
-            <i
-              className="fa-solid fa-circle-chevron-left text-secondary"
-              style={{ fontSize: "22px", cursor: "pointer" }}
-              onClick={() => setTrackingDetailsModal(false)}
-            ></i>
-            <h5 className="ms-2 fw-bold text-dark mb-0">Tracking Details</h5>
+      {trackingDetailsModal && (
+        <div
+          className="modal fade show d-block"
+          tabIndex="-1"
+          style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+        >
+          <div className="modal-dialog modal-fullscreen modal-dialog-centered">
+            <div className="modal-content border-0 shadow-lg rounded-4">
+              {/* HEADER */}
+              <div className="modal-header border-0 bg-light">
+                <div className="d-flex align-items-center">
+                  <i
+                    className="fa-solid fa-circle-chevron-left text-secondary"
+                    style={{ fontSize: "22px", cursor: "pointer" }}
+                    onClick={() => setTrackingDetailsModal(false)}
+                  ></i>
+                  <h5 className="ms-2 fw-bold text-dark mb-0">
+                    Tracking Details
+                  </h5>
+                </div>
+              </div>
+
+              {/* BODY */}
+              <div className="modal-body bg-white">
+                {/* MAP */}
+                <div
+                  style={{
+                    height: "380px",
+                    width: "100%",
+                    borderRadius: "5px",
+                    overflow: "hidden",
+                  }}
+                  className="shadow-sm"
+                >
+                  {shopCoordinates && position && (
+                    <UserShopRoute
+                      userCoords={[position[1], position[0]]}
+                      shopCoords={[shopCoordinates[1], shopCoordinates[0]]}
+                      onRouteInfo={(info) => setRouteInfo(info)}
+                    />
+                  )}
+                </div>
+
+                {/* CARD */}
+                {/* CARD */}
+                <div
+                  className="card border-0 shadow-sm mt-3"
+                  style={{
+                    borderRadius: "20px",
+                    padding: "20px",
+                    backgroundColor: "#f9fbfd",
+                  }}
+                >
+                  {selectedShop && (
+                    <>
+                      {/* SHOP NAME */}
+                      <h3 className="fw-bold text-center text-primary mb-3">
+                        {selectedShop?.shop?.shopName}
+                      </h3>
+
+                      {/* ACTION BUTTONS */}
+                      <div className="d-flex justify-content-center gap-2 flex-wrap mb-3">
+                        <a
+                          href={`tel:${selectedShop?.phone}`}
+                          className="btn btn-outline-info btn-sm text-dark rounded-pill px-3"
+                        >
+                          <i className="fa-solid fa-phone-volume me-1"></i> Call
+                          Now
+                        </a>
+
+                        <a
+                          href={`https://wa.me/${`+92${selectedShop?.phone?.slice(
+                            1
+                          )}`}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="btn btn-outline-success btn-sm rounded-pill px-3"
+                        >
+                          <i className="fa-brands fa-whatsapp me-1"></i>{" "}
+                          WhatsApp
+                        </a>
+
+                        <button className="btn btn-outline-primary btn-sm rounded-pill px-3">
+                          <i className="fa-solid fa-comments me-1"></i> Live
+                          Chat
+                        </button>
+                      </div>
+
+                      {/* DISTANCE + TIME */}
+                      <div className="d-flex justify-content-around text-muted small mb-3">
+                        <span>
+                          <i className="fa-solid fa-clock me-1 text-secondary"></i>
+                          <b>ETA:</b> {routeInfo?.duration} mins
+                        </span>
+                        <span>
+                          <i className="fa-solid fa-route me-1 text-secondary"></i>
+                          <b>Distance:</b> {routeInfo?.distance} km
+                        </span>
+                      </div>
+
+                      {/* ORDER DETAILS */}
+                      <div className="mt-2">
+                        <h5 className="text-center fw-bold text-dark mb-3">
+                          Order Details
+                        </h5>
+
+                        <ul className="list-group list-group-flush">
+                          <li className="list-group-item d-flex justify-content-between align-items-center">
+                            <span>
+                              <i className="fa-solid fa-signal me-2 text-secondary"></i>
+                              Status
+                            </span>
+                            <span>
+                              <span
+                                className={`badge rounded-pill ${
+                                  selectedTrackShopData?.status === "pending"
+                                    ? "bg-warning text-dark"
+                                    : selectedTrackShopData?.status ===
+                                      "completed"
+                                    ? "bg-success"
+                                    : selectedTrackShopData?.status ===
+                                      "cancelled"
+                                    ? "bg-danger"
+                                    : "bg-secondary"
+                                }`}
+                              >
+                                {selectedTrackShopData?.status}
+                              </span>
+                            </span>
+                          </li>
+
+                          <li className="list-group-item d-flex justify-content-between align-items-center">
+                            <span>
+                              <i className="fa-solid fa-receipt me-2 text-secondary"></i>
+                              Order ID
+                            </span>
+                            <span className="fw-semibold">
+                              {selectedTrackShopData?.orderId}
+                            </span>
+                          </li>
+
+                          <li className="list-group-item d-flex justify-content-between align-items-center">
+                            <span>
+                              <i className="fa-solid fa-barcode me-2 text-secondary"></i>
+                              Checkout ID
+                            </span>
+                            <span>{selectedTrackShopData?.checkoutId}</span>
+                          </li>
+
+                          <li className="list-group-item d-flex justify-content-between align-items-center">
+                            <span>
+                              <i className="fa-solid fa-tags me-2 text-secondary"></i>
+                              Category
+                            </span>
+                            <span>{selectedTrackShopData?.category}</span>
+                          </li>
+
+                          <li className="list-group-item d-flex justify-content-between align-items-center">
+                            <span>
+                              <i className="fa-solid fa-toolbox me-2 text-secondary"></i>
+                              Sub Category
+                            </span>
+                            <span>{selectedTrackShopData?.subCategory}</span>
+                          </li>
+
+                          <li className="list-group-item d-flex justify-content-between align-items-center">
+                            <span>
+                              <i className="fa-solid fa-money-bill-wave me-2 text-secondary"></i>
+                              Total Cost
+                            </span>
+                            <span className="fw-bold text-success">
+                              Rs. {selectedTrackShopData?.cost}/-
+                            </span>
+                          </li>
+                        </ul>
+                      </div>
+
+                      {/* CANCEL BUTTON */}
+                      {selectedTrackShopData.status === "pending" ? (
+                        <div className="text-center mt-4">
+                          <button
+                            className="btn btn-outline-danger rounded-pill px-4 btn-sm"
+                            onClick={() =>
+                              deleteRequest(selectedTrackShopData?.orderId)
+                            }
+                            disabled={cencelOrderLoading}
+                          >
+                            {cencelOrderLoading ? (
+                              <>
+                                Cancelling Request...
+                                <div
+                                  className="spinner-border spinner-border-sm text-dark ms-2"
+                                  role="status"
+                                ></div>
+                              </>
+                            ) : (
+                              <>
+                                <i className="fa-solid fa-xmark me-1"></i>
+                                Cancel Order ({selectedTrackShopData?.orderId})
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      ) : (
+                        ""
+                      )}
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-
-        {/* BODY */}
-        <div className="modal-body bg-white">
-          {/* MAP */}
-          <div
-            style={{
-              height: "380px",
-              width: "100%",
-              borderRadius: "5px",
-              overflow: "hidden",
-            }}
-            className="shadow-sm"
-          >
-              {shopCoordinates && position && (
-                <UserShopRoute userCoords={[position[1],position[0]]} shopCoords = {[shopCoordinates[1],shopCoordinates[0]]} onRouteInfo={(info) => setRouteInfo(info)} />
-              )}
-         
-          </div>
-
-          {/* CARD */}
-        {/* CARD */}
-<div
-  className="card border-0 shadow-sm mt-3"
-  style={{
-    borderRadius: "20px",
-    padding: "20px",
-    backgroundColor: "#f9fbfd",
-  }}
->
-  {selectedShop && (
-    <>
-      {/* SHOP NAME */}
-      <h3 className="fw-bold text-center text-primary mb-3">
-        {selectedShop?.shop?.shopName}
-      </h3>
-
-      {/* ACTION BUTTONS */}
-      <div className="d-flex justify-content-center gap-2 flex-wrap mb-3">
-        <a
-          href={`tel:${selectedShop?.phone}`}
-          className="btn btn-outline-info btn-sm text-dark rounded-pill px-3"
-        >
-          <i className="fa-solid fa-phone-volume me-1"></i> Call Now
-        </a>
-
-        <a
-          href={`https://wa.me/${`+92${selectedShop?.phone?.slice(1)}`}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="btn btn-outline-success btn-sm rounded-pill px-3"
-        >
-          <i className="fa-brands fa-whatsapp me-1"></i> WhatsApp
-        </a>
-
-        <button className="btn btn-outline-primary btn-sm rounded-pill px-3">
-          <i className="fa-solid fa-comments me-1"></i> Live Chat
-        </button>
-      </div>
-
-      {/* DISTANCE + TIME */}
-      <div className="d-flex justify-content-around text-muted small mb-3">
-        <span>
-          <i className="fa-solid fa-clock me-1 text-secondary"></i>
-          <b>ETA:</b> {routeInfo?.duration} mins
-        </span>
-        <span>
-          <i className="fa-solid fa-route me-1 text-secondary"></i>
-          <b>Distance:</b> {routeInfo?.distance} km
-        </span>
-      </div>
-
-      {/* ORDER DETAILS */}
-      <div className="mt-2">
-        <h5 className="text-center fw-bold text-dark mb-3">
-          Order Details
-        </h5>
-
-        <ul className="list-group list-group-flush">
-          <li className="list-group-item d-flex justify-content-between align-items-center">
-            <span><i className="fa-solid fa-signal me-2 text-secondary"></i>Status</span>
-            <span>
-              <span
-                className={`badge rounded-pill ${
-                  selectedTrackShopData?.status === "pending"
-                    ? "bg-warning text-dark"
-                    : selectedTrackShopData?.status === "completed"
-                    ? "bg-success"
-                    : selectedTrackShopData?.status === "cancelled"
-                    ? "bg-danger"
-                    : "bg-secondary"
-                }`}
-              >
-                {selectedTrackShopData?.status}
-              </span>
-            </span>
-          </li>
-
-          <li className="list-group-item d-flex justify-content-between align-items-center">
-            <span><i className="fa-solid fa-receipt me-2 text-secondary"></i>Order ID</span>
-            <span className="fw-semibold">{selectedTrackShopData?.orderId}</span>
-          </li>
-
-          <li className="list-group-item d-flex justify-content-between align-items-center">
-            <span><i className="fa-solid fa-barcode me-2 text-secondary"></i>Checkout ID</span>
-            <span>{selectedTrackShopData?.checkoutId}</span>
-          </li>
-
-          <li className="list-group-item d-flex justify-content-between align-items-center">
-            <span><i className="fa-solid fa-tags me-2 text-secondary"></i>Category</span>
-            <span>{selectedTrackShopData?.category}</span>
-          </li>
-
-          <li className="list-group-item d-flex justify-content-between align-items-center">
-            <span><i className="fa-solid fa-toolbox me-2 text-secondary"></i>Sub Category</span>
-            <span>{selectedTrackShopData?.subCategory}</span>
-          </li>
-
-          <li className="list-group-item d-flex justify-content-between align-items-center">
-            <span><i className="fa-solid fa-money-bill-wave me-2 text-secondary"></i>Total Cost</span>
-            <span className="fw-bold text-success">
-              Rs. {selectedTrackShopData?.cost}/-
-            </span>
-          </li>
-        </ul>
-      </div>
-
-      {/* CANCEL BUTTON */}
-      <div className="text-center mt-4">
-        <button className="btn btn-outline-danger rounded-pill px-4 btn-sm">
-          <i className="fa-solid fa-xmark me-1"></i>
-          Cancel Order ({selectedTrackShopData?.orderId})
-        </button>
-      </div>
-    </>
-  )}
-</div>
-
-        </div>
-      </div>
-    </div>
-  </div>
-)}
-
+      )}
     </div>
   );
 }
