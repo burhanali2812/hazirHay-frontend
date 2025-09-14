@@ -26,7 +26,6 @@ export default function MyMap({ onLocationSelect, initialLocation }) {
     map.addControl(new mapboxgl.NavigationControl());
     mapRef.current = map;
 
-    // ✅ Load saved location from localStorage
     const saved = localStorage.getItem("selectedLocation");
     if (saved) {
       const { lat, lng, areaName } = JSON.parse(saved);
@@ -41,7 +40,6 @@ export default function MyMap({ onLocationSelect, initialLocation }) {
         onLocationSelect({ lat, lng, areaName });
       }
     } else {
-      // ✅ Auto-mark current location if no saved location
       if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(async (pos) => {
           const lng = pos.coords.longitude;

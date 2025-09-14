@@ -8,23 +8,10 @@ import notFound from "../videos/notFound.mp4";
 import Swal from "sweetalert2";
 import MyMap from "../components/MyMap";
 
-import {
-  MapContainer,
-  TileLayer,
-  Marker,
-  useMapEvents,
-  Circle,
-  Popup,
-  Tooltip,
-} from "react-leaflet";
-import markerIcon from "leaflet/dist/images/marker-icon.png";
-import markerShadow from "leaflet/dist/images/marker-shadow.png";
-import "leaflet/dist/leaflet.css";
-import L from "leaflet";
+
 import { services } from "../components/servicesData";
 function UserDashboard({
   setUpdateAppjs,
-  onRequestAdded,
   cartData,
   areaName,
   setAreaName,
@@ -46,6 +33,8 @@ function UserDashboard({
   const [locationName, setLocationName] = useState("");
   const [selectedSubCategory, setSelectedSubCategory] = useState(null);
     const [selectedArea, setSelectedArea] = useState(null);
+    const [shopDistance, setShopDistance] = useState(null);
+    
 
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [availableServices, setAvailableServices] = useState([]);
@@ -253,12 +242,7 @@ function UserDashboard({
       setLoading(false);
       return;
     }
-    if (latitude && longitude === null) {
-      alert("Please select a Location");
-      setLoading(false);
-      return;
-    }
-    if (areaName === "") {
+    if (selectedArea === null) {
       alert("Please select a Location");
       setLoading(false);
       return;
@@ -456,86 +440,7 @@ function UserDashboard({
       setLoading(false);
     }
   };
-  function FlyToLocation({ coordinates }) {
-    const map = useMapEvents({});
 
-    useEffect(() => {
-      if (coordinates && coordinates.length === 2) {
-        map.flyTo(coordinates, 16, {
-          animate: true,
-          duration: 1,
-        });
-      }
-    }, [coordinates, map]);
-
-    return null;
-  }
-  function FlyToUser({ position }) {
-    const map = useMapEvents({});
-    useEffect(() => {
-      if (position && position.length === 2) {
-        map.flyTo(position, 16, {
-          animate: true,
-          duration: 1,
-        });
-      }
-    }, [position, map]);
-    return null;
-  }
-
-  useEffect(() => {
-    const fetchLocation = async () => {
-      if (!navigator.geolocation) {
-        alert("Geolocation is not supported by your browser.");
-        return;
-      }
-
-      navigator.geolocation.getCurrentPosition(
-        async (position) => {
-          const lat = position?.coords?.latitude ?? 33;
-          const lon = position?.coords?.longitude ?? 73;
-
-          setLatitude(lat);
-          setLongitude(lon);
-          setCoordinates([lat, lon]);
-          setPosition([lat, lon]);
-
-          try {
-            const response = await axios.get(
-              "https://hazir-hay-backend.wckd.pk/admin/reverse-geocode",
-              { params: { lat, lon } }
-            );
-
-            const name =
-              response.data?.display_name ||
-              response.data.address?.city ||
-              response.data.address?.town ||
-              response.data.address?.village ||
-              response.data.address?.suburb ||
-              "Unknown Area";
-
-            setAreaName(name);
-          } catch (error) {
-            console.error("Error fetching area name:", error);
-          }
-        },
-        (error) => {
-          if (error.code === error.PERMISSION_DENIED) {
-            //alert("Please enable location access in your browser settings.");
-          } else if (error.code === error.POSITION_UNAVAILABLE) {
-            // alert("Location information is unavailable.");
-          } else if (error.code === error.TIMEOUT) {
-            // alert("Request to get location timed out. Try again.");
-          } else {
-            // alert("An unknown error occurred while fetching your location.");
-          }
-          console.error("Error getting location:", error);
-        }
-      );
-    };
-
-    fetchLocation();
-  }, []);
 
   const getVerifiedShopWithShopkeppers = async () => {
     setLoading(true);
@@ -606,12 +511,19 @@ function UserDashboard({
   const userCoords = [selectedArea?.lng || 73.04732533048735 , selectedArea?.lat || 33.69832701012015 ]
   console.log("UserCords", userCoords);
   
-
-  // const shopDistance =
-  //   shopCoords && userCoords
-  //     ? getDistanceFromCoordinates(shopCoords, userCoords)
-  //     : null;
-      const shopDistance = 0
+  useEffect(()=>{
+    if(selectedShopWithShopkepper){
+      const shop = shopData.find((shop)=>shop._id === selectedShopWithShopkepper.shop._id)
+      console.log("shopData", shopData);
+      console.log("selectedShop", selectedShopWithShopkepper);
+      console.log("shop", shop);
+      
+      
+      
+      setShopDistance(shop.distance)
+    }
+  },[selectedShopWithShopkepper])
+ 
 
   const priceRangeOptions = ["All", "Low-to-High", "High-to-Low"];
   const ratingRangeOptions = ["All", "1", "2", "3", "4", "5"];
@@ -660,7 +572,7 @@ useEffect(() => {
   return (
     <div>
    <form onSubmit={(e) => e.preventDefault()}>
-  <div style={{ height: "390px", width: "100%" }}>
+  <div style={{ height: "420px", width: "100%" }}>
     <MyMap onLocationSelect={setSelectedArea} 
     initialLocation={selectedArea}/>
   </div>
@@ -1017,7 +929,7 @@ useEffect(() => {
                   <i
                     class="fa-solid fa-circle-chevron-left mt-1"
                     style={{ fontSize: "18px" }}
-                    onClick={() => subCatModal(false)}
+                    onClick={() => setSubCatModal(false)}
                   ></i>
                   <h5 className="ms-2  fw-bold">Available Services</h5>
                 </div>

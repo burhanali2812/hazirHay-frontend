@@ -11,7 +11,6 @@ function Cart({
   cartData,
   setUpdateAppjs,
   areaName,
-  coordinates,
   setCartData,
 }) {
   // safely get items
@@ -25,7 +24,6 @@ function Cart({
   const [isReciept, setIsReciept] = useState(false);
   const [loading, setLoading] = useState(false);
   const [rate, setRate] = useState(false);
-  const saved = JSON.parse(localStorage.getItem("selectedLocation"));
 
   const [checkoutId, setCheckoutId] = useState("");
 
@@ -46,9 +44,10 @@ function Cart({
 
     return acc;
   }, []);
-  useEffect(() => {
-    console.log("gropCart ", groupedCart);
-  }, [groupedCart]);
+  const saved = JSON.parse(localStorage.getItem("selectedLocation"));
+  console.log("saved", saved);
+  
+  const coordinates = [saved?.lat, saved?.lng]
 
 const downloadReceiptAsPDF = async () => {
   setLoading(true);
@@ -177,7 +176,7 @@ const findShopDistance = async (shopId) => {
     shop.shop.location.coordinates[1], // lng
     shop.shop.location.coordinates[0], // lat
   ];
-  const userCoords = [saved?.lng || 73.04732533048735, saved?.lat || 33.69832701012015]; // lng, lat
+  const userCoords = [coordinates[1] || 73.04732533048735, coordinates[0] || 33.69832701012015]; // lng, lat
   console.log("shopCords", shopCoords);
    console.log("UserCords", userCoords);
   
@@ -583,8 +582,8 @@ useEffect(() => {
                         </div>
                         <p className="small text-muted mt-1">
                           {saved?.areaName
-                            ? saved?.areaName?.length > 58
-                              ? saved?.areaName?.slice(0, 58) + "..."
+                            ? saved?.areaName.length > 58
+                              ? saved?.areaName.slice(0, 58) + "..."
                               : saved?.areaName
                             : "No location found! Please update your location."}
                         </p>
@@ -677,7 +676,7 @@ useEffect(() => {
 
               {/* FOOTER */}
               <div className="modal-footer border-0 d-flex justify-content-between align-items-center bg-light">
-                {areaName === "" ? (
+                {saved?.areaName === "" ? (
                   <div className="w-100">
                     <p className="text-danger fw-bold mb-1 d-flex align-items-center">
                       <i className="fa-solid fa-triangle-exclamation me-2"></i>

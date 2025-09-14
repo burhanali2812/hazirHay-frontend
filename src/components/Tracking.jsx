@@ -3,18 +3,12 @@ import track from "../images/track.png";
 import notFound from "../images/notFound.png";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import {
-  MapContainer,
-  TileLayer,
-  Marker,
-  useMapEvents,
 
-  Polyline,
-} from "react-leaflet";
 
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import "leaflet-routing-machine";
+import UserShopRoute from "./UserShopRoute"
 
 
 function Tracking() {
@@ -26,6 +20,7 @@ function Tracking() {
   const [trackingDetailsModal, setTrackingDetailsModal] = useState(false);
   const [shopCoordinates, setShopCoordinates] = useState([]);
   const [selectedShop, setSelectedShop] = useState(null);
+  const [routeInfo, setRouteInfo] = useState(null);
 
   const navigate = useNavigate();
   const position = selectedTrackShopData?.location?.[0]?.coordinates;
@@ -124,60 +119,9 @@ function Tracking() {
     setTrackingDetailsModal(true);
   };
 
-  function FlyToUser({ position }) {
-    const map = useMapEvents({});
-    useEffect(() => {
-      if (position && position.length === 2) {
-        map.flyTo(position, 16, {
-          animate: true,
-          duration: 1,
-        });
-      }
-    }, [position, map]);
-    return null;
-  }
-  const shopIcon = L.divIcon({
-    html: `<i class="fa-solid fa-shop" style="color: red; font-size: 20px;"></i>`,
-    className: "custom-shop-icon",
-    iconSize: [20, 30],
-    iconAnchor: [10, 30], // Match smaller height
-  });
-  const userIcon = L.divIcon({
-    html: `<i class="fa-solid fa-street-view" style="color: red; font-size: 20px;"></i>`,
-    className: "custom-shop-icon",
-    iconSize: [20, 30],
-    iconAnchor: [10, 30], // Match smaller height
-  });
 
-  function RoutingWithOSRM({ userPos, shopPos }) {
-    const [route, setRoute] = useState(null);
 
-    useEffect(() => {
-      if (!userPos || !shopPos) return;
 
-      const url = `https://router.project-osrm.org/route/v1/driving/${userPos[1]},${userPos[0]};${shopPos[1]},${shopPos[0]}?overview=full&geometries=geojson`;
-
-      fetch(url)
-        .then((res) => res.json())
-        .then((data) => {
-          if (data.routes && data.routes.length > 0) {
-            const routeData = data.routes[0];
-            const coords = data.routes[0].geometry.coordinates.map((c) => [
-              c[1],
-              c[0],
-            ]);
-            // flip [lng, lat] → [lat, lng]
-            setRoute(coords);
-            console.log("Distance", (routeData.distance / 1000).toFixed(2));
-          }
-        })
-        .catch((err) => console.error("OSRM error:", err));
-    }, [userPos, shopPos]);
-
-    return route ? (
-      <Polyline positions={route} color="blue" weight={4} />
-    ) : null;
-  }
 
   return (
     <div className="container mt-3 " style={{ overflowY: 0 }}>
@@ -317,31 +261,17 @@ function Tracking() {
           {/* MAP */}
           <div
             style={{
-              height: "350px",
+              height: "380px",
               width: "100%",
-              borderRadius: "15px",
+              borderRadius: "5px",
               overflow: "hidden",
             }}
             className="shadow-sm"
           >
-            <MapContainer
-              center={[33.6844, 73.0479]}
-              zoom={12}
-              style={{ height: "100%", width: "100%" }}
-            >
-              <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-              <FlyToUser position={position} />
-              {position && <Marker position={position} icon={userIcon} />}
-
-              <Marker
-                position={[shopCoordinates?.[0], shopCoordinates?.[1]]}
-                icon={shopIcon}
-                zIndexOffset={1000}
-              ></Marker>
               {shopCoordinates && position && (
-                <RoutingWithOSRM userPos={position} shopPos={shopCoordinates} />
+                <UserShopRoute userCoords={[position[1],position[0]]} shopCoords = {[shopCoordinates[1],shopCoordinates[0]]} onRouteInfo={(info) => setRouteInfo(info)} />
               )}
-            </MapContainer>
+         
           </div>
 
           {/* CARD */}
@@ -388,11 +318,11 @@ function Tracking() {
       <div className="d-flex justify-content-around text-muted small mb-3">
         <span>
           <i className="fa-solid fa-clock me-1 text-secondary"></i>
-          <b>ETA:</b> {selectedTrackShopData?.serviceCharges?.distance * 5} mins
+          <b>ETA:</b> {routeInfo?.duration} mins
         </span>
         <span>
           <i className="fa-solid fa-route me-1 text-secondary"></i>
-          <b>Distance:</b> {selectedTrackShopData?.serviceCharges?.distance} km
+          <b>Distance:</b> {routeInfo?.distance} km
         </span>
       </div>
 
@@ -453,7 +383,7 @@ function Tracking() {
 
       {/* CANCEL BUTTON */}
       <div className="text-center mt-4">
-        <button className="btn btn-outline-danger rounded-pill px-4">
+        <button className="btn btn-outline-danger rounded-pill px-4 btn-sm">
           <i className="fa-solid fa-xmark me-1"></i>
           Cancel Order ({selectedTrackShopData?.orderId})
         </button>
