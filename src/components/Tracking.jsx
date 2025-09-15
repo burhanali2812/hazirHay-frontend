@@ -92,6 +92,12 @@ function Tracking({ setUpdateAppjs }) {
     }
   };
 
+const rate = Number(selectedTrackShopData?.serviceCharges?.rate?.[0] || 0);
+const distance = Number(selectedTrackShopData?.serviceCharges?.distance || 0);
+
+const serviceCharges = (rate * distance).toFixed(0);
+const grandTotal = Number(selectedTrackShopData?.cost) + Number(serviceCharges);
+
   const fetchShopData = async (data) => {
     
     console.log("selectedTrackShopData?.shopOwnerId", data?.shopOwnerId);
@@ -221,6 +227,9 @@ function Tracking({ setUpdateAppjs }) {
 
               <p className="mb-1 text-muted">
                 {data.subCategory} <small>({data.category})</small>
+              </p>
+                <p className="mb-1 text-muted ">
+                <b>Cost:</b> <small>Rs. {data.cost}/-</small>
               </p>
 
               {/* Status with color badges */}
@@ -460,14 +469,33 @@ function Tracking({ setUpdateAppjs }) {
                             </span>
                             <span>{selectedTrackShopData?.subCategory}</span>
                           </li>
+                           <li className="list-group-item d-flex justify-content-between align-items-center">
+                            <span>
+                           
+                              <i className="fa-solid fa-person-biking me-2 text-secondary"></i>
+                              Service Charges
+                            </span>
+                            <span>{serviceCharges}</span>
+                          </li>
+
 
                           <li className="list-group-item d-flex justify-content-between align-items-center">
                             <span>
-                              <i className="fa-solid fa-money-bill-wave me-2 text-secondary"></i>
-                              Total Cost
+                           
+                              <i className="fa-solid fa-screwdriver-wrench me-2 text-secondary"></i>
+                              Service Cost
                             </span>
                             <span className="fw-bold text-success">
                               Rs. {selectedTrackShopData?.cost}/-
+                            </span>
+                          </li>
+                            <li className="list-group-item d-flex justify-content-between align-items-center">
+                            <span>
+                              <i className="fa-solid fa-money-bill-wave me-2 text-secondary"></i>
+                              Sub Total
+                            </span>
+                            <span className="fw-bold text-primary" style={{fontSize : "22px"}}>
+                              Rs. {grandTotal}/-
                             </span>
                           </li>
                         </ul>

@@ -321,14 +321,14 @@ const [shopDistances, setShopDistances] = useState({});
     setLoading(true);
     const newcheckoutId = generateCheckoutId();
     setCheckoutId(newcheckoutId);
-    const payload = groupedCart.map((shop) => ({
+    const payload = cartData?.items?.map((shop) => ({
       checkoutId: newcheckoutId,
       shopId: shop.shopId,
       userId: user?._id,
-      category: shop.items[0].category,
-      subCategory: shop.items[0].subCategory,
+      category: shop.category,
+      subCategory: shop.subCategory,
       orderId: generateOrderId(),
-      cost: shop.items.reduce((sum, item) => sum + item.price, 0),
+      cost: shop.price,
       location: [
         {
           coordinates,
