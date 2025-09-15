@@ -28,6 +28,39 @@ function Cart({
   const [checkoutId, setCheckoutId] = useState("");
 
   const user = JSON.parse(sessionStorage.getItem("user"));
+    const [copied, setCopied] = useState(false);
+
+const handleCopy = (checkoutId) => {
+  const text = checkoutId || "1122";
+
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    // Modern browsers
+    navigator.clipboard.writeText(text).then(
+      () => setCopied(true),
+      () => fallbackCopy(text) // if permission denied
+    );
+  } else {
+    // Fallback for older mobile browsers
+    fallbackCopy(text);
+  }
+};
+
+const fallbackCopy = (text) => {
+  const textarea = document.createElement("textarea");
+  textarea.value = text;
+  textarea.style.position = "fixed"; // avoid scrolling
+  document.body.appendChild(textarea);
+  textarea.focus();
+  textarea.select();
+  try {
+    document.execCommand("copy");
+    setCopied(true);
+  } catch (err) {
+    console.error("Fallback: Copy failed", err);
+  }
+  document.body.removeChild(textarea);
+};
+
 
   const groupedCart = (cartData?.items || []).reduce((acc, item) => {
     const shop = acc.find((s) => s.shopId === item.shopId);
@@ -176,7 +209,7 @@ const findShopDistance = async (shopId) => {
     shop.shop.location.coordinates[1], // lng
     shop.shop.location.coordinates[0], // lat
   ];
-  const userCoords = [coordinates[1] || 73.04732533048735, coordinates[0] || 33.69832701012015]; // lng, lat
+  const userCoords = [coordinates[1] || 73.04732533048735, coordinates[0] || 33.69832701012015]; 
   console.log("shopCords", shopCoords);
    console.log("UserCords", userCoords);
   
@@ -186,7 +219,8 @@ const findShopDistance = async (shopId) => {
 };
 const [totalDistance, setTotalDistance] = useState(0);
 const [shopDistances, setShopDistances] = useState({});
-useEffect(() => {
+
+
   const fetchAllDistances = async () => {
     if (!coordinates || !groupedCart.length) return;
 
@@ -203,8 +237,7 @@ useEffect(() => {
     setTotalDistance(total.toFixed(2));
   };
 
-  fetchAllDistances();
-}, [groupedCart, coordinates]);
+
 
 
 
@@ -532,7 +565,9 @@ useEffect(() => {
                 <button
                   type="button"
                   className="btn btn-success px-4 rounded-pill shadow-sm"
-                  onClick={() => setOrderSummaryModal(true)}
+                  onClick={() => {setOrderSummaryModal(true)
+                    fetchAllDistances();
+                  }}
                 >
                   Next <i className="fa-solid fa-angles-right ms-"></i>
                 </button>
@@ -660,7 +695,7 @@ useEffect(() => {
                     <div className="d-flex justify-content-between align-items-center border-bottom py-2">
                       <span className="fw-bold text-dark">Total Distance</span>
                       <span className="fw-bold text-primary">
-                        {totalDistance} km
+                        {totalDistance ? totalDistance : "loading.."} km
                       </span>
                     </div>
 
@@ -743,10 +778,25 @@ useEffect(() => {
                   <h3 className="fw-semibold mt-3 text-success">
                     Thank You, {user.name}!
                   </h3>
-                  <p className="text-muted">
-                    Your order <b className="text-success">{checkoutId}</b> has
-                    been placed successfully.
-                  </p>
+             <p className="text-muted">
+  Your order{" "}
+  <span className="position-relative d-inline-block">
+    <b className="text-success">{checkoutId}</b>
+    <span
+      className="position-absolute start-100 badge bg-dark"
+      style={{
+        cursor: "pointer",
+        opacity: 0.8, // makes background transparent
+        transform: "translate(-50%, -90%)", // move a bit above
+      }}
+      onClick={()=>handleCopy(checkoutId)}
+    >
+      {copied ? "Copied!" : "Copy checkout id"}
+    </span>
+  </span>{" "}
+  has been placed successfully.
+</p>
+
                 </div>
 
                 {/* Order Confirmation */}
@@ -774,7 +824,7 @@ useEffect(() => {
                           Billing Address
                         </h6>
                         <p className="text-muted small mb-0">
-                          {areaName || "No address available"}
+                          {saved?.areaName || "No address available"}
                         </p>
                       </div>
                     </div>
@@ -837,7 +887,10 @@ useEffect(() => {
                   <button
                     type="button"
                     className="btn btn-danger px-4 rounded-pill shadow-sm"
-                    onClick={() => clearCart("update")}
+                     onClick={() => {
+                    clearCart("update");
+                    navigate("/admin/user/dashboard");
+                  }}
                     disabled={groupedCart.length === 0}
                   >
                     Close
@@ -845,7 +898,9 @@ useEffect(() => {
                   <button
                     type="button"
                     className="btn btn-success px-4 rounded-pill shadow-sm"
-                    onClick={() => setIsReciept(true)}
+                    onClick={() => {setIsReciept(true)
+                      setCopied(false)
+                    }}
                     disabled={groupedCart.length === 0}
                   >
                     Generate Receipt{" "}
@@ -897,10 +952,23 @@ useEffect(() => {
                     <h3 className="fw-bold mt-3 text-success">
                       Order Confirmed
                     </h3>
-                    <p className="text-muted mb-0">
-                      Order ID:{" "}
-                      <span className="fw-bold text-dark">{checkoutId}</span>
-                    </p>
+                     <p className="text-muted mb-0">
+      Checkout ID:{" "}
+      <span className="position-relative d-inline-block">
+        <span className="fw-bold text-dark">{checkoutId}</span>
+        <span
+          className="position-absolute start-100 badge bg-dark"
+          style={{
+            cursor: "pointer",
+            opacity: 0.8, // transparent background
+            transform: "translate(-50%, -90%)", // move badge a little above
+          }}
+          onClick={()=>handleCopy(checkoutId)}
+        >
+          {copied ? "Copied!" : "Copy checkout id"}
+        </span>
+      </span>
+    </p>
                     <small className="text-secondary">
                       Customer: {user.name}
                     </small>

@@ -19,29 +19,17 @@ export default function MyMap({ onLocationSelect, initialLocation }) {
     const map = new mapboxgl.Map({
       container: mapContainerRef.current,
       style: "mapbox://styles/mapbox/streets-v11",
-      center: [73.0551, 33.6844],
+      center: [73.0551, 33.6844], // default Islamabad
       zoom: 12,
     });
 
     map.addControl(new mapboxgl.NavigationControl());
     mapRef.current = map;
 
-    const saved = localStorage.getItem("selectedLocation");
-    if (saved) {
-      const { lat, lng, areaName } = JSON.parse(saved);
-
-      markerRef.current = new mapboxgl.Marker({ color: "blue" })
-        .setLngLat([lng, lat])
-        .addTo(map);
-
-      map.flyTo({ center: [lng, lat], zoom: 14 });
-
-      if (onLocationSelect) {
-        onLocationSelect({ lat, lng, areaName });
-      }
-    } else {
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(async (pos) => {
+    // ✅ Try Geolocation First
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        async (pos) => {
           const lng = pos.coords.longitude;
           const lat = pos.coords.latitude;
 
@@ -54,14 +42,27 @@ export default function MyMap({ onLocationSelect, initialLocation }) {
           map.flyTo({ center: [lng, lat], zoom: 14 });
 
           const areaName = await fetchAreaName(lat, lng);
-
           const location = { lat, lng, areaName };
-          if (onLocationSelect) onLocationSelect(location);
 
-          // ✅ Save to localStorage
+          if (onLocationSelect) onLocationSelect(location);
           localStorage.setItem("selectedLocation", JSON.stringify(location));
-        });
-      }
+        },
+        async () => {
+          // ❌ If user denies or geolocation fails → fallback to localStorage
+          const saved = localStorage.getItem("selectedLocation");
+          if (saved) {
+            const { lat, lng, areaName } = JSON.parse(saved);
+
+            markerRef.current = new mapboxgl.Marker({ color: "blue" })
+              .setLngLat([lng, lat])
+              .addTo(map);
+
+            map.flyTo({ center: [lng, lat], zoom: 14 });
+
+            if (onLocationSelect) onLocationSelect({ lat, lng, areaName });
+          }
+        }
+      );
     }
 
     // ✅ Allow manual picking
@@ -75,18 +76,16 @@ export default function MyMap({ onLocationSelect, initialLocation }) {
         .addTo(map);
 
       const areaName = await fetchAreaName(lat, lng);
-
       const location = { lat, lng, areaName };
-      if (onLocationSelect) onLocationSelect(location);
 
-      // ✅ Save to localStorage
+      if (onLocationSelect) onLocationSelect(location);
       localStorage.setItem("selectedLocation", JSON.stringify(location));
     });
 
     return () => map.remove();
   }, []);
 
-  // ✅ handle showing location passed from parent (DB etc.)
+  // ✅ Handle initialLocation from parent
   useEffect(() => {
     if (initialLocation && mapRef.current) {
       const { lat, lng, areaName } = initialLocation;
@@ -99,7 +98,6 @@ export default function MyMap({ onLocationSelect, initialLocation }) {
 
       mapRef.current.flyTo({ center: [lng, lat], zoom: 14 });
 
-      // ✅ update storage as well
       localStorage.setItem(
         "selectedLocation",
         JSON.stringify({ lat, lng, areaName })
