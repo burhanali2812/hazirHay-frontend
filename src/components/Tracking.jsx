@@ -327,9 +327,7 @@ const grandTotal = Number(selectedTrackShopData?.cost) + Number(serviceCharges);
                 </div>
               </div>
 
-              {/* BODY */}
               <div className="modal-body bg-white">
-                {/* MAP */}
                 <div
                   style={{
                     height: "380px",
@@ -344,12 +342,11 @@ const grandTotal = Number(selectedTrackShopData?.cost) + Number(serviceCharges);
                       userCoords={[position[1], position[0]]}
                       shopCoords={[shopCoordinates[1], shopCoordinates[0]]}
                       onRouteInfo={(info) => setRouteInfo(info)}
+                      type={"live"}
                     />
                   )}
                 </div>
 
-                {/* CARD */}
-                {/* CARD */}
                 <div
                   className="card border-0 shadow-sm mt-3"
                   style={{

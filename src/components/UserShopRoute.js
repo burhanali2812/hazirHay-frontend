@@ -5,7 +5,7 @@ import axios from "axios";
 mapboxgl.accessToken =
   "pk.eyJ1Ijoic3llZGJ1cmhhbmFsaTI4MTIiLCJhIjoiY21mamM0NjZiMHg4NTJqczRocXhvdndiYiJ9.Z4l8EQQ47ejlWdVGcimn4A"; // put your token here
 
-export default function UserShopRoute({ userCoords, shopCoords, onRouteInfo }) {
+export default function UserShopRoute({ userCoords, shopCoords, onRouteInfo , type}) {
   const mapContainerRef = useRef(null);
   const mapRef = useRef(null);
 
@@ -33,7 +33,7 @@ new mapboxgl.Marker(userEl)
 
 // SHOP marker with Font Awesome
 const shopEl = document.createElement("div");
-shopEl.innerHTML = `<i class="fa-solid fa-person-biking" style="font-size:24px;color:red;"></i>`;
+shopEl.innerHTML = type === "live" ? (`<i class="fa-solid fa-person-biking" style="font-size:24px;color:red;"></i>`):(`<i class="fa-solid fa-shop" style="font-size:24px;color:red;"></i>`);
 new mapboxgl.Marker(shopEl)
   .setLngLat(shopCoords)
   .setPopup(new mapboxgl.Popup().setText("Shop"))

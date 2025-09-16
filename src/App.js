@@ -18,6 +18,7 @@ import ShopkepperRequests from "./pages/ShopkepperRequests";
 import UserDashboard from "./pages/UserDashboard";
 import Cart from "./components/Cart";
 import Tracking from "./components/Tracking";
+import FindShops from "./pages/FindShops";
 
 
 function App() {
@@ -246,6 +247,11 @@ console.log("CartDAta", response.data.data?.[0]);
             path="user/tracking"
             element={<Tracking  setUpdateAppjs={setUpdateAppjs}/>}
           />
+            <Route
+            path="user/findShops"
+            element={<FindShops/>}
+          />
+          
          
         </Route>
       </Routes>
