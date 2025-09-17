@@ -53,7 +53,7 @@ function ShopForm() {
 
     try {
       const response = await axios.post(
-        "https://hazir-hay-backend.wckd.pk/shops/getPriceEstimate",
+        "https://hazir-hay-backend.vercel.app/shops/getPriceEstimate",
         payload
       );
 
@@ -153,7 +153,7 @@ function ShopForm() {
 
           try {
             const response = await axios.get(
-              "https://hazir-hay-backend.wckd.pk/admin/reverse-geocode",
+              "https://hazir-hay-backend.vercel.app/admin/reverse-geocode",
               { params: { lat: lat, lon: lon } }
             );
 
@@ -257,7 +257,7 @@ function ShopForm() {
       formData.append("services", JSON.stringify(selectedServices));
 
       const response = await axios.post(
-        `https://hazir-hay-backend.wckd.pk/admin/shopInformation/${id}`,
+        `https://hazir-hay-backend.vercel.app/admin/shopInformation/${id}`,
         formData,
         {
           headers: { "Content-Type": "multipart/form-data" },
@@ -294,7 +294,7 @@ function ShopForm() {
   const fetchAreaName = async (lat, lon) => {
     try {
       const response = await axios.get(
-        "https://hazir-hay-backend.wckd.pk/admin/reverse-geocode",
+        "https://hazir-hay-backend.vercel.app/admin/reverse-geocode",
         { params: { lat: lat, lon: lon } }
       );
 
@@ -520,7 +520,9 @@ function ShopForm() {
               <tr>
                 <th scope="col">#</th>
                 <th scope="col">Category</th>
-                <th scope="col" className="text-nowrap">Sub Category</th>
+                <th scope="col" className="text-nowrap">
+                  Sub Category
+                </th>
                 <th scope="col">Price</th>
               </tr>
             </thead>
@@ -720,7 +722,7 @@ function ShopForm() {
                     setRecommendedPrice([]);
                     setSelectedCategory(null);
                     setSelectedSubCategory(null);
-                      setPrice("");
+                    setPrice("");
                     setDescription("");
                   }}
                 ></button>
@@ -767,7 +769,10 @@ function ShopForm() {
                   </div>
                 ) : (
                   <>
-                  <p className="mb-3 mt-0 text-primary fw-bold text-center">No Recommended Price Found<i class="fa-solid fa-face-frown ms-1"></i></p>
+                    <p className="mb-3 mt-0 text-primary fw-bold text-center">
+                      No Recommended Price Found
+                      <i class="fa-solid fa-face-frown ms-1"></i>
+                    </p>
                   </>
                 )}
 

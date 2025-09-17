@@ -25,7 +25,6 @@ function Signup({ onUserAdded, onShopKepperAdded }) {
   const [isChecked, setIsChecked] = useState(false);
   const [loading, setLoading] = useState(false);
   const [successAnimation, setSuccessAnimation] = useState(false);
-   
 
   const handleChange = async (e) => {
     const { name, files, value } = e.target;
@@ -56,7 +55,6 @@ function Signup({ onUserAdded, onShopKepperAdded }) {
   };
 
   const handleSubmit = async (e) => {
-  
     setLoading(true);
     e.preventDefault();
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -150,7 +148,7 @@ function Signup({ onUserAdded, onShopKepperAdded }) {
 
     try {
       const response = await axios.post(
-        "https://hazir-hay-backend.wckd.pk/admin/saveUser",
+        "https://hazir-hay-backend.vercel.app/admin/saveUser",
         formData,
         { headers: { "Content-Type": "multipart/form-data" } }
       );

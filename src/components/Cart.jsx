@@ -7,12 +7,7 @@ import stamp from "../images/stamp.png";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 
-function Cart({
-  cartData,
-  setUpdateAppjs,
-  areaName,
-  setCartData,
-}) {
+function Cart({ cartData, setUpdateAppjs, areaName, setCartData }) {
   // safely get items
 
   const navigate = useNavigate();
@@ -28,39 +23,38 @@ function Cart({
   const [checkoutId, setCheckoutId] = useState("");
 
   const user = JSON.parse(sessionStorage.getItem("user"));
-    const [copied, setCopied] = useState(false);
+  const [copied, setCopied] = useState(false);
 
-const handleCopy = (checkoutId) => {
-  const text = checkoutId || "1122";
+  const handleCopy = (checkoutId) => {
+    const text = checkoutId || "1122";
 
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    // Modern browsers
-    navigator.clipboard.writeText(text).then(
-      () => setCopied(true),
-      () => fallbackCopy(text) // if permission denied
-    );
-  } else {
-    // Fallback for older mobile browsers
-    fallbackCopy(text);
-  }
-};
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      // Modern browsers
+      navigator.clipboard.writeText(text).then(
+        () => setCopied(true),
+        () => fallbackCopy(text) // if permission denied
+      );
+    } else {
+      // Fallback for older mobile browsers
+      fallbackCopy(text);
+    }
+  };
 
-const fallbackCopy = (text) => {
-  const textarea = document.createElement("textarea");
-  textarea.value = text;
-  textarea.style.position = "fixed"; // avoid scrolling
-  document.body.appendChild(textarea);
-  textarea.focus();
-  textarea.select();
-  try {
-    document.execCommand("copy");
-    setCopied(true);
-  } catch (err) {
-    console.error("Fallback: Copy failed", err);
-  }
-  document.body.removeChild(textarea);
-};
-
+  const fallbackCopy = (text) => {
+    const textarea = document.createElement("textarea");
+    textarea.value = text;
+    textarea.style.position = "fixed"; // avoid scrolling
+    document.body.appendChild(textarea);
+    textarea.focus();
+    textarea.select();
+    try {
+      document.execCommand("copy");
+      setCopied(true);
+    } catch (err) {
+      console.error("Fallback: Copy failed", err);
+    }
+    document.body.removeChild(textarea);
+  };
 
   const groupedCart = (cartData?.items || []).reduce((acc, item) => {
     const shop = acc.find((s) => s.shopId === item.shopId);
@@ -79,56 +73,56 @@ const fallbackCopy = (text) => {
   }, []);
   const saved = JSON.parse(localStorage.getItem("selectedLocation"));
   console.log("saved", saved);
-  
-  const coordinates = [saved?.lat, saved?.lng]
 
-const downloadReceiptAsPDF = async () => {
-  setLoading(true);
-  try {
-    const element = document.getElementById("receipt-content");
-    if (!element) return;
+  const coordinates = [saved?.lat, saved?.lng];
 
-    // High-resolution canvas
-    const canvas = await html2canvas(element, {
-      scale: 10, // higher scale = sharper
-      useCORS: true,
-      logging: false
-    });
+  const downloadReceiptAsPDF = async () => {
+    setLoading(true);
+    try {
+      const element = document.getElementById("receipt-content");
+      if (!element) return;
 
-    const imgData = canvas.toDataURL("image/png", 1.0); // best quality
-    const pdf = new jsPDF("p", "mm", "a4");
+      // High-resolution canvas
+      const canvas = await html2canvas(element, {
+        scale: 10, // higher scale = sharper
+        useCORS: true,
+        logging: false,
+      });
 
-    const pageWidth = pdf.internal.pageSize.getWidth();
-    const pageHeight = pdf.internal.pageSize.getHeight();
+      const imgData = canvas.toDataURL("image/png", 1.0); // best quality
+      const pdf = new jsPDF("p", "mm", "a4");
 
-    const imgWidth = pageWidth;
-    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
 
-    let heightLeft = imgHeight;
-    let position = 0;
+      const imgWidth = pageWidth;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
-    // Add first page
-    pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
-    heightLeft -= pageHeight;
+      let heightLeft = imgHeight;
+      let position = 0;
 
-    // Add extra pages if needed
-    while (heightLeft > 0) {
-      position = heightLeft - imgHeight;
-      pdf.addPage();
+      // Add first page
       pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
       heightLeft -= pageHeight;
+
+      // Add extra pages if needed
+      while (heightLeft > 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+
+      pdf.save(`Order-${checkoutId}.pdf`);
+
+      setLoading(false);
+      alert("✅ PDF downloaded successfully!");
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      setLoading(false);
+      alert("❌ Failed to download PDF. Please try again.");
     }
-
-    pdf.save(`Order-${checkoutId}.pdf`);
-
-    setLoading(false);
-    alert("✅ PDF downloaded successfully!");
-  } catch (error) {
-    console.error("Error generating PDF:", error);
-    setLoading(false);
-    alert("❌ Failed to download PDF. Please try again.");
-  }
-};
+  };
 
   const grandTotal = groupedCart.reduce(
     (acc, cart) => acc + cart.items.reduce((sum, item) => sum + item.price, 0),
@@ -137,7 +131,7 @@ const downloadReceiptAsPDF = async () => {
   const getShopWithShopkeppers = async () => {
     try {
       const response = await axios.get(
-        "https://hazir-hay-backend.wckd.pk/shopKeppers/allVerifiedShopkepperWithShops",
+        "https://hazir-hay-backend.vercel.app/shopKeppers/allVerifiedShopkepperWithShops",
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -161,7 +155,7 @@ const downloadReceiptAsPDF = async () => {
     setLoadingItemId(service._id);
     try {
       const response = await axios.delete(
-        `https://hazir-hay-backend.wckd.pk/cart/deleteCartItem/${service._id}`,
+        `https://hazir-hay-backend.vercel.app/cart/deleteCartItem/${service._id}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -178,48 +172,49 @@ const downloadReceiptAsPDF = async () => {
     }
   };
 
-   async function getDistance(userCoords, shopCoords) {
-  console.log("shopCoordsdd", shopCoords);
-  
-  if (!shopCoords || shopCoords.length < 2) return { distance: null, duration: null };
-  const accessToken = "pk.eyJ1Ijoic3llZGJ1cmhhbmFsaTI4MTIiLCJhIjoiY21mamM0NjZiMHg4NTJqczRocXhvdndiYiJ9.Z4l8EQQ47ejlWdVGcimn4A";
-  const url = `https://api.mapbox.com/directions/v5/mapbox/driving/${userCoords[0]},${userCoords[1]};${shopCoords[0]},${shopCoords[1]}?access_token=${accessToken}&overview=false`;
+  async function getDistance(userCoords, shopCoords) {
+    console.log("shopCoordsdd", shopCoords);
 
-  const res = await axios.get(url);
-  const route = res.data.routes[0];
+    if (!shopCoords || shopCoords.length < 2)
+      return { distance: null, duration: null };
+    const accessToken =
+      "pk.eyJ1Ijoic3llZGJ1cmhhbmFsaTI4MTIiLCJhIjoiY21mamM0NjZiMHg4NTJqczRocXhvdndiYiJ9.Z4l8EQQ47ejlWdVGcimn4A";
+    const url = `https://api.mapbox.com/directions/v5/mapbox/driving/${userCoords[0]},${userCoords[1]};${shopCoords[0]},${shopCoords[1]}?access_token=${accessToken}&overview=false`;
 
-      if (!res.data.routes || res.data.routes.length === 0) {
+    const res = await axios.get(url);
+    const route = res.data.routes[0];
+
+    if (!res.data.routes || res.data.routes.length === 0) {
       console.warn("No route found for:", shopCoords);
       return { distance: null, duration: null };
     }
 
-  return {
-    distance: (route.distance / 1000).toFixed(2), // km
-    duration: (route.duration / 60).toFixed(0),   // minutes
+    return {
+      distance: (route.distance / 1000).toFixed(2), // km
+      duration: (route.duration / 60).toFixed(0), // minutes
+    };
+  }
+
+  const findShopDistance = async (shopId) => {
+    const shop = shopWithShopKepper.find((shop) => shop.shop._id === shopId);
+    if (!shop || !shop.shop.location?.coordinates || !coordinates) return null;
+
+    const shopCoords = [
+      shop.shop.location.coordinates[1], // lng
+      shop.shop.location.coordinates[0], // lat
+    ];
+    const userCoords = [
+      coordinates[1] || 73.04732533048735,
+      coordinates[0] || 33.69832701012015,
+    ];
+    console.log("shopCords", shopCoords);
+    console.log("UserCords", userCoords);
+
+    const distance = await getDistance(userCoords, shopCoords);
+    return distance.distance; // km
   };
-}
-
-
-
-const findShopDistance = async (shopId) => {
-  const shop = shopWithShopKepper.find((shop) => shop.shop._id === shopId);
-  if (!shop || !shop.shop.location?.coordinates || !coordinates) return null;
-
-  const shopCoords = [
-    shop.shop.location.coordinates[1], // lng
-    shop.shop.location.coordinates[0], // lat
-  ];
-  const userCoords = [coordinates[1] || 73.04732533048735, coordinates[0] || 33.69832701012015]; 
-  console.log("shopCords", shopCoords);
-   console.log("UserCords", userCoords);
-  
-
-  const distance = await getDistance(userCoords, shopCoords);
-  return distance.distance; // km
-};
-const [totalDistance, setTotalDistance] = useState(0);
-const [shopDistances, setShopDistances] = useState({});
-
+  const [totalDistance, setTotalDistance] = useState(0);
+  const [shopDistances, setShopDistances] = useState({});
 
   const fetchAllDistances = async () => {
     if (!coordinates || !groupedCart.length) return;
@@ -237,13 +232,7 @@ const [shopDistances, setShopDistances] = useState({});
     setTotalDistance(total.toFixed(2));
   };
 
-
-
-
-
-
-
- // e.g., "28.97"
+  // e.g., "28.97"
   function getRateByTime() {
     const now = new Date();
     const hour = now.getHours();
@@ -293,7 +282,6 @@ const [shopDistances, setShopDistances] = useState({});
 
   const totalServiceCharges = ((rate ? rate : 0) * totalDistance).toFixed(0);
 
-
   const subTotal = Number(totalServiceCharges) + Number(grandTotal);
 
   const generateOrderId = () => {
@@ -317,68 +305,118 @@ const [shopDistances, setShopDistances] = useState({});
     return `CHK-${firstLetter}${lastPhoneDigit}${randomDigit}-${randomThree}`;
   };
 
-  const sendRequestAll = async () => {
-    setLoading(true);
-    const newcheckoutId = generateCheckoutId();
-    setCheckoutId(newcheckoutId);
-    const payload = cartData?.items?.map((shop) => ({
-      checkoutId: newcheckoutId,
-      shopId: shop.shopId,
-      userId: user?._id,
-      category: shop.category,
-      subCategory: shop.subCategory,
-      orderId: generateOrderId(),
-      cost: shop.price,
-      location: [
-        {
-          coordinates,
-          area: areaName || "Unknown Area",
-        },
-      ],
-      serviceCharges: {
-        rate,
-        distance: shopDistances[shop.shopId] || 0,
-      },
-    }));
 
-    try {
-      console.log("Payload:", payload);
-
-      const response = await axios.post(
-        "https://hazir-hay-backend.wckd.pk/requests/sendBulkRequests",
-        { requests: payload },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-          params: { t: Date.now() },
-        }
-      );
-      if (response.data.success) {
-        // await clearCart("update");
-        setLoading(false);
-        alert(response?.data?.message || "Request sent successfully!");
-        setPostOrderModal(true);
-        setOrderSummaryModal(false);
-      }
-    } catch (error) {
-      console.error("Error sending request:", error);
-      setLoading(false);
-
-      if (error.response) {
-        alert(
-          `Failed: ${
-            error.response.data?.message || "Server returned an error"
-          }`
-        );
-        setLoading(false);
-      } else if (error.request) {
-        alert("Network error. Please check your internet connection.");
-        setLoading(false);
-      } else {
-        alert("Unexpected error. Please try again.");
-        setLoading(false);
-      }
-    }
+const sendNotificationToUser = async (checkoutId) => {
+  const payload = {
+    type: "success",
+    message: `Your order has been placed under checkout id <b>${checkoutId}</b>`,
+    userId: user._id,
   };
+
+  try {
+    const res = await axios.post("https://hazir-hay-backend.vercel.app/notification/addNotification", payload, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`, 
+      },
+    });
+
+    if (res.data.success) {
+      console.log(" Notification sent:", res.data.data);
+    }
+  } catch (error) {
+    console.error("Error sending notification:", error);
+  }
+};
+const sendNotificationToProviders = async (requests) => {
+  const notifications = requests.map((req) => ({
+    type: "newOrder",
+    message: `You have received a new order of <b>${req.subCategory}</b> (${req.category}) under order id <b>${req.orderId}</b>`, 
+    shopId: req.shopId,
+  }));
+
+  try {
+    const res = await axios.post(
+      "https://hazir-hay-backend.vercel.app/notification/sendBulkNotification",
+      { notifications },
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      }
+    );
+
+    if (res.data.success) {
+      console.log(" Notification sent:", res.data.requests);
+    }
+  } catch (error) {
+    console.error(" Error sending notification:", error);
+  }
+};
+
+const sendRequestAll = async () => {
+  setLoading(true);
+  const newcheckoutId = generateCheckoutId();
+  setCheckoutId(newcheckoutId);
+
+  const requests = cartData?.items?.map((shop) => ({
+    checkoutId: newcheckoutId,
+    shopId: shop.shopId,
+    userId: user?._id,
+    category: shop.category,
+    subCategory: shop.subCategory,
+    orderId: generateOrderId(), 
+    cost: shop.price,
+    location: [
+      {
+        coordinates,
+        area: areaName || "Unknown Area",
+      },
+    ],
+    serviceCharges: {
+      rate,
+      distance: shopDistances[shop.shopId] || 0,
+    },
+  }));
+
+  try {
+    console.log("Payload (requests):", requests);
+
+    const response = await axios.post(
+      "https://hazir-hay-backend.vercel.app/requests/sendBulkRequests",
+      { requests },
+      {
+        headers: { Authorization: `Bearer ${token}` },
+        params: { t: Date.now() },
+      }
+    );
+
+    if (response.data.success) {
+      await sendNotificationToProviders(requests);
+
+      await sendNotificationToUser(checkoutId || newcheckoutId);
+      setLoading(false);
+      alert(response?.data?.message || "Request sent successfully!");
+      setPostOrderModal(true);
+      setOrderSummaryModal(false);
+    }
+  } catch (error) {
+    console.error("❌ Error sending request:", error);
+    setLoading(false);
+
+    if (error.response) {
+      alert(
+        `Failed: ${
+          error.response.data?.message || "Server returned an error"
+        }`
+      );
+    } else if (error.request) {
+      alert("Network error. Please check your internet connection.");
+    } else {
+      alert("Unexpected error. Please try again.");
+    }
+  }
+};
+
 
   const clearCart = async (type) => {
     if (type === "clear") {
@@ -397,7 +435,7 @@ const [shopDistances, setShopDistances] = useState({});
 
     try {
       const response = await axios.delete(
-        "https://hazir-hay-backend.wckd.pk/cart/deleteUserCart",
+        "https://hazir-hay-backend.vercel.app/cart/deleteUserCart",
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -565,7 +603,8 @@ const [shopDistances, setShopDistances] = useState({});
                 <button
                   type="button"
                   className="btn btn-success px-4 rounded-pill shadow-sm"
-                  onClick={() => {setOrderSummaryModal(true)
+                  onClick={() => {
+                    setOrderSummaryModal(true);
                     fetchAllDistances();
                   }}
                 >
@@ -778,25 +817,24 @@ const [shopDistances, setShopDistances] = useState({});
                   <h3 className="fw-semibold mt-3 text-success">
                     Thank You, {user.name}!
                   </h3>
-             <p className="text-muted">
-  Your order{" "}
-  <span className="position-relative d-inline-block">
-    <b className="text-success">{checkoutId}</b>
-    <span
-      className="position-absolute start-100 badge bg-dark"
-      style={{
-        cursor: "pointer",
-        opacity: 0.8, // makes background transparent
-        transform: "translate(-50%, -90%)", // move a bit above
-      }}
-      onClick={()=>handleCopy(checkoutId)}
-    >
-      {copied ? "Copied!" : "Copy checkout id"}
-    </span>
-  </span>{" "}
-  has been placed successfully.
-</p>
-
+                  <p className="text-muted">
+                    Your order{" "}
+                    <span className="position-relative d-inline-block">
+                      <b className="text-success">{checkoutId}</b>
+                      <span
+                        className="position-absolute start-100 badge bg-dark"
+                        style={{
+                          cursor: "pointer",
+                          opacity: 0.8, // makes background transparent
+                          transform: "translate(-50%, -90%)", // move a bit above
+                        }}
+                        onClick={() => handleCopy(checkoutId)}
+                      >
+                        {copied ? "Copied!" : "Copy checkout id"}
+                      </span>
+                    </span>{" "}
+                    has been placed successfully.
+                  </p>
                 </div>
 
                 {/* Order Confirmation */}
@@ -887,10 +925,10 @@ const [shopDistances, setShopDistances] = useState({});
                   <button
                     type="button"
                     className="btn btn-danger px-4 rounded-pill shadow-sm"
-                     onClick={() => {
-                    clearCart("update");
-                    navigate("/admin/user/dashboard");
-                  }}
+                    onClick={() => {
+                      clearCart("update");
+                      navigate("/admin/user/dashboard");
+                    }}
                     disabled={groupedCart.length === 0}
                   >
                     Close
@@ -898,8 +936,9 @@ const [shopDistances, setShopDistances] = useState({});
                   <button
                     type="button"
                     className="btn btn-success px-4 rounded-pill shadow-sm"
-                    onClick={() => {setIsReciept(true)
-                      setCopied(false)
+                    onClick={() => {
+                      setIsReciept(true);
+                      setCopied(false);
                     }}
                     disabled={groupedCart.length === 0}
                   >
@@ -952,23 +991,23 @@ const [shopDistances, setShopDistances] = useState({});
                     <h3 className="fw-bold mt-3 text-success">
                       Order Confirmed
                     </h3>
-                     <p className="text-muted mb-0">
-      Checkout ID:{" "}
-      <span className="position-relative d-inline-block">
-        <span className="fw-bold text-dark">{checkoutId}</span>
-        <span
-          className="position-absolute start-100 badge bg-dark"
-          style={{
-            cursor: "pointer",
-            opacity: 0.8, // transparent background
-            transform: "translate(-50%, -90%)", // move badge a little above
-          }}
-          onClick={()=>handleCopy(checkoutId)}
-        >
-          {copied ? "Copied!" : "Copy checkout id"}
-        </span>
-      </span>
-    </p>
+                    <p className="text-muted mb-0">
+                      Checkout ID:{" "}
+                      <span className="position-relative d-inline-block">
+                        <span className="fw-bold text-dark">{checkoutId}</span>
+                        <span
+                          className="position-absolute start-100 badge bg-dark"
+                          style={{
+                            cursor: "pointer",
+                            opacity: 0.8, // transparent background
+                            transform: "translate(-50%, -90%)", // move badge a little above
+                          }}
+                          onClick={() => handleCopy(checkoutId)}
+                        >
+                          {copied ? "Copied!" : "Copy checkout id"}
+                        </span>
+                      </span>
+                    </p>
                     <small className="text-secondary">
                       Customer: {user.name}
                     </small>

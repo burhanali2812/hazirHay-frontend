@@ -16,7 +16,7 @@ function AdminFooter({ topText, setUpdate, setShopKepperStatus }) {
   const getShopkepperStatus = async () => {
     try {
       const response = await axios.get(
-        `https://hazir-hay-backend.wckd.pk/shopKeppers/getShopKepperStatus/${user._id}`,
+        `https://hazir-hay-backend.vercel.app/shopKeppers/getShopKepperStatus/${user._id}`,
         {
           headers: { Authorization: `Bearer ${token}` },
           params: { t: Date.now() }, // prevents caching
@@ -51,7 +51,7 @@ function AdminFooter({ topText, setUpdate, setShopKepperStatus }) {
       };
 
       const response = await axios.put(
-        "https://hazir-hay-backend.wckd.pk/shopKeppers/update-live",
+        "https://hazir-hay-backend.vercel.app/shopKeppers/update-live",
         payLoad,
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -135,7 +135,7 @@ function AdminFooter({ topText, setUpdate, setShopKepperStatus }) {
         action: () => setShowOffcanvas(true),
       },
     ],
-    user: [ 
+    user: [
       {
         key: "home",
         icon: "fas fa-home",
@@ -148,23 +148,18 @@ function AdminFooter({ topText, setUpdate, setShopKepperStatus }) {
         label: "Cart",
         path: "/admin/user/cart",
       },
-      {
-        key: "shop",
-        icon: "fa-solid fa-magnifying-glass-location",
-        label: "Shops",
-        path: "/admin/user/findShops",
-      },
+
       {
         key: "tracking",
         icon: "fa-solid fa-person-biking",
         label: "Tracking",
         path: "/admin/user/tracking",
       },
-        {
+      {
         key: "notification",
         icon: "fa-solid fa-bell",
-        label: "Noti...",
-        path: "/admin/user/dashboard",
+        label: "Notification",
+        path: "/admin/user/notification",
       },
       {
         key: "setting",
@@ -177,7 +172,7 @@ function AdminFooter({ topText, setUpdate, setShopKepperStatus }) {
 
   const sideBar = {
     user: [
-       {
+      {
         key: "dashboard",
         icon: "fa-solid fa-gauge",
         label: "Dashboard",
@@ -205,6 +200,24 @@ function AdminFooter({ topText, setUpdate, setShopKepperStatus }) {
         key: "tracking",
         icon: "fa-solid fa-person-biking",
         label: "Tracking",
+        path: "/admin/user/tracking",
+      },
+      {
+        key: "contact",
+        icon: "fa-solid fa-address-book",
+        label: "Contact Us",
+        path: "/admin/user/tracking",
+      },
+      {
+        key: "about",
+        icon: "fa-solid fa-clipboard-user",
+        label: "About Us",
+        path: "/admin/user/tracking",
+      },
+      {
+        key: "faq",
+        icon: "fa-solid fa-file-circle-question",
+        label: "FAQs",
         path: "/admin/user/tracking",
       },
       {
@@ -385,64 +398,76 @@ function AdminFooter({ topText, setUpdate, setShopKepperStatus }) {
             </div>
           </div>
 
-         {(role === "user" || role === "admin") && (
-  <>
-    <div className="text-center mb-4">
-      <h5 className="fw-bold mb-1 d-inline-flex align-items-center">
-        {currentUser?.name}
-        <i
-          className="fa-solid fa-circle-check ms-2"
-          style={{ color: "#4caf50", fontSize: "16px" }}
-        ></i>
-      </h5>
+          {(role === "user" || role === "admin") && (
+            <>
+              <div className="text-center mb-4">
+                <h5 className="fw-bold mb-1 d-inline-flex align-items-center">
+                  {currentUser?.name}
+                  <i
+                    className="fa-solid fa-circle-check ms-2"
+                    style={{ color: "#4caf50", fontSize: "16px" }}
+                  ></i>
+                </h5>
 
-      <div>
-        <span className="badge rounded-pill bg-light text-dark border px-3 py-1 mt-2">
-          {role === "user" ? (
-            <>
-              <i className="fa-solid fa-user me-1 text-primary"></i> User
-            </>
-          ) : (
-            <>
-              <i className="fa-solid fa-user-shield me-1 text-danger"></i> Admin
+                <div>
+                  <span className="badge rounded-pill bg-light text-dark border px-3 py-1 mt-2">
+                    {role === "user" ? (
+                      <>
+                        <i className="fa-solid fa-user me-1 text-primary"></i>{" "}
+                        User
+                      </>
+                    ) : (
+                      <>
+                        <i className="fa-solid fa-user-shield me-1 text-danger"></i>{" "}
+                        Admin
+                      </>
+                    )}
+                  </span>
+                </div>
+              </div>
+
+              <div className="container">
+                <ul className="list-group border-0">
+                  {currentSidebar.map((item) => (
+                    <li
+                      key={item.key}
+                      className="list-group-item border-0 d-flex align-items-center p-2 sidebar-item"
+                      style={{
+                        borderRadius: "10px",
+                        transition: "background 0.2s",
+                        cursor: "pointer",
+                      }}
+                      onClick={() => {
+                        navigate(item.path);
+                        setShowOffcanvas(false);
+                      }}
+                      onMouseEnter={(e) =>
+                        (e.currentTarget.style.background = "#f8f9fa")
+                      }
+                      onMouseLeave={(e) =>
+                        (e.currentTarget.style.background = "transparent")
+                      }
+                    >
+                      <i
+                        className={`${item.icon} me-3 text-secondary`}
+                        style={{ fontSize: "18px" }}
+                      ></i>
+                      <span className="fw-semibold text-dark">
+                        {item.label}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+
+                <button
+                  className="mt-3 btn btn-outline-danger w-100 rounded-pill fw-semibold"
+                  onClick={logOut}
+                >
+                  <i className="fa-solid fa-right-from-bracket me-2"></i> Logout
+                </button>
+              </div>
             </>
           )}
-        </span>
-      </div>
-    </div>
-
-    <div className="container">
-      <ul className="list-group border-0">
-        {currentSidebar.map((item) => (
-          <li
-            key={item.key}
-            className="list-group-item border-0 d-flex align-items-center p-2 sidebar-item"
-            style={{
-              borderRadius: "10px",
-              transition: "background 0.2s",
-              cursor: "pointer",
-            }}
-            onClick={() => {(navigate(item.path))
-              setShowOffcanvas(false)
-            }}
-            onMouseEnter={(e) =>
-              (e.currentTarget.style.background = "#f8f9fa")
-            }
-            onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
-          >
-            <i className={`${item.icon} me-3 text-secondary`} style={{ fontSize: "18px" }}></i>
-            <span className="fw-semibold text-dark">{item.label}</span>
-          </li>
-        ))}
-      </ul>
-
-      <button className="mt-3 btn btn-outline-danger w-100 rounded-pill fw-semibold" onClick={logOut}>
-        <i className="fa-solid fa-right-from-bracket me-2"></i> Logout
-      </button>
-    </div>
-  </>
-)}
-
 
           {/* ShopKeeper Info */}
           {role === "shopKepper" && (

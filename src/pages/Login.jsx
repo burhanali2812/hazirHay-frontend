@@ -49,7 +49,7 @@ function Login() {
       console.log(loginPayload);
 
       const response = await axios.post(
-        "https://hazir-hay-backend.wckd.pk/admin/",
+        "https://hazir-hay-backend.vercel.app/admin/",
         loginPayload
       );
       if (response.status === 200) {

@@ -3,8 +3,7 @@ import offline from "../images/offline.png";
 import axios from "axios";
 
 import noData from "../images/noData.png";
-function ShopkepperRequests({refreshFlag}) {
-
+function ShopkepperRequests({ refreshFlag }) {
   const shopKepperStatus = JSON.parse(localStorage.getItem("shopKepperStatus"));
   const user = JSON.parse(sessionStorage.getItem("user"));
   const [requests, setRequests] = useState([]);
@@ -14,7 +13,7 @@ function ShopkepperRequests({refreshFlag}) {
   const getShopData = async () => {
     try {
       const response = await axios.get(
-        `https://hazir-hay-backend.wckd.pk/shops/shopData/${user._id}`,
+        `https://hazir-hay-backend.vercel.app/shops/shopData/${user._id}`,
         {
           headers: { Authorization: `Bearer ${token}` },
           params: { t: Date.now() }, // Prevent caching
@@ -32,20 +31,19 @@ function ShopkepperRequests({refreshFlag}) {
 
   const fetchRequests = async () => {
     console.log(user._id);
-    
-    try {
 
+    try {
       const response = await axios.get(
-        `https://hazir-hay-backend.wckd.pk/requests/getRequests/${user._id}`,
+        `https://hazir-hay-backend.vercel.app/requests/getRequests/${user._id}`,
         {
           headers: { Authorization: `Bearer ${token}` },
-          params: { t: Date.now() }, 
+          params: { t: Date.now() },
         }
       );
 
       if (response.data.success) {
         setRequests(response.data.data || []);
-        if(refreshFlag){
+        if (refreshFlag) {
           alert("New Request Added");
         }
       } else {
@@ -59,17 +57,15 @@ function ShopkepperRequests({refreshFlag}) {
       );
       setRequests([]);
     }
-  
-  }
+  };
 
   useEffect(() => {
     getShopData();
   }, []);
 
   useEffect(() => {
-    
-       fetchRequests();    
-    }, [refreshFlag]);
+    fetchRequests();
+  }, [refreshFlag]);
 
   return (
     <div className="container">

@@ -30,7 +30,7 @@ function Tracking({ setUpdateAppjs }) {
   const fetchUserCart = async () => {
     try {
       const response = await axios.get(
-        "https://hazir-hay-backend.wckd.pk/requests/getUserRequests",
+        "https://hazir-hay-backend.vercel.app/requests/getUserRequests",
         {
           headers: { Authorization: `Bearer ${token}` },
           params: { t: Date.now() },
@@ -51,21 +51,21 @@ function Tracking({ setUpdateAppjs }) {
   }, []);
 
   const deleteRequest = async (id) => {
-        const result = await Swal.fire({
-          title: "Are you sure?",
-          html: `Are you sure to Cancel Order :- <strong>${id}</strong> `,
-          icon: "warning",
-          showCancelButton: true,
-          confirmButtonColor: "#d33",
-          cancelButtonColor: "#3085d6",
-          confirmButtonText: "Yes, Cancel it!",
-        });
-    
-        if (!result.isConfirmed) return;
+    const result = await Swal.fire({
+      title: "Are you sure?",
+      html: `Are you sure to Cancel Order :- <strong>${id}</strong> `,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Yes, Cancel it!",
+    });
+
+    if (!result.isConfirmed) return;
     setCancelOrderLoading(true);
     try {
       const response = await axios.delete(
-        `https://hazir-hay-backend.wckd.pk/requests/deleteRequest/${id}`,
+        `https://hazir-hay-backend.vercel.app/requests/deleteRequest/${id}`,
         {
           headers: { Authorization: `Bearer ${token}` },
           params: { t: Date.now() }, // prevent caching
@@ -92,19 +92,19 @@ function Tracking({ setUpdateAppjs }) {
     }
   };
 
-const rate = Number(selectedTrackShopData?.serviceCharges?.rate?.[0] || 0);
-const distance = Number(selectedTrackShopData?.serviceCharges?.distance || 0);
+  const rate = Number(selectedTrackShopData?.serviceCharges?.rate?.[0] || 0);
+  const distance = Number(selectedTrackShopData?.serviceCharges?.distance || 0);
 
-const serviceCharges = (rate * distance).toFixed(0);
-const grandTotal = Number(selectedTrackShopData?.cost) + Number(serviceCharges);
+  const serviceCharges = (rate * distance).toFixed(0);
+  const grandTotal =
+    Number(selectedTrackShopData?.cost) + Number(serviceCharges);
 
   const fetchShopData = async (data) => {
-    
     console.log("selectedTrackShopData?.shopOwnerId", data?.shopOwnerId);
 
     try {
       const res = await axios.get(
-        `https://hazir-hay-backend.wckd.pk/shopKeppers/shopWithShopKepper/${data?.shopOwnerId}`,
+        `https://hazir-hay-backend.vercel.app/shopKeppers/shopWithShopKepper/${data?.shopOwnerId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
           params: { t: Date.now() },
@@ -228,7 +228,7 @@ const grandTotal = Number(selectedTrackShopData?.cost) + Number(serviceCharges);
               <p className="mb-1 text-muted">
                 {data.subCategory} <small>({data.category})</small>
               </p>
-                <p className="mb-1 text-muted ">
+              <p className="mb-1 text-muted ">
                 <b>Cost:</b> <small>Rs. {data.cost}/-</small>
               </p>
 
@@ -466,19 +466,16 @@ const grandTotal = Number(selectedTrackShopData?.cost) + Number(serviceCharges);
                             </span>
                             <span>{selectedTrackShopData?.subCategory}</span>
                           </li>
-                           <li className="list-group-item d-flex justify-content-between align-items-center">
+                          <li className="list-group-item d-flex justify-content-between align-items-center">
                             <span>
-                           
                               <i className="fa-solid fa-person-biking me-2 text-secondary"></i>
                               Service Charges
                             </span>
                             <span>{serviceCharges}</span>
                           </li>
 
-
                           <li className="list-group-item d-flex justify-content-between align-items-center">
                             <span>
-                           
                               <i className="fa-solid fa-screwdriver-wrench me-2 text-secondary"></i>
                               Service Cost
                             </span>
@@ -486,12 +483,15 @@ const grandTotal = Number(selectedTrackShopData?.cost) + Number(serviceCharges);
                               Rs. {selectedTrackShopData?.cost}/-
                             </span>
                           </li>
-                            <li className="list-group-item d-flex justify-content-between align-items-center">
+                          <li className="list-group-item d-flex justify-content-between align-items-center">
                             <span>
                               <i className="fa-solid fa-money-bill-wave me-2 text-secondary"></i>
                               Sub Total
                             </span>
-                            <span className="fw-bold text-primary" style={{fontSize : "22px"}}>
+                            <span
+                              className="fw-bold text-primary"
+                              style={{ fontSize: "22px" }}
+                            >
                               Rs. {grandTotal}/-
                             </span>
                           </li>

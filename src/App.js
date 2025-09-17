@@ -19,7 +19,7 @@ import UserDashboard from "./pages/UserDashboard";
 import Cart from "./components/Cart";
 import Tracking from "./components/Tracking";
 import FindShops from "./pages/FindShops";
-
+import Notification from "./pages/Notification";
 
 function App() {
   const [topText, setTopText] = useState("");
@@ -32,21 +32,19 @@ function App() {
   const [shopKepperStatus, setShopKepperStatus] = useState(false);
   const [UpdateAppjs, setUpdateAppjs] = useState(false);
   const [shopWithShopkepper, setShopWithShopkepper] = useState([]);
-    const [refreshFlag, setRefreshFlag] = useState(false);
-    const [cartData, setCartData] = useState([]);
-      const [areaName, setAreaName] = useState("");
-        const [coordinates, setCoordinates] = useState([]);
-       
+  const [refreshFlag, setRefreshFlag] = useState(false);
+  const [cartData, setCartData] = useState([]);
+  const [areaName, setAreaName] = useState("");
+  const [coordinates, setCoordinates] = useState([]);
 
   const handleRequestAdded = () => {
-    setRefreshFlag(prev => !prev); // toggle flag to trigger re-fetch
+    setRefreshFlag((prev) => !prev); // toggle flag to trigger re-fetch
   };
-
 
   const getAllUser = async () => {
     try {
       const response = await axios.get(
-        "https://hazir-hay-backend.wckd.pk/users/getAllUser",
+        "https://hazir-hay-backend.vercel.app/users/getAllUser",
         {
           headers: { Authorization: `Bearer ${token}` },
           params: { t: Date.now() },
@@ -71,7 +69,7 @@ function App() {
   const getAllShopKepper = async () => {
     try {
       const response = await axios.get(
-        "https://hazir-hay-backend.wckd.pk/shopKeppers/getAllShopKepper",
+        "https://hazir-hay-backend.vercel.app/shopKeppers/getAllShopKepper",
         {
           headers: { Authorization: `Bearer ${token}` },
           params: { t: Date.now() },
@@ -105,24 +103,24 @@ function App() {
     }
   };
 
-  const getCartData  = async()=>{
+  const getCartData = async () => {
     try {
-      const response = await axios("https://hazir-hay-backend.wckd.pk/cart/getCartData" , {
-         headers: { Authorization: `Bearer ${token}` },
-      });
-     setCartData(response.data.data?.[0] || {});
-console.log("CartDAta", response.data.data?.[0]);
+      const response = await axios(
+        "https://hazir-hay-backend.vercel.app/cart/getCartData",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      setCartData(response.data.data?.[0] || {});
+      console.log("CartDAta", response.data.data?.[0]);
 
-      
       console.log(response.data.message || "Cart Data Fetch Successfully!");
     } catch (error) {
       console.log("Error Fetching CArt data", error);
-      
     }
-  }
+  };
 
   useEffect(() => {
-    
     getAllUser();
     getAllShopKepper();
     getCartData();
@@ -132,8 +130,8 @@ console.log("CartDAta", response.data.data?.[0]);
     if (UpdateAppjs) {
       getAllUser();
       getAllShopKepper();
-       getCartData();
-       setUpdateAppjs(false);
+      getCartData();
+      setUpdateAppjs(false);
     }
   }, [UpdateAppjs]);
 
@@ -222,37 +220,46 @@ console.log("CartDAta", response.data.data?.[0]);
           />
           <Route
             path="shopKepper/requests"
-            element={<ShopkepperRequests shopKepperStatus={shopKepperStatus} refreshFlag={refreshFlag}/>}
+            element={
+              <ShopkepperRequests
+                shopKepperStatus={shopKepperStatus}
+                refreshFlag={refreshFlag}
+              />
+            }
           />
           <Route
             path="user/dashboard"
             element={
               <UserDashboard
                 setUpdateAppjs={setUpdateAppjs}
-               onRequestAdded={handleRequestAdded}
-               cartData ={cartData}
-               areaName= {areaName}
-               setAreaName = {setAreaName}
-               coordinates={coordinates}
-               setCoordinates={setCoordinates}
+                onRequestAdded={handleRequestAdded}
+                cartData={cartData}
+                areaName={areaName}
+                setAreaName={setAreaName}
+                coordinates={coordinates}
+                setCoordinates={setCoordinates}
               />
             }
           />
 
-            <Route
+          <Route
             path="user/cart"
-            element={<Cart  cartData ={cartData}  setUpdateAppjs={setUpdateAppjs} areaName= {areaName} coordinates={coordinates} setCartData={setCartData}/>}
+            element={
+              <Cart
+                cartData={cartData}
+                setUpdateAppjs={setUpdateAppjs}
+                areaName={areaName}
+                coordinates={coordinates}
+                setCartData={setCartData}
+              />
+            }
           />
-            <Route
+          <Route
             path="user/tracking"
-            element={<Tracking  setUpdateAppjs={setUpdateAppjs}/>}
+            element={<Tracking setUpdateAppjs={setUpdateAppjs} />}
           />
-            <Route
-            path="user/findShops"
-            element={<FindShops/>}
-          />
-          
-         
+          <Route path="user/findShops" element={<FindShops />} />
+          <Route path="user/notification" element={<Notification />} />
         </Route>
       </Routes>
     </>

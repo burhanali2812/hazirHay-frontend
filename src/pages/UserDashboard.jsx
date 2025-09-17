@@ -112,14 +112,12 @@ function UserDashboard({
 
       if (!result.isConfirmed) return;
     }
-    if(from === "detail"){
+    if (from === "detail") {
       setAddCartLoading(shop._id);
-    }
-    else{
+    } else {
       setAddCartLoading(shop._id);
     }
 
-    
     let finalShopId, finalCategory, finalSubCategory, finalPrice, finalShopName;
 
     if (from === "detail") {
@@ -128,7 +126,6 @@ function UserDashboard({
       finalSubCategory = shop.subCategory.name;
       finalPrice = shop.subCategory.price;
       finalShopName = selectedShopWithShopkepper?.shop?.shopName;
-      
     } else {
       const selectedService = shop.servicesOffered.find(
         (service) => service.subCategory.name === selectedSubCategory
@@ -169,7 +166,7 @@ function UserDashboard({
 
     try {
       const response = await axios.post(
-        "https://hazir-hay-backend.wckd.pk/cart/saveCartData",
+        "https://hazir-hay-backend.vercel.app/cart/saveCartData",
         payload,
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -196,7 +193,7 @@ function UserDashboard({
     setDetailLoading(provider._id);
     try {
       const response = await axios.get(
-        "https://hazir-hay-backend.wckd.pk/shopKeppers/allVerifiedShopkepperWithShops",
+        "https://hazir-hay-backend.vercel.app/shopKeppers/allVerifiedShopkepperWithShops",
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -251,7 +248,7 @@ function UserDashboard({
     }
     try {
       const response = await axios.get(
-        "https://hazir-hay-backend.wckd.pk/shops/shopsDataByCategory",
+        "https://hazir-hay-backend.vercel.app/shops/shopsDataByCategory",
         {
           params: {
             category: selectedCategory,
@@ -339,7 +336,7 @@ function UserDashboard({
   const getUserLocations = async () => {
     try {
       const response = await axios.get(
-        `https://hazir-hay-backend.wckd.pk/users/getUserById/${user._id}`,
+        `https://hazir-hay-backend.vercel.app/users/getUserById/${user._id}`,
         {
           headers: { Authorization: `Bearer ${token}` },
           params: { t: Date.now() },
@@ -389,7 +386,7 @@ function UserDashboard({
 
     try {
       const response = await axios.post(
-        `https://hazir-hay-backend.wckd.pk/users/addUserLocation/${user._id}`,
+        `https://hazir-hay-backend.vercel.app/users/addUserLocation/${user._id}`,
         payload,
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -423,7 +420,7 @@ function UserDashboard({
 
     try {
       const response = await axios.delete(
-        `https://hazir-hay-backend.wckd.pk/users/deleteUserLocation/${location._id}`,
+        `https://hazir-hay-backend.vercel.app/users/deleteUserLocation/${location._id}`,
         {
           headers: { Authorization: `Bearer ${token}` },
           params: { t: Date.now() }, // Prevent caching
@@ -451,7 +448,7 @@ function UserDashboard({
     setLoading(true);
     try {
       const response = await axios.get(
-        "https://hazir-hay-backend.wckd.pk/shopKeppers/allVerifiedShopkepperWithShops",
+        "https://hazir-hay-backend.vercel.app/shopKeppers/allVerifiedShopkepperWithShops",
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -1325,13 +1322,9 @@ function UserDashboard({
                                 <button
                                   className="btn btn-outline-primary btn-sm  w-100"
                                   onClick={() => addToCart(sub, "detail")}
-                                  disabled={
-                                    addCartLoading ===
-                                    sub._id
-                                  }
+                                  disabled={addCartLoading === sub._id}
                                 >
-                                  {addCartLoading ===
-                                     sub._id ? (
+                                  {addCartLoading === sub._id ? (
                                     <div
                                       className="spinner-border spinner-border-sm text-dark ms-2"
                                       role="status"

@@ -54,7 +54,7 @@ function Requests({ setTopText, setUpdate }) {
     setLoading(true);
     try {
       const response = await axios.get(
-        "https://hazir-hay-backend.wckd.pk/shopKeppers/allShopkepperWithShops",
+        "https://hazir-hay-backend.vercel.app/shopKeppers/allShopkepperWithShops",
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -105,7 +105,7 @@ function Requests({ setTopText, setUpdate }) {
 
     try {
       const response = await axios.put(
-        `https://hazir-hay-backend.wckd.pk/shopKeppers/verifyShopKepper/${shopWithKeep._id}`,
+        `https://hazir-hay-backend.vercel.app/shopKeppers/verifyShopKepper/${shopWithKeep._id}`,
         payload,
         {
           headers: {

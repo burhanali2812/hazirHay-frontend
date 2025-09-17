@@ -3,7 +3,7 @@ import axios from "axios";
 
 export default function MyMap({ onLocationSelect, initialLocation }) {
   const mapContainerRef = useRef(null);
-  const mapRef = useRef(null);   // store map instance
+  const mapRef = useRef(null); // store map instance
   const markerRef = useRef(null); // store marker instance
 
   useEffect(() => {
@@ -108,7 +108,7 @@ export default function MyMap({ onLocationSelect, initialLocation }) {
   const fetchAreaName = async (lat, lon) => {
     try {
       const res = await axios.get(
-        "https://hazir-hay-backend.wckd.pk/admin/reverse-geocode",
+        "https://hazir-hay-backend.vercel.app/admin/reverse-geocode",
         { params: { lat, lon } }
       );
       return (

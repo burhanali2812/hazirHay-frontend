@@ -26,7 +26,7 @@ function Users({
   const getLiveUsers = async () => {
     try {
       const response = await axios.get(
-        "https://hazir-hay-backend.wckd.pk/users/get-live-users",
+        "https://hazir-hay-backend.vercel.app/users/get-live-users",
         {
           headers: { Authorization: `Bearer ${token}` },
           params: { t: Date.now() },
@@ -51,7 +51,7 @@ function Users({
   const getFrequentUsers = async () => {
     try {
       const response = await axios.get(
-        "https://hazir-hay-backend.wckd.pk/users/get-frequent-users",
+        "https://hazir-hay-backend.vercel.app/users/get-frequent-users",
         {
           headers: { Authorization: `Bearer ${token}` },
           params: { t: Date.now() },
@@ -77,7 +77,7 @@ function Users({
   const getLast2mintCreateUsers = async () => {
     try {
       const response = await axios.get(
-        "https://hazir-hay-backend.wckd.pk/users/get-latest-users",
+        "https://hazir-hay-backend.vercel.app/users/get-latest-users",
         {
           headers: { Authorization: `Bearer ${token}` },
           params: { t: Date.now() },

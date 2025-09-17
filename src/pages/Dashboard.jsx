@@ -25,7 +25,7 @@ function Dashboard({
   const getAllShop = async () => {
     try {
       const response = await axios.get(
-        "https://hazir-hay-backend.wckd.pk/shops/getAllShops",
+        "https://hazir-hay-backend.vercel.app/shops/getAllShops",
         {
           headers: { Authorization: `Bearer ${token}` },
           params: { t: Date.now() },
