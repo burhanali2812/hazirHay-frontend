@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, Outlet } from "react-router-dom";
 import "./adminFooter.css";
 
-function AdminFooter({ topText, setUpdate, setShopKepperStatus }) {
+function AdminFooter({ topText, setUpdate, setShopKepperStatus , unSeenNotification, onUpdate}) {
   const navigate = useNavigate();
   const [active, setActive] = useState(localStorage.getItem("key") || "home");
   const [showOffcanvas, setShowOffcanvas] = useState(false);
@@ -328,19 +328,38 @@ function AdminFooter({ topText, setUpdate, setShopKepperStatus }) {
         }}
       >
         <div className="card-body d-flex justify-content-around p-2">
-          {currentMenu.map((item) => (
-            <span
-              key={item.key}
-              className={`nav-item ${active === item.key ? "active" : ""}`}
-              onClick={() =>
-                handleClick(item.key, item.path ? item.path : item.action)
-              }
-              style={{ cursor: "pointer" }}
-            >
-              <i className={item.icon}></i>
-              <small>{item.label}</small>
-            </span>
-          ))}
+         {currentMenu.map((item) => (
+  <span
+    key={item.key}
+    className={`nav-item position-relative ${active === item.key ? "active" : ""}`}
+    onClick={() =>
+      handleClick(item.key, item.path ? item.path : item.action)
+    }
+    style={{ cursor: "pointer" }}
+  >
+    {item.key === "notification" ? (
+      <>
+        <i className={item.icon} onClick={onUpdate}></i>
+      {
+        unSeenNotification.length !== 0 && (
+            <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger mt-1 me-3" style={{marginLeft : "-15px"}}>
+          {unSeenNotification.length}
+          <span className="visually-hidden">unread messages</span>
+        </span>
+        )
+      }
+      <small className="d-block" onClick={onUpdate}>{item.label}</small>
+      </>
+    ) : (
+     <>
+      <i className={item.icon} ></i>
+      <small className="d-block">{item.label}</small>
+     </>
+    )}
+    
+  </span>
+))}
+
         </div>
       </div>
 

@@ -37,6 +37,7 @@ function App() {
   const [areaName, setAreaName] = useState("");
   const [coordinates, setCoordinates] = useState([]);
   const [notification, setNotification] = useState([]);
+  const [unSeenNotification, setUnSeenNotification] = useState([]);
     const user = JSON.parse(sessionStorage.getItem("user"));
 
   const handleRequestAdded = () => {
@@ -109,13 +110,33 @@ function App() {
     console.log("fetching.....Notifications");
     
     try {
-      const response = await axios(`https://hazir-hay-backend.vercel.app/notification/getAllNotification/${user._id}`,{
+      const response = await axios.get(`https://hazir-hay-backend.vercel.app/notification/getAllNotification/${user._id}`,{
          headers: { Authorization: `Bearer ${token}` },
           params: { t: Date.now() },
       });
       if(response.data.success){
        // alert("Notification fetch successfully");
-        setNotification(response.data.data);
+       const notificationArray = response.data.data || [];
+        setNotification(notificationArray);
+        const unSeen = notificationArray.filter((notify)=> notify.isSeen === false);
+        setUnSeenNotification(unSeen);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  const updateNotification = async()=>{
+    try {
+       const response = await axios.put("https://hazir-hay-backend.vercel.app/notification/updateNotification", 
+        { notifications: unSeenNotification }
+        ,{
+         headers: { Authorization: `Bearer ${token}` },
+          params: { t: Date.now() },
+      });
+      if(response.data.success){
+       // alert("Notification Update successfully");
+        getNotifications();
       }
     } catch (error) {
       console.error(error);
@@ -211,6 +232,7 @@ function App() {
               topText={topText}
               setUpdate={setUpdate}
               setShopKepperStatus={setShopKepperStatus}
+              unSeenNotification={unSeenNotification} onUpdate = {updateNotification}
             />
           }
         >
