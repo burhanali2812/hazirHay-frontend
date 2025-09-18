@@ -770,7 +770,9 @@ const sendRequestAll = async () => {
                       <h6 className="mb-0 text-muted">Subtotal</h6>
                       <h4 className="text-primary fw-bold">Rs. {subTotal}</h4>
                     </div>
-                    <button
+                  {
+                    totalDistance !== 0 && (
+                        <button
                       type="button"
                       className="btn btn-success  rounded-pill "
                       onClick={sendRequestAll}
@@ -791,6 +793,8 @@ const sendRequestAll = async () => {
                         </>
                       )}
                     </button>
+                    )
+                  }
                   </>
                 )}
               </div>

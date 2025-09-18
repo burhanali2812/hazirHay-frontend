@@ -36,6 +36,8 @@ function App() {
   const [cartData, setCartData] = useState([]);
   const [areaName, setAreaName] = useState("");
   const [coordinates, setCoordinates] = useState([]);
+  const [notification, setNotification] = useState([]);
+    const user = JSON.parse(sessionStorage.getItem("user"));
 
   const handleRequestAdded = () => {
     setRefreshFlag((prev) => !prev); // toggle flag to trigger re-fetch
@@ -103,6 +105,23 @@ function App() {
     }
   };
 
+  const getNotifications = async()=>{
+    console.log("fetching.....Notifications");
+    
+    try {
+      const response = await axios(`https://hazir-hay-backend.vercel.app/notification/getAllNotification/${user._id}`,{
+         headers: { Authorization: `Bearer ${token}` },
+          params: { t: Date.now() },
+      });
+      if(response.data.success){
+        alert("Notification fetch successfully");
+        setNotification(response.data.data);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
   const getCartData = async () => {
     try {
       const response = await axios(
@@ -116,7 +135,7 @@ function App() {
 
       console.log(response.data.message || "Cart Data Fetch Successfully!");
     } catch (error) {
-      console.log("Error Fetching CArt data", error);
+      console.error("Error Fetching CArt data", error);
     }
   };
 
@@ -124,6 +143,7 @@ function App() {
     getAllUser();
     getAllShopKepper();
     getCartData();
+    getNotifications();
   }, []);
 
   useEffect(() => {
@@ -131,6 +151,7 @@ function App() {
       getAllUser();
       getAllShopKepper();
       getCartData();
+      getNotifications();
       setUpdateAppjs(false);
     }
   }, [UpdateAppjs]);
@@ -259,7 +280,7 @@ function App() {
             element={<Tracking setUpdateAppjs={setUpdateAppjs} />}
           />
           <Route path="user/findShops" element={<FindShops />} />
-          <Route path="user/notification" element={<Notification />} />
+          <Route path="user/notification" element={<Notification notification={notification} />} />
         </Route>
       </Routes>
     </>
