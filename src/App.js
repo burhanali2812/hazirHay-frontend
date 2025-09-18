@@ -114,13 +114,34 @@ function App() {
           params: { t: Date.now() },
       });
       if(response.data.success){
-        alert("Notification fetch successfully");
+       // alert("Notification fetch successfully");
         setNotification(response.data.data);
       }
     } catch (error) {
       console.error(error);
     }
   }
+
+ const deleteNotification = async (id) => {
+  
+
+  try {
+    const response = await axios.delete(
+      `https://hazir-hay-backend.vercel.app/notification/deleteNotification/${id}`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+        params: { t: Date.now() },
+      }
+    );
+
+    if (response.data.success) {
+      alert("Notification deleted successfully");
+      getNotifications(); // optional refresh
+    }
+  } catch (error) {
+    console.error(error);
+  }
+};
 
   const getCartData = async () => {
     try {
@@ -280,7 +301,7 @@ function App() {
             element={<Tracking setUpdateAppjs={setUpdateAppjs} />}
           />
           <Route path="user/findShops" element={<FindShops />} />
-          <Route path="user/notification" element={<Notification notification={notification} />} />
+          <Route path="user/notification" element={<Notification notification={notification} onDelete={deleteNotification}/>} />
         </Route>
       </Routes>
     </>
