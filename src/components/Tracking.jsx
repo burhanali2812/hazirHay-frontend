@@ -92,7 +92,7 @@ function Tracking({ setUpdateAppjs }) {
     }
   };
 
-  const rate = Number(selectedTrackShopData?.serviceCharges?.rate?.[0] || 0);
+  const rate = Number(selectedTrackShopData?.serviceCharges?.rate?.[0] || selectedTrackShopData?.serviceCharges?.rate);
   const distance = Number(selectedTrackShopData?.serviceCharges?.distance || 0);
 
   const serviceCharges = (rate * distance).toFixed(0);

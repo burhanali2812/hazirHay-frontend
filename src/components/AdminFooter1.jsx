@@ -327,7 +327,7 @@ function AdminFooter({ topText, setUpdate, setShopKepperStatus , unSeenNotificat
           boxShadow: "none",
         }}
       >
-        <div className="card-body d-flex justify-content-around p-2">
+        <div className="card-body d-flex justify-content-between p-2">
          {currentMenu.map((item) => (
   <span
     key={item.key}
@@ -342,7 +342,7 @@ function AdminFooter({ topText, setUpdate, setShopKepperStatus , unSeenNotificat
         <i className={item.icon} onClick={onUpdate}></i>
       {
         unSeenNotification.length !== 0 && (
-            <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger mt-1 me-3" style={{marginLeft : "-15px"}}>
+            <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger  me-3" style={{marginLeft : "-20px", marginTop: "2px"}}>
           {unSeenNotification.length}
           <span className="visually-hidden">unread messages</span>
         </span>

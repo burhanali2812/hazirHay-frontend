@@ -18,6 +18,7 @@ function Cart({ cartData, setUpdateAppjs, areaName, setCartData }) {
   const [postOrderModal, setPostOrderModal] = useState(false);
   const [isReciept, setIsReciept] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [distanceLoading, setDistanceLoading] = useState(false);
   const [rate, setRate] = useState(false);
 
   const [checkoutId, setCheckoutId] = useState("");
@@ -173,6 +174,7 @@ function Cart({ cartData, setUpdateAppjs, areaName, setCartData }) {
   };
 
   async function getDistance(userCoords, shopCoords) {
+    setDistanceLoading(true);
     console.log("shopCoordsdd", shopCoords);
 
     if (!shopCoords || shopCoords.length < 2)
@@ -186,16 +188,19 @@ function Cart({ cartData, setUpdateAppjs, areaName, setCartData }) {
 
     if (!res.data.routes || res.data.routes.length === 0) {
       console.warn("No route found for:", shopCoords);
+      alert("No route found for:", shopCoords);
+      setDistanceLoading(false);
       return { distance: null, duration: null };
     }
-
+    setDistanceLoading(false);
     return {
-      distance: (route.distance / 1000).toFixed(2), // km
-      duration: (route.duration / 60).toFixed(0), // minutes
+      distance: (route.distance / 1000).toFixed(2), 
+      duration: (route.duration / 60).toFixed(0), 
     };
   }
 
   const findShopDistance = async (shopId) => {
+    setDistanceLoading(true);
     const shop = shopWithShopKepper.find((shop) => shop.shop._id === shopId);
     if (!shop || !shop.shop.location?.coordinates || !coordinates) return null;
 
@@ -211,12 +216,13 @@ function Cart({ cartData, setUpdateAppjs, areaName, setCartData }) {
     console.log("UserCords", userCoords);
 
     const distance = await getDistance(userCoords, shopCoords);
+    setDistanceLoading(false);
     return distance.distance; // km
   };
   const [totalDistance, setTotalDistance] = useState(0);
   const [shopDistances, setShopDistances] = useState({});
-
   const fetchAllDistances = async () => {
+    setDistanceLoading(true);
     if (!coordinates || !groupedCart.length) return;
 
     let total = 0;
@@ -227,10 +233,17 @@ function Cart({ cartData, setUpdateAppjs, areaName, setCartData }) {
       distances[shop.shopId] = dist;
       total += Number(dist) || 0;
     }
-
+    setDistanceLoading(false);
     setShopDistances(distances);
-    setTotalDistance(total.toFixed(2));
+    setTotalDistance(total.toFixed(2) || 5);
   };
+
+useEffect(()=>{
+if(orderSummaryModal){
+    
+  fetchAllDistances();
+}
+},[orderSummaryModal])
 
   // e.g., "28.97"
   function getRateByTime() {
@@ -305,119 +318,121 @@ function Cart({ cartData, setUpdateAppjs, areaName, setCartData }) {
     return `CHK-${firstLetter}${lastPhoneDigit}${randomDigit}-${randomThree}`;
   };
 
+  const sendNotificationToUser = async (checkoutId) => {
+    const payload = {
+      type: "success",
+      message: "Your order has been placed under checkout id",
+      checkoutId,
+      userId: user._id,
+    };
 
-const sendNotificationToUser = async (checkoutId) => {
-  const payload = {
-    type: "success",
-    message: "Your order has been placed under checkout id",
-    checkoutId,
-    userId: user._id,
+    try {
+      const res = await axios.post(
+        "https://hazir-hay-backend.vercel.app/notification/addNotification",
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
+      if (res.data.success) {
+        console.log(" Notification sent:", res.data.data);
+      }
+    } catch (error) {
+      console.error("Error sending notification:", error);
+    }
+  };
+  const sendNotificationToProviders = async (requests) => {
+    const notifications = requests.map((req) => ({
+      type: "newOrder",
+      message: `You have received a new order of <b>${req.subCategory}</b> (${req.category}) under order id <b>${req.orderId}</b>`,
+      shopId: req.shopId,
+    }));
+
+    try {
+      const res = await axios.post(
+        "https://hazir-hay-backend.vercel.app/notification/sendBulkNotification",
+        { notifications },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
+      if (res.data.success) {
+        console.log(" Notification sent:", res.data.requests);
+      }
+    } catch (error) {
+      console.error(" Error sending notification:", error);
+    }
   };
 
-  try {
-    const res = await axios.post("https://hazir-hay-backend.vercel.app/notification/addNotification", payload, {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`, 
-      },
-    });
+  const sendRequestAll = async () => {
+    setLoading(true);
+    const newcheckoutId = generateCheckoutId();
+    setCheckoutId(newcheckoutId);
 
-    if (res.data.success) {
-      console.log(" Notification sent:", res.data.data);
-    }
-  } catch (error) {
-    console.error("Error sending notification:", error);
-  }
-};
-const sendNotificationToProviders = async (requests) => {
-  const notifications = requests.map((req) => ({
-    type: "newOrder",
-    message: `You have received a new order of <b>${req.subCategory}</b> (${req.category}) under order id <b>${req.orderId}</b>`, 
-    shopId: req.shopId,
-  }));
-
-  try {
-    const res = await axios.post(
-      "https://hazir-hay-backend.vercel.app/notification/sendBulkNotification",
-      { notifications },
-      {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+    const requests = cartData?.items?.map((shop) => ({
+      checkoutId: newcheckoutId,
+      shopId: shop.shopId,
+      userId: user?._id,
+      category: shop.category,
+      subCategory: shop.subCategory,
+      orderId: generateOrderId(),
+      cost: shop.price,
+      location: [
+        {
+          coordinates,
+          area: areaName || "Unknown Area",
         },
-      }
-    );
-
-    if (res.data.success) {
-      console.log(" Notification sent:", res.data.requests);
-    }
-  } catch (error) {
-    console.error(" Error sending notification:", error);
-  }
-};
-
-const sendRequestAll = async () => {
-  setLoading(true);
-  const newcheckoutId = generateCheckoutId();
-  setCheckoutId(newcheckoutId);
-
-  const requests = cartData?.items?.map((shop) => ({
-    checkoutId: newcheckoutId,
-    shopId: shop.shopId,
-    userId: user?._id,
-    category: shop.category,
-    subCategory: shop.subCategory,
-    orderId: generateOrderId(), 
-    cost: shop.price,
-    location: [
-      {
-        coordinates,
-        area: areaName || "Unknown Area",
+      ],
+      serviceCharges: {
+        rate,
+        distance: shopDistances[shop.shopId] || 0,
       },
-    ],
-    serviceCharges: {
-      rate,
-      distance: shopDistances[shop.shopId] || 0,
-    },
-  }));
+    }));
 
-  try {
-    console.log("Payload (requests):", requests);
+    try {
+      console.log("Payload (requests):", requests);
 
-    const response = await axios.post(
-      "https://hazir-hay-backend.vercel.app/requests/sendBulkRequests",
-      { requests },
-      {
-        headers: { Authorization: `Bearer ${token}` },
-        params: { t: Date.now() },
-      }
-    );
-
-    if (response.data.success) {
-      await sendNotificationToProviders(requests);
-
-      await sendNotificationToUser(checkoutId || newcheckoutId);
-      setLoading(false);
-      alert(response?.data?.message || "Request sent successfully!");
-      setPostOrderModal(true);
-      setOrderSummaryModal(false);
-    }
-  } catch (error) {
-    console.error("❌ Error sending request:", error);
-    setLoading(false);
-
-    if (error.response) {
-      alert(
-        `Failed: ${
-          error.response.data?.message || "Server returned an error"
-        }`
+      const response = await axios.post(
+        "https://hazir-hay-backend.vercel.app/requests/sendBulkRequests",
+        { requests },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          params: { t: Date.now() },
+        }
       );
-    } else if (error.request) {
-      alert("Network error. Please check your internet connection.");
-    } else {
-      alert("Unexpected error. Please try again.");
-    }
-  }
-};
 
+      if (response.data.success) {
+        await sendNotificationToProviders(requests);
+
+        await sendNotificationToUser(checkoutId || newcheckoutId);
+        setLoading(false);
+        alert(response?.data?.message || "Request sent successfully!");
+        setPostOrderModal(true);
+        setOrderSummaryModal(false);
+      }
+    } catch (error) {
+      console.error("❌ Error sending request:", error);
+      setLoading(false);
+
+      if (error.response) {
+        alert(
+          `Failed: ${
+            error.response.data?.message || "Server returned an error"
+          }`
+        );
+      } else if (error.request) {
+        alert("Network error. Please check your internet connection.");
+      } else {
+        alert("Unexpected error. Please try again.");
+      }
+    }
+  };
 
   const clearCart = async (type) => {
     if (type === "clear") {
@@ -771,31 +786,43 @@ const sendRequestAll = async () => {
                       <h6 className="mb-0 text-muted">Subtotal</h6>
                       <h4 className="text-primary fw-bold">Rs. {subTotal}</h4>
                     </div>
-                  {
-                    totalDistance !== 0 && (
-                        <button
-                      type="button"
-                      className="btn btn-success  rounded-pill "
-                      onClick={sendRequestAll}
-                      disabled={loading}
-                    >
-                      {loading ? (
-                        <>
-                          Proceeding...
-                          <div
-                            className="spinner-border spinner-border-sm text-light ms-2"
-                            role="status"
-                          ></div>
-                        </>
-                      ) : (
-                        <>
-                          Proceed to Checkout{" "}
-                          <i className="fa-solid fa-angles-right ms-1"></i>
-                        </>
-                      )}
-                    </button>
-                    )
-                  }
+                    {distanceLoading ? (
+                      <button
+                        type="button"
+                        className="btn btn-success  rounded-pill "
+                        disabled={distanceLoading}
+                      >
+                             <>
+                wait calculating distance...
+                <div
+                  className="spinner-border spinner-border-sm text-light ms-2"
+                  role="status"
+                ></div>
+              </>
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        className="btn btn-success  rounded-pill "
+                        onClick={sendRequestAll}
+                        disabled={loading}
+                      >
+                        {loading ? (
+                          <>
+                            Proceeding...
+                            <div
+                              className="spinner-border spinner-border-sm text-light ms-2"
+                              role="status"
+                            ></div>
+                          </>
+                        ) : (
+                          <>
+                            Proceed to Checkout{" "}
+                            <i className="fa-solid fa-angles-right ms-1"></i>
+                          </>
+                        )}
+                      </button>
+                    )}
                   </>
                 )}
               </div>

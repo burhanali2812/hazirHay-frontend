@@ -92,10 +92,10 @@ function Notification({ notification, onDelete }) {
             ></i>
 
             {/* Message */}
-            <div className="flex-grow-1 ms-3 d-flex flex-column justify-content-center">
+            <div className="flex-grow-1 ms-3 d-flex flex-column justify-content-center mt-1">
              <p>
   {notifi.message}{" "}
-  <strong>{notifi.checkoutId}</strong>
+  <b>{notifi.checkoutId}</b>
 </p>
             </div>
 
@@ -115,7 +115,7 @@ function Notification({ notification, onDelete }) {
           {/* Date */}
           <small
             className="text-muted text-end me-4 mb-2"
-            style={{ marginTop: "-15px" }}
+            style={{ marginTop: "-19px" }}
           >
             {new Date(notifi.createdAt).toLocaleString()}
           </small>
