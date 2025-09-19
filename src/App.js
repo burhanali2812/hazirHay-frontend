@@ -143,8 +143,9 @@ function App() {
     }
   }
 
- const deleteNotification = async (id) => {
-  
+const deleteNotification = async (id) => {
+  // update UI immediately (optimistic update)
+  setNotification((prev) => prev.filter((notify) => notify._id !== id));
 
   try {
     const response = await axios.delete(
@@ -156,13 +157,17 @@ function App() {
     );
 
     if (response.data.success) {
-      alert("Notification deleted successfully");
-      getNotifications(); // optional refresh
+      //alert("Notification deleted successfully");
+      // optional: refresh from server
+       getNotifications();
     }
   } catch (error) {
     console.error(error);
+    // rollback UI if deletion fails
+    getNotifications();
   }
 };
+
 
   const getCartData = async () => {
     try {

@@ -309,7 +309,8 @@ function Cart({ cartData, setUpdateAppjs, areaName, setCartData }) {
 const sendNotificationToUser = async (checkoutId) => {
   const payload = {
     type: "success",
-    message: `Your order has been placed under checkout id <b>${checkoutId}</b>`,
+    message: "Your order has been placed under checkout id",
+    checkoutId,
     userId: user._id,
   };
 

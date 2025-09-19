@@ -6,6 +6,7 @@ import {
   TrailingActions,
 } from "react-swipeable-list";
 import "react-swipeable-list/dist/styles.css";
+import notify from "../images/notify.png"
 
 function Notification({ notification, onDelete }) {
   const iconsList = {
@@ -29,11 +30,9 @@ function Notification({ notification, onDelete }) {
       <SwipeAction
         destructive={true}
         onClick={() => {
-          if (
-            window.confirm("Are you sure you want to delete this notification?")
-          ) {
+    
             onDelete(id);
-          }
+       
         }}
       >
         <div
@@ -52,7 +51,9 @@ function Notification({ notification, onDelete }) {
         Notifications{" "}
         <span className="badge bg-secondary">{notification.length}</span>
       </h5>
-      <div className="container">
+    {
+        notification.length > 0 ? (
+              <div className="container">
         <div className="text-center mt-1 mb-3">
           <span
             style={{
@@ -92,7 +93,10 @@ function Notification({ notification, onDelete }) {
 
             {/* Message */}
             <div className="flex-grow-1 ms-3 d-flex flex-column justify-content-center">
-              <p className="mb-1 fw-medium">{notifi.message}</p>
+             <p>
+  {notifi.message}{" "}
+  <strong>{notifi.checkoutId}</strong>
+</p>
             </div>
 
             {/* Delete button (desktop) */}
@@ -122,6 +126,29 @@ function Notification({ notification, onDelete }) {
 </SwipeableList>
 
       </div>
+        ):( 
+             <div
+                          className="d-flex flex-column justify-content-center align-items-center text-center"
+                          style={{ height: "75vh" }}
+                        >
+                          <img
+                            src={notify}
+                            alt="No Data"
+                            className="mb-3"
+                            style={{ width: "180px", height: "auto" }}
+                          />
+                          <h4 className="fw-bold text-warning mb-2">No Notifications Found</h4>
+                          <p
+                            className="text-muted"
+                            style={{ maxWidth: "380px", fontSize: "15px" }}
+                          >
+                            Currently, there are no notifications. Please check back
+                            later or refresh the page.
+                          </p>
+                        </div>
+
+        )
+    }
     </div>
   );
 }
