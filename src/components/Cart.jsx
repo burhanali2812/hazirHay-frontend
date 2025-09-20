@@ -219,31 +219,49 @@ function Cart({ cartData, setUpdateAppjs, areaName, setCartData }) {
   const [totalDistance, setTotalDistance] = useState(0);
   const [shopDistances, setShopDistances] = useState({});
 
- // fetchAllDistances will handle opening modal itself
-const fetchAllDistances = async () => {
-  if (!coordinates || !groupedCart.length) {
-    console.log("no coordinates or cart yet");
-    return;
-  }
+  // fetchAllDistances will handle opening modal itself
+  const fetchAllDistances = async () => {
+    try {
+      let total = 0;
+      const distances = {};
 
-  setDistanceLoading(true);
-  let total = 0;
-  const distances = {};
+      for (const shop of groupedCart) {
+        const dist = await findShopDistance(shop.shopId);
+        console.log("Fetched distance for shop:", shop.shopId, dist);
+        distances[shop.shopId] = dist || 0;
+        total += Number(dist) || 0;
+      }
 
-  for (const shop of groupedCart) {
-    const dist = await findShopDistance(shop.shopId);
-    distances[shop.shopId] = dist || 0;
-    total += Number(dist) || 0;
-  }
+      setShopDistances(distances);
+      setTotalDistance(total.toFixed(2));
 
-  setShopDistances(distances);
-  setTotalDistance(total.toFixed(2));
-  setDistanceLoading(false);
+      // return true if we got at least one distance
+      return Object.values(distances).some((d) => d > 0);
+    } catch (error) {
+      console.error("Error calculating distances:", error);
+      return false;
+    }
+  };
 
-  // ✅ open modal only when distances are ready
-  setOrderSummaryModal(true);
-};
+  const handleNext = async () => {
+     setDistanceLoading(true);
+    if (!coordinates[0] || !coordinates[1]|| groupedCart.length === 0) {
+      alert("Please wait, location or cart not ready yet...");
+      return;
+    }
 
+    setDistanceLoading(true);
+
+    const success = await fetchAllDistances(); // wait until calculation done
+
+    setDistanceLoading(false);
+
+    if (success) {
+      setOrderSummaryModal(true); // ✅ open modal only after distance is ready
+    } else {
+      alert("Could not calculate distance, please try again.");
+    }
+  };
 
   // e.g., "28.97"
   function getRateByTime() {
@@ -619,22 +637,19 @@ const fetchAllDistances = async () => {
                 <button
                   type="button"
                   className="btn btn-success px-4 rounded-pill shadow-sm"
-                  onClick={fetchAllDistances}
                   disabled={distanceLoading}
+                  onClick={handleNext}
                 >
-                 {
-                  distanceLoading ? (
+                  {distanceLoading ? (
                     <>
-                Loading...
-                <div
-                  className="spinner-border spinner-border-sm text-light ms-2"
-                  role="status"
-                ></div>
-              </>
-                  ):(<>
-                   Next <i className="fa-solid fa-angles-right ms-"></i>
-                  </>)
-                 }
+                      <span className="spinner-border spinner-border-sm me-2"></span>
+                      Loading...
+                    </>
+                  ) : (
+                    <>
+                      Next <i className="fa-solid fa-angles-right ms-"></i>
+                    </>
+                  )}
                 </button>
               )}
             </div>
