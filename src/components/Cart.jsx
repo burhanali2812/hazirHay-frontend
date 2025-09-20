@@ -244,24 +244,29 @@ function Cart({ cartData, setUpdateAppjs, areaName, setCartData }) {
   };
 
   const handleNext = async () => {
-     setDistanceLoading(true);
-    if (!coordinates[0] || !coordinates[1]|| groupedCart.length === 0) {
-      alert("Please wait, location or cart not ready yet...");
-      return;
-    }
+  setDistanceLoading(true);
 
-    setDistanceLoading(true);
+  let success = await fetchAllDistances();
 
-    const success = await fetchAllDistances(); // wait until calculation done
-
+  if (success) {
+    setOrderSummaryModal(true);
     setDistanceLoading(false);
+    return;
+  }
 
+  // ⏳ Retry after 2 seconds
+  console.log("Retrying distance fetch in 2 seconds...");
+  setTimeout(async () => {
+    success = await fetchAllDistances();
     if (success) {
-      setOrderSummaryModal(true); // ✅ open modal only after distance is ready
+      setOrderSummaryModal(true);
     } else {
-      alert("Wait for 2-3 seconds and try again, we are fetching distance...");
+      alert("Could not fetch distance. Please try again.");
     }
-  };
+    setDistanceLoading(false);
+  }, 2000);
+};
+
 
   // e.g., "28.97"
   function getRateByTime() {

@@ -20,6 +20,7 @@ import Cart from "./components/Cart";
 import Tracking from "./components/Tracking";
 import FindShops from "./pages/FindShops";
 import Notification from "./pages/Notification";
+import ContactUs from "./pages/ContactUs";
 
 function App() {
   const [topText, setTopText] = useState("");
@@ -238,6 +239,7 @@ const deleteNotification = async (id) => {
               setUpdate={setUpdate}
               setShopKepperStatus={setShopKepperStatus}
               unSeenNotification={unSeenNotification} onUpdate = {updateNotification}
+              cartData={cartData}
             />
           }
         >
@@ -329,6 +331,7 @@ const deleteNotification = async (id) => {
           />
           <Route path="user/findShops" element={<FindShops />} />
           <Route path="user/notification" element={<Notification notification={notification} onDelete={deleteNotification}/>} />
+          <Route path="user/contact" element={<ContactUs />} />
         </Route>
       </Routes>
     </>

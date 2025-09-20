@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, Outlet } from "react-router-dom";
 import "./adminFooter.css";
 
-function AdminFooter({ topText, setUpdate, setShopKepperStatus , unSeenNotification, onUpdate}) {
+function AdminFooter({ topText, setUpdate, setShopKepperStatus , unSeenNotification, onUpdate, cartData}) {
   const navigate = useNavigate();
   const [active, setActive] = useState(localStorage.getItem("key") || "home");
   const [showOffcanvas, setShowOffcanvas] = useState(false);
@@ -206,7 +206,7 @@ function AdminFooter({ topText, setUpdate, setShopKepperStatus , unSeenNotificat
         key: "contact",
         icon: "fa-solid fa-address-book",
         label: "Contact Us",
-        path: "/admin/user/tracking",
+        path: "/admin/user/contact",
       },
       {
         key: "about",
@@ -337,25 +337,39 @@ function AdminFooter({ topText, setUpdate, setShopKepperStatus , unSeenNotificat
     }
     style={{ cursor: "pointer" }}
   >
-    {item.key === "notification" ? (
-      <>
-        <i className={item.icon} onClick={onUpdate}></i>
-      {
-        unSeenNotification.length !== 0 && (
-            <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger  me-3" style={{marginLeft : "-20px", marginTop: "2px"}}>
-          {unSeenNotification.length}
+ {item.key === "notification" ? (
+  <>
+    <div className="position-relative d-inline-block" onClick={onUpdate}>
+      <i className={item.icon}></i>
+      {unSeenNotification?.length !== 0 && (
+        <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+          {unSeenNotification?.length}
           <span className="visually-hidden">unread messages</span>
         </span>
-        )
-      }
-      <small className="d-block" onClick={onUpdate}>{item.label}</small>
-      </>
-    ) : (
-     <>
-      <i className={item.icon} ></i>
-      <small className="d-block">{item.label}</small>
-     </>
-    )}
+      )}
+    </div>
+    <small className="d-block" onClick={onUpdate}>
+      {item.label}
+    </small>
+  </>
+) : item.key === "cart" ? (
+  <>
+    <div className="position-relative d-inline-block">
+      <i className={item.icon}></i>
+      <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+        {cartData?.items?.length || 0}
+        <span className="visually-hidden">unread messages</span>
+      </span>
+    </div>
+    <small className="d-block">{item.label}</small>
+  </>
+) : (
+  <>
+    <i className={item.icon}></i>
+    <small className="d-block">{item.label}</small>
+  </>
+)}
+
     
   </span>
 ))}
