@@ -295,6 +295,7 @@ const deleteNotification = async (id) => {
               <ShopkepperRequests
                 shopKepperStatus={shopKepperStatus}
                 refreshFlag={refreshFlag}
+                setRefreshFlag = {setRefreshFlag}
               />
             }
           />
@@ -303,7 +304,6 @@ const deleteNotification = async (id) => {
             element={
               <UserDashboard
                 setUpdateAppjs={setUpdateAppjs}
-                onRequestAdded={handleRequestAdded}
                 cartData={cartData}
                 areaName={areaName}
                 setAreaName={setAreaName}
@@ -318,6 +318,7 @@ const deleteNotification = async (id) => {
             element={
               <Cart
                 cartData={cartData}
+                setRefreshFlag ={setRefreshFlag}
                 setUpdateAppjs={setUpdateAppjs}
                 areaName={areaName}
                 coordinates={coordinates}

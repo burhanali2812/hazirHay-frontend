@@ -7,7 +7,7 @@ import stamp from "../images/stamp.png";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 
-function Cart({ cartData, setUpdateAppjs, areaName, setCartData }) {
+function Cart({ cartData, setUpdateAppjs, areaName, setCartData, setRefreshFlag }) {
   // safely get items
 
   const navigate = useNavigate();
@@ -435,6 +435,7 @@ function Cart({ cartData, setUpdateAppjs, areaName, setCartData }) {
 
         await sendNotificationToUser(checkoutId || newcheckoutId);
         setLoading(false);
+        setRefreshFlag(true)
         alert(response?.data?.message || "Request sent successfully!");
         setPostOrderModal(true);
         setOrderSummaryModal(false);

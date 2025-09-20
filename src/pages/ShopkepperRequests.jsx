@@ -3,7 +3,7 @@ import offline from "../images/offline.png";
 import axios from "axios";
 
 import noData from "../images/noData.png";
-function ShopkepperRequests({ refreshFlag }) {
+function ShopkepperRequests({ refreshFlag, setRefreshFlag }) {
   const shopKepperStatus = JSON.parse(localStorage.getItem("shopKepperStatus"));
   const user = JSON.parse(sessionStorage.getItem("user"));
   const [requests, setRequests] = useState([]);
@@ -43,6 +43,8 @@ function ShopkepperRequests({ refreshFlag }) {
 
       if (response.data.success) {
         setRequests(response.data.data || []);
+        console.log("request fetch", response.data.data);
+
         if (refreshFlag) {
           alert("New Request Added");
         }
@@ -61,86 +63,133 @@ function ShopkepperRequests({ refreshFlag }) {
 
   useEffect(() => {
     getShopData();
+    fetchRequests();
   }, []);
 
   useEffect(() => {
-    fetchRequests();
+    if (refreshFlag) {
+      fetchRequests();
+      setRefreshFlag(false);
+    }
   }, [refreshFlag]);
+
+  const groupedData = requests?.reduce((acc, order) => {
+    const { checkoutId } = order;
+
+    if (!acc[checkoutId]) {
+      acc[checkoutId] = {
+        checkoutId,
+        orders: [],
+        totalCost: 0,
+      };
+    }
+
+    // Push the order into the orders array
+    acc[checkoutId].orders.push(order);
+
+    // Add up the cost
+    acc[checkoutId].totalCost += order.cost;
+
+    return acc;
+  }, {});
+
+  // Convert object into array if needed
+  const result = Object.values(groupedData);
+
+  console.log(result);
 
   return (
     <div className="container">
       {shopKepperStatus ? (
         <>
-          {requests.length !== 0 ? (
-            <div className="row g-4">
-              {requests.filter(Boolean).map((userData, index) => (
-                <div className="col-lg-4 col-md-6" key={index}>
-                  <div className="card border-0 shadow h-100 rounded-3">
-                    <div className="card-body">
-                      {/* Profile + Info */}
-                      <div className="d-flex align-items-center mb-3">
-                        <div
-                          className="rounded-circle border flex-shrink-0 d-flex align-items-center justify-content-center bg-light"
-                          style={{
-                            width: "80px",
-                            height: "80px",
-                            overflow: "hidden",
-                          }}
-                        >
-                          <img
-                            src={userData?.user?.profilePicture}
-                            alt="Shop"
-                            style={{
-                              objectFit: "cover",
-                              width: "100%",
-                              height: "100%",
-                            }}
-                          />
-                        </div>
-                        <div className="ms-3">
-                          <h6 className="mb-1 fw-bold text-dark">
-                            <i className="fa-solid fa-user text-primary me-2"></i>
-                            {userData?.user?.name}
-                          </h6>
-                          <p className="mb-1 small text-muted">
-                            <i className="fa-solid fa-phone text-primary me-2"></i>
-                            {userData?.user?.phone}
-                          </p>
-                          <p className="mb-1 small text-muted">
-                            category
-                            {userData?.category}
-                          </p>
-                          <p className="mb-1 small text-muted">
-                            SubCategory
-                            {userData?.subcategory}
-                          </p>
-                        </div>
-                      </div>
+          {result.length !== 0 ? (
+  <div className="row g-4">
+  {result.map((checkoutGroup, index) => {
+    const totalDistance = checkoutGroup.orders[0]?.serviceCharges?.distance || 0; 
+    const rate = checkoutGroup.orders[0]?.serviceCharges?.rate || 0;
+    const serviceCharges = rate * totalDistance;
+    const totalOrdersCost = checkoutGroup.totalCost;
+    const grandTotal = totalOrdersCost + serviceCharges;
 
-                      {/* Divider */}
-                      <hr className="my-3" />
+    return (
+      <div className="col-lg-4 col-md-6" key={index}>
+        <div className="card border-0 shadow h-100 rounded-3">
+          <div className="card-body">
+            {/* Checkout ID */}
+            <h5 className="fw-bold text-primary mb-3">
+              Checkout: {checkoutGroup.checkoutId}
+            </h5>
 
-                      <div className="d-flex justify-content-between gap-1">
-                        <button className="btn btn-success btn-sm flex-grow-1">
-                          <i class="fa-solid fa-circle-check me-1"></i>
-                          Accept
-                        </button>
+            {/* User Info */}
+            <div className="d-flex align-items-center mb-3">
+              <div
+                className="rounded-circle border flex-shrink-0 d-flex align-items-center justify-content-center bg-light"
+                style={{ width: "55px", height: "55px", overflow: "hidden" }}
+              >
+                <img
+                  src={checkoutGroup?.orders[0].userId?.profilePicture}
+                  alt={checkoutGroup?.orders[0].userId?.name}
+                  className="img-fluid rounded-circle"
+                />
+              </div>
+              <div className="ms-3">
+                <h6 className="mb-1">{checkoutGroup?.orders[0].userId?.name}</h6>
+                <small className="text-muted">
+                  {checkoutGroup?.orders[0].userId?.phone}
+                </small>
+              </div>
+            </div>
 
-                        <button className="btn btn-danger btn-sm flex-grow-1">
-                          <i class="fa-solid fa-trash me-1"></i>
-                          Delete
-                        </button>
+            {/* Summary */}
+            <p className="mb-1">
+              <strong>Total Orders:</strong> {checkoutGroup.orders.length}
+            </p>
+            <p className="mb-3">
+              <strong>Total Distance:</strong> {totalDistance.toFixed(2)} km
+            </p>
 
-                        <button className="btn btn-info btn-sm flex-grow-1 text-white">
-                          <i class="fa-solid fa-circle-info me-1"></i>
-                          Details
-                        </button>
-                      </div>
-                    </div>
-                  </div>
+            {/* Orders List */}
+            <div className="mb-3">
+              <h6 className="fw-bold">Orders:</h6>
+              {checkoutGroup.orders.map((order, i) => (
+                <div
+                  key={i}
+                  className="d-flex justify-content-between border-bottom py-1 small"
+                >
+                  <span className="text-muted">
+                    {order.category} - {order.subCategory}
+                  </span>
+                  <span className="fw-semibold text-success">
+                    {order.cost}/-
+                  </span>
                 </div>
               ))}
             </div>
+
+            {/* Service Charges & Totals */}
+            <div className="border-top pt-2">
+              <p className="mb-1 small">
+                <strong>Service Charges:</strong> {rate} × {totalDistance.toFixed(2)} km ={" "}
+                <span className="fw-bold">{serviceCharges.toFixed(0)} PKR</span>
+              </p>
+              <div className="d-flex justify-content-between">
+                              <h6 className="fw-bold  text-primary mt-1">
+                Grand Total: {grandTotal.toFixed(0)}/-
+              </h6>
+              <button className="btn btn-success btn-sm rounded-pill">View Details<i className="fa-solid fa-angles-right ms-1"></i> </button>
+                </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  })}
+</div>
+
+
+
+
+
           ) : (
             <div
               className="d-flex flex-column justify-content-center align-items-center text-center"

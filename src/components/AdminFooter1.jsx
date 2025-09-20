@@ -126,7 +126,7 @@ function AdminFooter({ topText, setUpdate, setShopKepperStatus , unSeenNotificat
         key: "notification",
         icon: "fa-solid fa-bell",
         label: "Notifications",
-        action: () => alert("Notifications"),
+        path: "/admin/user/notification",
       },
       {
         key: "setting",
@@ -292,9 +292,7 @@ function AdminFooter({ topText, setUpdate, setShopKepperStatus , unSeenNotificat
                   </>
                 )}
               </button>
-              <button className="btn btn-primary" onClick={logOut}>
-                Log Out
-              </button>
+              
             </>
           ) : (
             <div className="d-flex gap-2">
