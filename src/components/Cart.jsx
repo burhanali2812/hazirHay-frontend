@@ -259,7 +259,7 @@ function Cart({ cartData, setUpdateAppjs, areaName, setCartData }) {
     if (success) {
       setOrderSummaryModal(true); // ✅ open modal only after distance is ready
     } else {
-      alert("Could not calculate distance, please try again.");
+      alert("Wait for 2-3 seconds and try again, we are fetching distance...");
     }
   };
 
