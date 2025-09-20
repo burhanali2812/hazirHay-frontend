@@ -194,8 +194,8 @@ function Cart({ cartData, setUpdateAppjs, areaName, setCartData }) {
     }
     setDistanceLoading(false);
     return {
-      distance: (route.distance / 1000).toFixed(2), 
-      duration: (route.duration / 60).toFixed(0), 
+      distance: (route.distance / 1000).toFixed(2),
+      duration: (route.duration / 60).toFixed(0),
     };
   }
 
@@ -221,9 +221,13 @@ function Cart({ cartData, setUpdateAppjs, areaName, setCartData }) {
   };
   const [totalDistance, setTotalDistance] = useState(0);
   const [shopDistances, setShopDistances] = useState({});
+
   const fetchAllDistances = async () => {
     setDistanceLoading(true);
-    if (!coordinates || !groupedCart.length) return;
+    if (!coordinates || !groupedCart.length) {
+      console.log("no coordinates ");
+      return;
+    }
 
     let total = 0;
     const distances = {};
@@ -237,13 +241,6 @@ function Cart({ cartData, setUpdateAppjs, areaName, setCartData }) {
     setShopDistances(distances);
     setTotalDistance(total.toFixed(2) || 5);
   };
-
-useEffect(()=>{
-if(orderSummaryModal){
-    
-  fetchAllDistances();
-}
-},[orderSummaryModal])
 
   // e.g., "28.97"
   function getRateByTime() {
@@ -619,12 +616,25 @@ if(orderSummaryModal){
                 <button
                   type="button"
                   className="btn btn-success px-4 rounded-pill shadow-sm"
-                  onClick={() => {
-                    setOrderSummaryModal(true);
-                    fetchAllDistances();
+                  onClick={async () => {
+                    await fetchAllDistances(); // calculate first
+                    setOrderSummaryModal(true); // then show modal
                   }}
+                  disabled={distanceLoading}
                 >
-                  Next <i className="fa-solid fa-angles-right ms-"></i>
+                 {
+                  distanceLoading ? (
+                    <>
+                Loading...
+                <div
+                  className="spinner-border spinner-border-sm text-light ms-2"
+                  role="status"
+                ></div>
+              </>
+                  ):(<>
+                   Next <i className="fa-solid fa-angles-right ms-"></i>
+                  </>)
+                 }
                 </button>
               )}
             </div>
@@ -786,43 +796,28 @@ if(orderSummaryModal){
                       <h6 className="mb-0 text-muted">Subtotal</h6>
                       <h4 className="text-primary fw-bold">Rs. {subTotal}</h4>
                     </div>
-                    {distanceLoading ? (
-                      <button
-                        type="button"
-                        className="btn btn-success  rounded-pill "
-                        disabled={distanceLoading}
-                      >
-                             <>
-                wait calculating distance...
-                <div
-                  className="spinner-border spinner-border-sm text-light ms-2"
-                  role="status"
-                ></div>
-              </>
-                      </button>
-                    ) : (
-                      <button
-                        type="button"
-                        className="btn btn-success  rounded-pill "
-                        onClick={sendRequestAll}
-                        disabled={loading}
-                      >
-                        {loading ? (
-                          <>
-                            Proceeding...
-                            <div
-                              className="spinner-border spinner-border-sm text-light ms-2"
-                              role="status"
-                            ></div>
-                          </>
-                        ) : (
-                          <>
-                            Proceed to Checkout{" "}
-                            <i className="fa-solid fa-angles-right ms-1"></i>
-                          </>
-                        )}
-                      </button>
-                    )}
+
+                    <button
+                      type="button"
+                      className="btn btn-success  rounded-pill "
+                      onClick={sendRequestAll}
+                      disabled={loading}
+                    >
+                      {loading ? (
+                        <>
+                          Proceeding...
+                          <div
+                            className="spinner-border spinner-border-sm text-light ms-2"
+                            role="status"
+                          ></div>
+                        </>
+                      ) : (
+                        <>
+                          Proceed to Checkout{" "}
+                          <i className="fa-solid fa-angles-right ms-1"></i>
+                        </>
+                      )}
+                    </button>
                   </>
                 )}
               </div>
