@@ -174,7 +174,6 @@ function Cart({ cartData, setUpdateAppjs, areaName, setCartData }) {
   };
 
   async function getDistance(userCoords, shopCoords) {
-    setDistanceLoading(true);
     console.log("shopCoordsdd", shopCoords);
 
     if (!shopCoords || shopCoords.length < 2)
@@ -189,10 +188,10 @@ function Cart({ cartData, setUpdateAppjs, areaName, setCartData }) {
     if (!res.data.routes || res.data.routes.length === 0) {
       console.warn("No route found for:", shopCoords);
       alert("No route found for:", shopCoords);
-      setDistanceLoading(false);
+
       return { distance: null, duration: null };
     }
-    setDistanceLoading(false);
+
     return {
       distance: (route.distance / 1000).toFixed(2),
       duration: (route.duration / 60).toFixed(0),
@@ -200,7 +199,6 @@ function Cart({ cartData, setUpdateAppjs, areaName, setCartData }) {
   }
 
   const findShopDistance = async (shopId) => {
-    setDistanceLoading(true);
     const shop = shopWithShopKepper.find((shop) => shop.shop._id === shopId);
     if (!shop || !shop.shop.location?.coordinates || !coordinates) return null;
 
@@ -216,31 +214,36 @@ function Cart({ cartData, setUpdateAppjs, areaName, setCartData }) {
     console.log("UserCords", userCoords);
 
     const distance = await getDistance(userCoords, shopCoords);
-    setDistanceLoading(false);
     return distance.distance; // km
   };
   const [totalDistance, setTotalDistance] = useState(0);
   const [shopDistances, setShopDistances] = useState({});
 
-  const fetchAllDistances = async () => {
-    setDistanceLoading(true);
-    if (!coordinates || !groupedCart.length) {
-      console.log("no coordinates ");
-      return;
-    }
+ // fetchAllDistances will handle opening modal itself
+const fetchAllDistances = async () => {
+  if (!coordinates || !groupedCart.length) {
+    console.log("no coordinates or cart yet");
+    return;
+  }
 
-    let total = 0;
-    const distances = {};
+  setDistanceLoading(true);
+  let total = 0;
+  const distances = {};
 
-    for (const shop of groupedCart) {
-      const dist = await findShopDistance(shop.shopId);
-      distances[shop.shopId] = dist;
-      total += Number(dist) || 0;
-    }
-    setDistanceLoading(false);
-    setShopDistances(distances);
-    setTotalDistance(total.toFixed(2) || 5);
-  };
+  for (const shop of groupedCart) {
+    const dist = await findShopDistance(shop.shopId);
+    distances[shop.shopId] = dist || 0;
+    total += Number(dist) || 0;
+  }
+
+  setShopDistances(distances);
+  setTotalDistance(total.toFixed(2));
+  setDistanceLoading(false);
+
+  // ✅ open modal only when distances are ready
+  setOrderSummaryModal(true);
+};
+
 
   // e.g., "28.97"
   function getRateByTime() {
@@ -616,10 +619,7 @@ function Cart({ cartData, setUpdateAppjs, areaName, setCartData }) {
                 <button
                   type="button"
                   className="btn btn-success px-4 rounded-pill shadow-sm"
-                  onClick={async () => {
-                    await fetchAllDistances(); // calculate first
-                    setOrderSummaryModal(true); // then show modal
-                  }}
+                  onClick={fetchAllDistances}
                   disabled={distanceLoading}
                 >
                  {
