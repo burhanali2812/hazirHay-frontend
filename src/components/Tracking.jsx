@@ -313,7 +313,7 @@ function Tracking({ setUpdateAppjs }) {
         >
           <div className="modal-dialog modal-fullscreen modal-dialog-centered">
             <div className="modal-content border-0 shadow-lg rounded-4">
-              {/* HEADER */}
+
               <div className="modal-header border-0 bg-light">
                 <div className="d-flex align-items-center">
                   <i
@@ -357,12 +357,12 @@ function Tracking({ setUpdateAppjs }) {
                 >
                   {selectedShop && (
                     <>
-                      {/* SHOP NAME */}
+                      
                       <h3 className="fw-bold text-center text-primary mb-3">
                         {selectedShop?.shop?.shopName}
                       </h3>
 
-                      {/* ACTION BUTTONS */}
+                   
                       <div className="d-flex justify-content-center gap-2 flex-wrap mb-3">
                         <a
                           href={`tel:${selectedShop?.phone}`}

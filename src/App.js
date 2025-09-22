@@ -42,7 +42,7 @@ function App() {
     const user = JSON.parse(sessionStorage.getItem("user"));
 
   const handleRequestAdded = () => {
-    setRefreshFlag((prev) => !prev); // toggle flag to trigger re-fetch
+    setRefreshFlag((prev) => !prev); 
   };
 
   const getAllUser = async () => {

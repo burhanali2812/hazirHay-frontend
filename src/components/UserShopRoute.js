@@ -3,14 +3,27 @@ import mapboxgl from "mapbox-gl";
 import axios from "axios";
 
 mapboxgl.accessToken =
-  "pk.eyJ1Ijoic3llZGJ1cmhhbmFsaTI4MTIiLCJhIjoiY21mamM0NjZiMHg4NTJqczRocXhvdndiYiJ9.Z4l8EQQ47ejlWdVGcimn4A"; // put your token here
+  "pk.eyJ1Ijoic3llZGJ1cmhhbmFsaTI4MTIiLCJhIjoiY21mamM0NjZiMHg4NTJqczRocXhvdndiYiJ9.Z4l8EQQ47ejlWdVGcimn4A"; 
 
 export default function UserShopRoute({ userCoords, shopCoords, onRouteInfo , type}) {
+  
   const mapContainerRef = useRef(null);
   const mapRef = useRef(null);
 
   // ✅ Function to draw route & markers
   async function showRouteOnMap(map, userCoords, shopCoords) {
+    console.log("usercoorde by map", userCoords);
+    console.log("shopcoorde by map", shopCoords);
+    
+   if (!userCoords || userCoords.length !== 2){
+    console.log("no user coords");
+    
+   }
+if (!shopCoords || shopCoords.length !== 2) {
+  console.log("no shops coords");
+  
+}
+
     try {
       const url = `https://api.mapbox.com/directions/v5/mapbox/driving/${userCoords[0]},${userCoords[1]};${shopCoords[0]},${shopCoords[1]}?geometries=geojson&access_token=${mapboxgl.accessToken}`;
       const res = await axios.get(url);
@@ -84,7 +97,10 @@ new mapboxgl.Marker(shopEl)
     const map = new mapboxgl.Map({
       container: mapContainerRef.current,
       style: "mapbox://styles/mapbox/streets-v11",
-      center: userCoords || [73.0473, 33.6983],
+     center: userCoords && userCoords.length === 2 
+  ? userCoords 
+  : [73.0473, 33.6983],
+
       zoom: 12,
     });
 
@@ -96,7 +112,6 @@ new mapboxgl.Marker(shopEl)
 
 useEffect(() => {
   if (mapRef.current && userCoords && shopCoords) {
-    // wait until map style is loaded
     if (!mapRef.current.loaded()) {
       mapRef.current.once("load", () => {
         showRouteOnMap(mapRef.current, userCoords, shopCoords);
