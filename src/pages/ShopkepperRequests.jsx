@@ -8,16 +8,36 @@ function ShopkepperRequests({ refreshFlag, setRefreshFlag }) {
   const user = JSON.parse(sessionStorage.getItem("user"));
   const [requests, setRequests] = useState([]);
   const [shopKepperCords, setShopKepperCords] = useState([]);
+    const [acceptedOrders, setAcceptedOrders] = useState([]);
   const [selectedRequest, setSelectedRequest] = useState({});
   const [detailsModal, setDetailsModal] = useState(false);
   const [detailsModalLoading, setDetailsModalLoading] = useState(false);
+  const [declinedModal, setDEclinedModal] = useState(false);
   const [shop, setShop] = useState(null);
+  const [declineReason, setDeclineReason] = useState("");
   const [totalPrice, setTotalPrice] = useState({
     actualPrice: 0,
     charges: 0,
   });
   const [routeInfo, setRouteInfo] = useState(null);
+  const [declineOrder, setDeclineOrder] = useState(null);
   const token = localStorage.getItem("token");
+
+  const declineList = [
+    "Not available at requested time",
+    "Service area not covered",
+    "Insufficient details about the job",
+    "Emergency call — cannot handle at the moment",
+    "Customer unreachable / wrong contact number",
+    "Required parts or tools not available",
+    "Unsafe working conditions",
+    "Incorrect or incomplete address",
+  ];
+
+  const handleDeclineRequest = (order) => {
+    setDeclineOrder(order);
+    setDEclinedModal(true);
+  };
 
   useEffect(() => {
     function getShopkeeperLocation() {
@@ -56,7 +76,7 @@ function ShopkepperRequests({ refreshFlag, setRefreshFlag }) {
         `https://hazir-hay-backend.vercel.app/shops/shopData/${user._id}`,
         {
           headers: { Authorization: `Bearer ${token}` },
-          params: { t: Date.now() }, // Prevent caching
+          params: { t: Date.now() },
         }
       );
       if (response.data.success === true) {
@@ -113,23 +133,62 @@ function ShopkepperRequests({ refreshFlag, setRefreshFlag }) {
     }
   }, [refreshFlag]);
 
-  useEffect(()=>{
-    if(selectedRequest){
-     const totalAcceptedCost = selectedRequest?.orders?.reduce(
-  (sum, order) => order.status === "accepted" 
-    ? sum + Number(order.cost) 
-    : sum,
-  0
-) || 0;
+  useEffect(() => {
+    if (selectedRequest) {
+      const totalAcceptedCost =
+        selectedRequest?.orders?.reduce(
+          (sum, order) =>
+            order.status === "accepted" ? sum + Number(order.cost) : sum,
+          0
+        ) || 0;
 
       setTotalPrice((prev) => ({
-            ...prev, // keep other fields (like charges)
-            actualPrice: totalAcceptedCost,
-          }));
+        ...prev,
+        actualPrice: totalAcceptedCost,
+      }));
+      // Correct way
+const acceptedOrders = selectedRequest?.orders?.filter(
+  (order) => order.status === "accepted"
+);
+setAcceptedOrders(acceptedOrders);
+ 
     }
-  })
+  }, [selectedRequest]);
 
+  const sendNotificationToUser = async (order, type) => {
+    const finalType = type === "accept" ? "success" : "fail";
+    let finalMessage;
+    if (type === "accept") {
+      finalMessage = `Your order (${order?.orderId}) ${order?.subCategory} - ${order?.category} has been accepted under checkoutID `;
+    } else {
+      finalMessage = `Your order (${order?.orderId}) ${order?.subCategory} - ${order?.category} has been rejected due to "${declineReason}" under checkoutID`;
+    }
 
+    const payload = {
+      type: finalType,
+      message: finalMessage,
+      checkoutId: order.checkoutId,
+      userId: order.userId,
+    };
+
+    try {
+      const res = await axios.post(
+        "https://hazir-hay-backend.vercel.app/notification/addNotification",
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
+      if (res.data.success) {
+        console.log("Notification sent:", res.data.data);
+      }
+    } catch (error) {
+      console.error("Error sending notification:", error);
+    }
+  };
 
   const updateRequest = async (orderId, type) => {
     console.log(orderId, type);
@@ -157,17 +216,18 @@ function ShopkepperRequests({ refreshFlag, setRefreshFlag }) {
         );
         if (type === "accept" && order) {
           setTotalPrice((prev) => ({
-            ...prev, // keep other fields (like charges)
+            ...prev,
             actualPrice: prev.actualPrice + Number(order.cost),
           }));
         }
-         if (type !== "accept" && order) {
+        if (type !== "accept" && order) {
           setTotalPrice((prev) => ({
-            ...prev, // keep other fields (like charges)
+            ...prev,
             actualPrice: prev.actualPrice - Number(order.cost),
           }));
         }
         alert(`Order ${type === "accept" ? "Accepted" : "Rejected"}`);
+        sendNotificationToUser(declineOrder, "reject");
       }
     } catch (error) {
       console.error(
@@ -567,7 +627,8 @@ function ShopkepperRequests({ refreshFlag, setRefreshFlag }) {
                                         : "btn-outline-danger"
                                     } btn-sm rounded-pill px-3`}
                                     onClick={() =>
-                                      updateRequest(order._id, "decline")
+                                      // updateRequest(order._id, "decline")
+                                      handleDeclineRequest(order)
                                     }
                                     disabled={order.status === "rejected"}
                                   >
@@ -592,64 +653,148 @@ function ShopkepperRequests({ refreshFlag, setRefreshFlag }) {
                             No pending orders found
                           </p>
                         )}
-<div className="card shadow-sm border-0 mt-3">
-  {/* Title */}
-  <h5 className="text-center fw-bold text-primary mt-3 mb-3">
-    <i className="fa-solid fa-file-invoice-dollar me-2"></i> Billing Details
-  </h5>
+                        <div className="card shadow-sm border-0 mt-3">
+                          {/* Title */}
+                          <h5 className="text-center fw-bold text-primary mt-3 mb-3">
+                            <i className="fa-solid fa-file-invoice-dollar me-2"></i>{" "}
+                            Billing Details
+                          </h5>
 
-  {/* Billing Info */}
-  <ul className="list-group list-group-flush mb-3">
-    <li className="list-group-item d-flex justify-content-between align-items-center">
-      <span>
-        <i className="fa-solid fa-road me-2 text-secondary"></i> Total Distance
-      </span>
-      <span className="fw-semibold">{fixDistance} km</span>
-    </li>
+                          {/* Billing Info */}
+                          <ul className="list-group list-group-flush mb-3">
+                            <li className="list-group-item d-flex justify-content-between align-items-center">
+                              <span>
+                                <i className="fa-solid fa-road me-2 text-secondary"></i>{" "}
+                                Total Distance
+                              </span>
+                              <span className="fw-semibold">
+                                {fixDistance} km
+                              </span>
+                            </li>
 
-    <li className="list-group-item d-flex justify-content-between align-items-center">
-      <span>
-        <i className="fa-solid fa-route me-2 text-secondary"></i> Live Distance
-      </span>
-      <span className="fw-semibold">{routeInfo?.distance} km</span>
-    </li>
+                            <li className="list-group-item d-flex justify-content-between align-items-center">
+                              <span>
+                                <i className="fa-solid fa-route me-2 text-secondary"></i>{" "}
+                                Live Distance
+                              </span>
+                              <span className="fw-semibold">
+                                {routeInfo?.distance} km
+                              </span>
+                            </li>
 
-    <li className="list-group-item d-flex justify-content-between align-items-center">
-      <span>
-        <i className="fa-solid fa-coins me-2 text-secondary"></i> Service Charges
-      </span>
-      <span className="fw-semibold">
-        {fixCharges}/-
-      </span>
-    </li>
+                            <li className="list-group-item d-flex justify-content-between align-items-center">
+                              <span>
+                                <i className="fa-solid fa-coins me-2 text-secondary"></i>{" "}
+                                Service Charges
+                              </span>
+                              <span className="fw-semibold">
+                                {fixCharges}/-
+                              </span>
+                            </li>
+
+                            <li className="list-group-item d-flex justify-content-between align-items-center">
+                              <span>
+                                <i className="fa-solid fa-gift me-2 text-success"></i>{" "}
+                                Earning
+                              </span>
+                              <span className="fw-semibold text-success">
+                                {(
+                                  fixCharges -
+                                  fixRate * routeInfo?.distance
+                                ).toFixed(1)}
+                                /-
+                              </span>
+                            </li>
+                          </ul>
+
+                          {/* Total */}
+                          <div className="card-footer bg-light text-center py-3">
+                           <h5 className="fw-bold text-dark mb-0">
+  Total Price{" "}
+  <span className="text-muted small" style={{ fontSize: "11px" }}>
+    (Incl. service charges)
+  </span>
+  <span className="text-success ms-2">
+    {(totalPrice?.actualPrice + fixCharges).toFixed(0)}/-
+  </span>
+</h5>
 
 
-    <li className="list-group-item d-flex justify-content-between align-items-center">
-      <span>
-        <i className="fa-solid fa-gift me-2 text-success"></i> Bonus
-      </span>
-      <span className="fw-semibold text-success">
-        {(fixCharges - fixRate * routeInfo?.distance).toFixed(1)}/-
-      </span>
-    </li>
-  </ul>
-
-  {/* Total */}
-  <div className="card-footer bg-light text-center py-3">
-    <h5 className="fw-bold text-dark mb-0">
-      <i className="fa-solid fa-sack-dollar me-2 text-primary"></i>
-      Total Price:{" "}
-      <span className="text-success">
-        {(totalPrice?.actualPrice + fixCharges).toFixed(0)}/-
-      </span>
-    </h5>
-  </div>
-</div>
-
+                            <button className="btn btn-success btn-sm rounded-pill w-100 mt-3" disabled={acceptedOrders.length === 0}><i class="fa-solid fa-flag-checkered me-1"></i>Start Journey</button>
+                          </div>
+                        </div>
                       </div>
                     </>
                   )}
                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {declinedModal && (
+        <div
+          className="modal fade show d-block"
+          tabIndex="-1"
+          style={{
+            backgroundColor: "rgba(0,0,0,0.5)",
+            zIndex: 1056, // above other modal
+          }}
+        >
+          <div className="modal-dialog">
+            <div className="modal-content border-0 shadow-lg rounded-4">
+              {/* Header */}
+              <div className="modal-header border-0 bg-light">
+                <h5 className="fw-bold text-dark mb-0">Decline Reason</h5>
+                <button
+                  type="button"
+                  className="btn-close"
+                  aria-label="Close"
+                  onClick={() => setDEclinedModal(false)}
+                ></button>
+              </div>
+
+              {/* Body */}
+              <div className="modal-body bg-white">
+                <p className=" mb-2">
+                  Choose Reason why you reject this order{" "}
+                  <span className="fw-bold text-danger">
+                    {declineOrder?.orderId}
+                  </span>{" "}
+                  {declineOrder?.subCategory} - {declineOrder.category} ?
+                </p>
+                <select
+                  className="form-select mb-3"
+                  value={declineReason}
+                  onChange={(e) => setDeclineReason(e.target.value)}
+                >
+                  <option value="">Select a reason</option>
+                  {declineList.map((reason, index) => (
+                    <option key={index} value={reason}>
+                      {reason}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="modal-footer border-0 bg-light">
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => setDEclinedModal(false)}
+                >
+                  Close
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-danger"
+                  onClick={() => {
+                    updateRequest(declineOrder._id, "decline");
+                    setDEclinedModal(false);
+                  }}
+                >
+                  Submit
+                </button>
               </div>
             </div>
           </div>
