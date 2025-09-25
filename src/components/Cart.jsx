@@ -370,8 +370,9 @@ function Cart({ cartData, setUpdateAppjs, areaName, setCartData, setRefreshFlag 
   const sendNotificationToProviders = async (requests) => {
     const notifications = requests.map((req) => ({
       type: "newOrder",
-      message: `You have received a new order of <b>${req.subCategory}</b> (${req.category}) under order id <b>${req.orderId}</b>`,
+      message: `You have received a new order of ${req.subCategory} (${req.category}) under order id `,
       shopId: req.shopId,
+      checkoutId : req.orderId
     }));
 
     try {
@@ -439,6 +440,7 @@ function Cart({ cartData, setUpdateAppjs, areaName, setCartData, setRefreshFlag 
         alert(response?.data?.message || "Request sent successfully!");
         setPostOrderModal(true);
         setOrderSummaryModal(false);
+         setUpdateAppjs(true);
       }
     } catch (error) {
       console.error("❌ Error sending request:", error);
@@ -483,6 +485,7 @@ function Cart({ cartData, setUpdateAppjs, areaName, setCartData, setRefreshFlag 
 
       if (response.data.success) {
         if (type === "clear") {
+           setUpdateAppjs(true);
           setCartData([]);
           Swal.fire("Cleared!", "Cart has been cleared.", "success");
         }

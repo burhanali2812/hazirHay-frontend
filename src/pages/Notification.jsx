@@ -31,6 +31,10 @@ function Notification({ notification, onDelete }) {
       color: "text-primary",
       icon: "fa-solid fa-circle-info",
     },
+    newOrder : {
+       color: "text-success",
+      icon: "fa-solid fa-circle-down",
+    }
   };
 
   // define trailing (right swipe) action
@@ -102,9 +106,9 @@ function Notification({ notification, onDelete }) {
                       {/* Message */}
                       <div className="flex-grow-1 ms-3 d-flex flex-column justify-content-center mt-1">
                         <p>
-                          {notifi.message.length > 55 && !isExpanded ? (
+                          {notifi.message.length > 50 && !isExpanded ? (
                             <>
-                              {notifi.message.slice(0, 40)}...
+                              {notifi.message.slice(0, 50)}...
                               <span
                                 className="text-primary"
                                 style={{ cursor: "pointer" }}

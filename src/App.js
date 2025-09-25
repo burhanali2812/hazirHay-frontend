@@ -41,9 +41,6 @@ function App() {
   const [unSeenNotification, setUnSeenNotification] = useState([]);
     const user = JSON.parse(sessionStorage.getItem("user"));
 
-  const handleRequestAdded = () => {
-    setRefreshFlag((prev) => !prev); 
-  };
 
   const getAllUser = async () => {
     try {

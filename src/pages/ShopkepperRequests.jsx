@@ -146,7 +146,7 @@ function ShopkepperRequests({ refreshFlag, setRefreshFlag }) {
         ...prev,
         actualPrice: totalAcceptedCost,
       }));
-      // Correct way
+  
       const acceptedOrders = selectedRequest?.orders?.filter(
         (order) => order.status === "accepted"
       );
@@ -238,6 +238,7 @@ function ShopkepperRequests({ refreshFlag, setRefreshFlag }) {
     }
   };
 
+
   const groupedData = requests?.reduce((acc, order) => {
     const { checkoutId } = order;
 
@@ -256,7 +257,13 @@ function ShopkepperRequests({ refreshFlag, setRefreshFlag }) {
     return acc;
   }, {});
 
+
+
   const result = Object.values(groupedData);
+const acceptedOrderRequest = result?.find(req =>
+  req?.orders?.some(order => order.status === "accepted")
+);
+
 
   console.log(result);
 
@@ -270,7 +277,7 @@ function ShopkepperRequests({ refreshFlag, setRefreshFlag }) {
     setFixRate(Number(request.orders[0].serviceCharges?.rate || 0));
     console.log("request", request);
     setSelectedRequest(request);
-    setDetailsModalLoading(request._id);
+    setDetailsModalLoading(request.checkoutId);
 
     const coords = request?.orders[0]?.location?.[0]?.coordinates;
     if (coords && coords.length === 2) {
@@ -289,14 +296,18 @@ function ShopkepperRequests({ refreshFlag, setRefreshFlag }) {
   };
 
   const fixCharges = fixRate * fixDistance;
+const finalRequests = acceptedOrderRequest 
+  ? [acceptedOrderRequest] 
+  : result;
+console.log("accpted", acceptedOrderRequest);
 
   return (
     <div className="container">
       {shopKepperStatus ? (
         <>
-          {result.length !== 0 ? (
+          {finalRequests?.length !== 0 ? (
             <div className="row g-4">
-              {result.map((checkoutGroup, index) => {
+              {finalRequests?.map((checkoutGroup, index) => {
                 const totalDistance =
                   checkoutGroup.orders[0]?.serviceCharges?.distance || 0;
                 const rate = checkoutGroup.orders[0]?.serviceCharges?.rate || 0;
@@ -383,9 +394,9 @@ function ShopkepperRequests({ refreshFlag, setRefreshFlag }) {
                             <button
                               className="btn btn-success btn-sm rounded-pill"
                               onClick={() => handleViewDetails(checkoutGroup)}
-                              disabled={detailsModalLoading === checkoutGroup._id}
+                              disabled={detailsModalLoading === checkoutGroup.checkoutId}
                             >
-                              {detailsModalLoading === checkoutGroup._id ? (
+                              {detailsModalLoading === checkoutGroup.checkoutId ? (
                                 <>
                                   <span className="spinner-border spinner-border-sm me-2"></span>
                                   Loading...
@@ -398,12 +409,38 @@ function ShopkepperRequests({ refreshFlag, setRefreshFlag }) {
                               )}
                             </button>
                           </div>
+                          {
+                            acceptedOrderRequest && (
+                              <button className="w-100 btn mt-2 btn-primary btn-sm rounded-pill"><i class="fa-solid fa-flag-checkered me-1"></i>
+                              Start Journey ({acceptedOrders?.length} orders accepted)</button>
+                            )
+                          }
                         </div>
                       </div>
                     </div>
                   </div>
                 );
               })}
+              {
+                acceptedOrderRequest && (
+                
+                   <div className="container mt-3">
+  <div
+    style={{
+      backgroundColor: "#fff3cd",
+      color: "#856404",
+      padding: "10px 15px",
+      borderRadius: "8px",
+      fontSize: "14px",
+      border: "1px solid #ffeeba",
+    }}
+  >
+    <strong>Note:</strong> You must complete the current checkout orders before you can view other requests.
+  </div>
+</div>
+
+                )
+              }
             </div>
           ) : (
             <div
