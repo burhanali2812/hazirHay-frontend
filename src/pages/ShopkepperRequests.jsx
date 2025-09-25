@@ -8,10 +8,10 @@ function ShopkepperRequests({ refreshFlag, setRefreshFlag }) {
   const user = JSON.parse(sessionStorage.getItem("user"));
   const [requests, setRequests] = useState([]);
   const [shopKepperCords, setShopKepperCords] = useState([]);
-    const [acceptedOrders, setAcceptedOrders] = useState([]);
+  const [acceptedOrders, setAcceptedOrders] = useState([]);
   const [selectedRequest, setSelectedRequest] = useState({});
   const [detailsModal, setDetailsModal] = useState(false);
-  const [detailsModalLoading, setDetailsModalLoading] = useState(false);
+  const [detailsModalLoading, setDetailsModalLoading] = useState(null);
   const [declinedModal, setDEclinedModal] = useState(false);
   const [shop, setShop] = useState(null);
   const [declineReason, setDeclineReason] = useState("");
@@ -147,11 +147,10 @@ function ShopkepperRequests({ refreshFlag, setRefreshFlag }) {
         actualPrice: totalAcceptedCost,
       }));
       // Correct way
-const acceptedOrders = selectedRequest?.orders?.filter(
-  (order) => order.status === "accepted"
-);
-setAcceptedOrders(acceptedOrders);
- 
+      const acceptedOrders = selectedRequest?.orders?.filter(
+        (order) => order.status === "accepted"
+      );
+      setAcceptedOrders(acceptedOrders);
     }
   }, [selectedRequest]);
 
@@ -167,7 +166,7 @@ setAcceptedOrders(acceptedOrders);
     const payload = {
       type: finalType,
       message: finalMessage,
-      checkoutId: order.checkoutId,
+      checkoutId: order?.checkoutId,
       userId: order.userId,
     };
 
@@ -215,19 +214,21 @@ setAcceptedOrders(acceptedOrders);
           (order) => order._id === orderId
         );
         if (type === "accept" && order) {
+          sendNotificationToUser(order, "accept");
           setTotalPrice((prev) => ({
             ...prev,
             actualPrice: prev.actualPrice + Number(order.cost),
           }));
         }
         if (type !== "accept" && order) {
+          sendNotificationToUser(declineOrder, "reject");
           setTotalPrice((prev) => ({
             ...prev,
             actualPrice: prev.actualPrice - Number(order.cost),
           }));
         }
         alert(`Order ${type === "accept" ? "Accepted" : "Rejected"}`);
-        sendNotificationToUser(declineOrder, "reject");
+        
       }
     } catch (error) {
       console.error(
@@ -269,7 +270,7 @@ setAcceptedOrders(acceptedOrders);
     setFixRate(Number(request.orders[0].serviceCharges?.rate || 0));
     console.log("request", request);
     setSelectedRequest(request);
-    setDetailsModalLoading(true);
+    setDetailsModalLoading(request._id);
 
     const coords = request?.orders[0]?.location?.[0]?.coordinates;
     if (coords && coords.length === 2) {
@@ -283,7 +284,7 @@ setAcceptedOrders(acceptedOrders);
 
     setTimeout(() => {
       setDetailsModal(true);
-      setDetailsModalLoading(false);
+      setDetailsModalLoading(null);
     }, 2000);
   };
 
@@ -382,9 +383,9 @@ setAcceptedOrders(acceptedOrders);
                             <button
                               className="btn btn-success btn-sm rounded-pill"
                               onClick={() => handleViewDetails(checkoutGroup)}
-                              disabled={detailsModalLoading}
+                              disabled={detailsModalLoading === checkoutGroup._id}
                             >
-                              {detailsModalLoading ? (
+                              {detailsModalLoading === checkoutGroup._id ? (
                                 <>
                                   <span className="spinner-border spinner-border-sm me-2"></span>
                                   Loading...
@@ -709,18 +710,29 @@ setAcceptedOrders(acceptedOrders);
 
                           {/* Total */}
                           <div className="card-footer bg-light text-center py-3">
-                           <h5 className="fw-bold text-dark mb-0">
-  Total Price{" "}
-  <span className="text-muted small" style={{ fontSize: "11px" }}>
-    (Incl. service charges)
-  </span>
-  <span className="text-success ms-2">
-    {(totalPrice?.actualPrice + fixCharges).toFixed(0)}/-
-  </span>
-</h5>
+                            <h5 className="fw-bold text-dark mb-0">
+                              Total Price{" "}
+                              <span
+                                className="text-muted small"
+                                style={{ fontSize: "11px" }}
+                              >
+                                (Incl. service charges)
+                              </span>
+                              <span className="text-success ms-2">
+                                {(totalPrice?.actualPrice + fixCharges).toFixed(
+                                  0
+                                )}
+                                /-
+                              </span>
+                            </h5>
 
-
-                            <button className="btn btn-success btn-sm rounded-pill w-100 mt-3" disabled={acceptedOrders.length === 0}><i class="fa-solid fa-flag-checkered me-1"></i>Start Journey</button>
+                            <button
+                              className="btn btn-success btn-sm rounded-pill w-100 mt-3"
+                              disabled={acceptedOrders.length === 0}
+                            >
+                              <i class="fa-solid fa-flag-checkered me-1"></i>
+                              Start Journey ({acceptedOrders.length} Orders)
+                            </button>
                           </div>
                         </div>
                       </div>

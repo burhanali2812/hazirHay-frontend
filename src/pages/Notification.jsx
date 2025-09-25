@@ -9,7 +9,15 @@ import "react-swipeable-list/dist/styles.css";
 import notify from "../images/notify.png";
 
 function Notification({ notification, onDelete }) {
-  const[isexpand ,setIsExpend] = useState(false)
+  const [expandedIds, setExpandedIds] = useState({}); // store expanded state per ID
+
+  const toggleExpand = (id) => {
+    setExpandedIds((prev) => ({
+      ...prev,
+      [id]: !prev[id], // toggle only the clicked one
+    }));
+  };
+
   const iconsList = {
     success: {
       color: "text-success",
@@ -55,8 +63,8 @@ function Notification({ notification, onDelete }) {
           <div className="text-center mt-1 mb-3">
             <span
               style={{
-                backgroundColor: "#fff5f5", // soft light red
-                color: "#d9534f", // professional red tone
+                backgroundColor: "#fff5f5",
+                color: "#d9534f",
                 padding: "10px 16px",
                 borderRadius: "8px",
                 fontSize: "14px",
@@ -73,9 +81,11 @@ function Notification({ notification, onDelete }) {
           <SwipeableList>
             {notification.map((notifi) => {
               const icon = iconsList[notifi.type] || {};
+              const isExpanded = expandedIds[notifi._id] || false;
+
               return (
                 <SwipeableListItem
-                  key={notifi._id} // ✅ FIXED
+                  key={notifi._id}
                   trailingActions={trailingActions(notifi._id)}
                 >
                   <div
@@ -90,30 +100,38 @@ function Notification({ notification, onDelete }) {
                       ></i>
 
                       {/* Message */}
-                     <div className="flex-grow-1 ms-3 d-flex flex-column justify-content-center mt-1">
-  <p>
-    {notifi.message.length > 55 && !isexpand? (
-      <>
-        {notifi.message.slice(0, 45)}...
-        <span className="text-primary" style={{ cursor: "pointer" }} onClick={()=>setIsExpend(true)}>
-          Show more
-        </span>
-      </>
-    ) : (
-     <>
-      {notifi.message}
-       <b> {notifi.checkoutId}</b>{" "}
-      {
-        notifi.message.length > 55 ? ( <span className="text-primary" style={{ cursor: "pointer" }} onClick={()=>setIsExpend(false)}>
-          Show less
-        </span>):("")
-      }
-     </>
-    )}
-   
-  </p>
-</div>
-
+                      <div className="flex-grow-1 ms-3 d-flex flex-column justify-content-center mt-1">
+                        <p>
+                          {notifi.message.length > 55 && !isExpanded ? (
+                            <>
+                              {notifi.message.slice(0, 40)}...
+                              <span
+                                className="text-primary"
+                                style={{ cursor: "pointer" }}
+                                onClick={() => toggleExpand(notifi._id)}
+                              >
+                                Show more
+                              </span>
+                            </>
+                          ) : (
+                            <>
+                              {notifi.message}
+                              <b> {notifi.checkoutId}</b>{" "}
+                              {notifi.message.length > 55 ? (
+                                <span
+                                  className="text-primary"
+                                  style={{ cursor: "pointer" }}
+                                  onClick={() => toggleExpand(notifi._id)}
+                                >
+                                  Show less
+                                </span>
+                              ) : (
+                                ""
+                              )}
+                            </>
+                          )}
+                        </p>
+                      </div>
 
                       {/* Delete button (desktop) */}
                       <button
