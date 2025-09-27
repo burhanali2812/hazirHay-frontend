@@ -31,7 +31,12 @@ function Tracking({ setUpdateAppjs }) {
   console.log("ID", selectedTrackShopData?.shopId);
   
    const getLiveUpdateLocation = async () => {
+  const shopId = selectedTrackShopData?._id || selectedTrackShopData?.shopId;
 
+  if (!shopId) {
+    console.error("❌ No shopId found in selectedTrackShopData");
+    return;
+  }
     try {
       const res = await axios.get(
         `https://hazir-hay-backend.vercel.app/shops/getLiveLocation/${selectedTrackShopData?.shopId}`,
