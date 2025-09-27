@@ -338,13 +338,18 @@ function Tracking({ setUpdateAppjs , shopLiveCoordinates}) {
                   className="shadow-sm"
                 >
                   {shopCoordinates && position && (
-                    <UserShopRoute
-                      userCoords={[position[1], position[0]]}
-                      shopCoords={[shopLiveCoordinates ? shopLiveCoordinates[0] :shopCoordinates[1], shopLiveCoordinates ? shopLiveCoordinates[1] : shopCoordinates[0]]}
-                      onRouteInfo={(info) => setRouteInfo(info)}
-                      type={"live"}
-                    />
-                  )}
+  <UserShopRoute
+    userCoords={[position[1], position[0]]} // [lat, lng]
+    shopCoords={
+      shopLiveCoordinates
+        ? [shopLiveCoordinates[0], shopLiveCoordinates[1]] // live shop: [lat, lng]
+        : [shopCoordinates[1], shopCoordinates[0]]        // fallback: [lat, lng]
+    }
+    onRouteInfo={(info) => setRouteInfo(info)}
+    type="live"
+  />
+)}
+
                 </div>
 
                 <div
