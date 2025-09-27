@@ -10,7 +10,7 @@ import L from "leaflet";
 import "leaflet-routing-machine";
 import UserShopRoute from "./UserShopRoute";
 
-function Tracking({ setUpdateAppjs, shopLiveCoordinates }) {
+function Tracking({ setUpdateAppjs }) {
   const token = localStorage.getItem("token");
   const [requestsData, setRequestsData] = useState([]);
   const [searchQuery, setSearchQuery] = useState([]);
@@ -22,10 +22,42 @@ function Tracking({ setUpdateAppjs, shopLiveCoordinates }) {
   const [routeInfo, setRouteInfo] = useState(null);
   const [loading, setLoading] = useState(false);
   const [cencelOrderLoading, setCancelOrderLoading] = useState(false);
+    const [shopLiveCoordinates, setShopLiveCoordinates] = useState([]);
 
   const navigate = useNavigate();
   const position = selectedTrackShopData?.location?.[0]?.coordinates;
   console.log("position", position);
+  console.log("selectedTrackShopData", selectedTrackShopData);
+  console.log("ID", selectedTrackShopData?.shopId);
+  
+   const getLiveUpdateLocation = async () => {
+
+    try {
+      const res = await axios.get(
+        `https://hazir-hay-backend.vercel.app/shops/getLiveLocation/${selectedTrackShopData?.shopId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          params: { t: Date.now() },
+        }
+      );
+      if (res.data.success) {
+        console.log(res.data.message);
+        setShopLiveCoordinates(res.data.coordinates)
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+  
+getLiveUpdateLocation();
+     
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   const fetchUserCart = async () => {
     try {

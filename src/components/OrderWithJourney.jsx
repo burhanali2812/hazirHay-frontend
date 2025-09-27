@@ -1,14 +1,37 @@
 import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import UserShopRoute from "./UserShopRoute";
-function OrderWithJourney({setShopLiveCoordinates}) {
+import axios from "axios";
+function OrderWithJourney() {
   const [routeInfo, setRouteInfo] = useState(null);
   const [shopKepperCords, setShopKepperCords] = useState([]);
   const location = useLocation();
   const selectedTrackShopData = location.state;
   console.log("selectedShop", selectedTrackShopData);
+    const token = localStorage.getItem("token");
 
   const position = selectedTrackShopData?.orders[0]?.location?.[0]?.coordinates;
+  const updateLocation = async (lat, lng) => {
+    const payload = {
+      lat,
+      lng,
+    };
+    try {
+      const res = await axios.put(
+        `https://hazir-hay-backend.vercel.app/shops/updateLiveLocation/${selectedTrackShopData?.orders[0]?.shopId}`,
+        payload,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          params: { t: Date.now() },
+        }
+      );
+      if (res.data.success) {
+        console.log(res.data.message);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -22,7 +45,7 @@ function OrderWithJourney({setShopLiveCoordinates}) {
           const lat = pos.coords.latitude;
           const lng = pos.coords.longitude;
           setShopKepperCords([lng, lat]);
-          setShopLiveCoordinates([lng, lat])
+         updateLocation(lat,lng)
         },
         (error) => {
           if (error.code === error.PERMISSION_DENIED) {
@@ -36,7 +59,7 @@ function OrderWithJourney({setShopLiveCoordinates}) {
           }
         }
       );
-    }, 3000);
+    }, 5000);
 
     return () => clearInterval(interval);
   }, []);
@@ -44,7 +67,7 @@ function OrderWithJourney({setShopLiveCoordinates}) {
   const grandTotal = 0;
 
   return (
-    <div style={{marginBottom: "65px"}}>
+    <div style={{ marginBottom: "65px" }}>
       <div>
         <div
           style={{
@@ -201,14 +224,12 @@ function OrderWithJourney({setShopLiveCoordinates}) {
               </div>
             </>
           )}
-                <button className="w-100  mt-2 btn btn-warning  rounded-pill">
-        <i class="fa-solid fa-circle-check me-1"></i>
-        Complete Order{" "}
-      </button>
+          <button className="w-100  mt-2 btn btn-warning  rounded-pill">
+            <i class="fa-solid fa-circle-check me-1"></i>
+            Complete Order{" "}
+          </button>
         </div>
-        
       </div>
-
     </div>
   );
 }

@@ -36,13 +36,13 @@ function App() {
   const [shopWithShopkepper, setShopWithShopkepper] = useState([]);
   const [refreshFlag, setRefreshFlag] = useState(false);
   const [cartData, setCartData] = useState([]);
-  const [shopLiveCoordinates, setShopLiveCoordinates] = useState([]);
+
   const [areaName, setAreaName] = useState("");
   const [coordinates, setCoordinates] = useState([]);
   const [notification, setNotification] = useState([]);
   const [unSeenNotification, setUnSeenNotification] = useState([]);
     const user = JSON.parse(sessionStorage.getItem("user"));
-    console.log("shopLiveCoordinates", shopLiveCoordinates);
+
     
 
 
@@ -329,12 +329,12 @@ const deleteNotification = async (id) => {
           />
           <Route
             path="user/tracking"
-            element={<Tracking setUpdateAppjs={setUpdateAppjs} shopLiveCoordinates= {shopLiveCoordinates}/>}
+            element={<Tracking setUpdateAppjs={setUpdateAppjs} />}
           />
           <Route path="user/findShops" element={<FindShops />} />
           <Route path="user/notification" element={<Notification notification={notification} onDelete={deleteNotification}/>} />
           <Route path="user/contact" element={<ContactUs />} />
-          <Route path="user/orderWithJourney" element={<OrderWithJourney  setShopLiveCoordinates = {setShopLiveCoordinates}/>} />
+          <Route path="user/orderWithJourney" element={<OrderWithJourney  />} />
         </Route>
       </Routes>
     </>
