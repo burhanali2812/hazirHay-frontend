@@ -10,7 +10,7 @@ import L from "leaflet";
 import "leaflet-routing-machine";
 import UserShopRoute from "./UserShopRoute";
 
-function Tracking({ setUpdateAppjs , shopLiveCoordinates}) {
+function Tracking({ setUpdateAppjs, shopLiveCoordinates }) {
   const token = localStorage.getItem("token");
   const [requestsData, setRequestsData] = useState([]);
   const [searchQuery, setSearchQuery] = useState([]);
@@ -92,7 +92,10 @@ function Tracking({ setUpdateAppjs , shopLiveCoordinates}) {
     }
   };
 
-  const rate = Number(selectedTrackShopData?.serviceCharges?.rate?.[0] || selectedTrackShopData?.serviceCharges?.rate);
+  const rate = Number(
+    selectedTrackShopData?.serviceCharges?.rate?.[0] ||
+      selectedTrackShopData?.serviceCharges?.rate
+  );
   const distance = Number(selectedTrackShopData?.serviceCharges?.distance || 0);
 
   const serviceCharges = (rate * distance).toFixed(0);
@@ -313,7 +316,6 @@ function Tracking({ setUpdateAppjs , shopLiveCoordinates}) {
         >
           <div className="modal-dialog modal-fullscreen modal-dialog-centered">
             <div className="modal-content border-0 shadow-lg rounded-4">
-
               <div className="modal-header border-0 bg-light">
                 <div className="d-flex align-items-center">
                   <i
@@ -337,13 +339,13 @@ function Tracking({ setUpdateAppjs , shopLiveCoordinates}) {
                   }}
                   className="shadow-sm"
                 >
-                  {shopCoordinates && position && (
+                 {shopCoordinates && position && (
   <UserShopRoute
     userCoords={[position[1], position[0]]} // [lat, lng]
     shopCoords={
-      shopLiveCoordinates
-        ? [shopLiveCoordinates[0], shopLiveCoordinates[1]] // live shop: [lat, lng]
-        : [shopCoordinates[1], shopCoordinates[0]]        // fallback: [lat, lng]
+      shopLiveCoordinates && shopLiveCoordinates.length === 2
+        ? [shopLiveCoordinates[1], shopLiveCoordinates[0]] // live shop
+        : [shopCoordinates[1], shopCoordinates[0]]         // fallback
     }
     onRouteInfo={(info) => setRouteInfo(info)}
     type="live"
@@ -362,12 +364,10 @@ function Tracking({ setUpdateAppjs , shopLiveCoordinates}) {
                 >
                   {selectedShop && (
                     <>
-                      
                       <h3 className="fw-bold text-center text-primary mb-3">
                         {selectedShop?.shop?.shopName}
                       </h3>
 
-                   
                       <div className="d-flex justify-content-center gap-2 flex-wrap mb-3">
                         <a
                           href={`tel:${selectedShop?.phone}`}
