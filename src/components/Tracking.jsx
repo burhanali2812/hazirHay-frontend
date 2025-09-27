@@ -39,7 +39,7 @@ function Tracking({ setUpdateAppjs }) {
   }
     try {
       const res = await axios.get(
-        `https://hazir-hay-backend.vercel.app/shops/getLiveLocation/${selectedTrackShopData?.shopId}`,
+        `https://hazir-hay-backend.vercel.app/shops/getLiveLocation/${shopId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
           params: { t: Date.now() },
