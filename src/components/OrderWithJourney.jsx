@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import UserShopRoute from "./UserShopRoute";
-function OrderWithJourney() {
+function OrderWithJourney({setShopLiveCoordinates}) {
   const [routeInfo, setRouteInfo] = useState(null);
   const [shopKepperCords, setShopKepperCords] = useState([]);
   const location = useLocation();
@@ -22,6 +22,7 @@ function OrderWithJourney() {
           const lat = pos.coords.latitude;
           const lng = pos.coords.longitude;
           setShopKepperCords([lng, lat]);
+          setShopLiveCoordinates([lng, lat])
         },
         (error) => {
           if (error.code === error.PERMISSION_DENIED) {

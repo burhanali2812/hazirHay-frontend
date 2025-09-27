@@ -10,7 +10,7 @@ import L from "leaflet";
 import "leaflet-routing-machine";
 import UserShopRoute from "./UserShopRoute";
 
-function Tracking({ setUpdateAppjs }) {
+function Tracking({ setUpdateAppjs , shopLiveCoordinates}) {
   const token = localStorage.getItem("token");
   const [requestsData, setRequestsData] = useState([]);
   const [searchQuery, setSearchQuery] = useState([]);
@@ -340,7 +340,7 @@ function Tracking({ setUpdateAppjs }) {
                   {shopCoordinates && position && (
                     <UserShopRoute
                       userCoords={[position[1], position[0]]}
-                      shopCoords={[shopCoordinates[1], shopCoordinates[0]]}
+                      shopCoords={[shopLiveCoordinates ? shopLiveCoordinates[0] :shopCoordinates[1], shopLiveCoordinates ? shopLiveCoordinates[1] : shopCoordinates[0]]}
                       onRouteInfo={(info) => setRouteInfo(info)}
                       type={"live"}
                     />
