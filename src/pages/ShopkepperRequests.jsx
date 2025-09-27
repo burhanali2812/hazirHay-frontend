@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import offline from "../images/offline.png";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import UserShopRoute from "../components/UserShopRoute";
 import noData from "../images/noData.png";
@@ -15,6 +16,7 @@ function ShopkepperRequests({ refreshFlag, setRefreshFlag }) {
   const [declinedModal, setDEclinedModal] = useState(false);
   const [shop, setShop] = useState(null);
   const [declineReason, setDeclineReason] = useState("");
+    const navigate = useNavigate();
   const [totalPrice, setTotalPrice] = useState({
     actualPrice: 0,
     charges: 0,
@@ -263,6 +265,7 @@ function ShopkepperRequests({ refreshFlag, setRefreshFlag }) {
 const acceptedOrderRequest = result?.find(req =>
   req?.orders?.some(order => order.status === "accepted")
 );
+const startJourneyOrders = acceptedOrderRequest?.orders?.filter((order)=> order.status === "accepted")
 
 
   console.log(result);
@@ -411,8 +414,8 @@ console.log("accpted", acceptedOrderRequest);
                           </div>
                           {
                             acceptedOrderRequest && (
-                              <button className="w-100 btn mt-2 btn-primary btn-sm rounded-pill"><i class="fa-solid fa-flag-checkered me-1"></i>
-                              Start Journey ({acceptedOrders?.length} orders accepted)</button>
+                              <button className="w-100 btn mt-2 btn-primary btn-sm rounded-pill" onClick={()=>navigate("/admin/user/orderWithJourney", { state: acceptedOrderRequest })}><i class="fa-solid fa-flag-checkered me-1"></i>
+                              Start Journey ({startJourneyOrders?.length} orders accepted)</button>
                             )
                           }
                         </div>
@@ -766,6 +769,7 @@ console.log("accpted", acceptedOrderRequest);
                             <button
                               className="btn btn-success btn-sm rounded-pill w-100 mt-3"
                               disabled={acceptedOrders.length === 0}
+                              onClick={()=>navigate("/admin/user/orderWithJourney", { state: acceptedOrderRequest })}
                             >
                               <i class="fa-solid fa-flag-checkered me-1"></i>
                               Start Journey ({acceptedOrders.length} Orders)

@@ -21,6 +21,7 @@ import Tracking from "./components/Tracking";
 import FindShops from "./pages/FindShops";
 import Notification from "./pages/Notification";
 import ContactUs from "./pages/ContactUs";
+import OrderWithJourney from "./components/OrderWithJourney";
 
 function App() {
   const [topText, setTopText] = useState("");
@@ -330,6 +331,7 @@ const deleteNotification = async (id) => {
           <Route path="user/findShops" element={<FindShops />} />
           <Route path="user/notification" element={<Notification notification={notification} onDelete={deleteNotification}/>} />
           <Route path="user/contact" element={<ContactUs />} />
+          <Route path="user/orderWithJourney" element={<OrderWithJourney />} />
         </Route>
       </Routes>
     </>
