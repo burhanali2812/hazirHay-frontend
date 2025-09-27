@@ -42,6 +42,8 @@ function App() {
   const [notification, setNotification] = useState([]);
   const [unSeenNotification, setUnSeenNotification] = useState([]);
     const user = JSON.parse(sessionStorage.getItem("user"));
+    console.log("shopLiveCoordinates", shopLiveCoordinates);
+    
 
 
   const getAllUser = async () => {
