@@ -39,7 +39,7 @@ function OrderWithJourney({setShopLiveCoordinates}) {
     }, 3000);
 
     return () => clearInterval(interval);
-  }, [selectedTrackShopData]);
+  }, []);
   const serviceCharges = 0;
   const grandTotal = 0;
 
