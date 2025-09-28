@@ -55,7 +55,7 @@ function Tracking({ setUpdateAppjs }) {
   
 getLiveUpdateLocation();
      
-    }, 5000);
+    }, 3000);
 
     return () => clearInterval(interval);
   }, []);
