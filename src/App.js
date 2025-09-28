@@ -41,6 +41,7 @@ function App() {
   const [coordinates, setCoordinates] = useState([]);
   const [notification, setNotification] = useState([]);
   const [unSeenNotification, setUnSeenNotification] = useState([]);
+  
     const user = JSON.parse(sessionStorage.getItem("user"));
 
     

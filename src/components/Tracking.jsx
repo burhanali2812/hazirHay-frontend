@@ -29,17 +29,13 @@ function Tracking({ setUpdateAppjs }) {
   console.log("position", position);
   console.log("selectedTrackShopData", selectedTrackShopData);
   console.log("ID", selectedTrackShopData?.shopId);
+  localStorage.setItem("shopid", selectedTrackShopData?.shopId)
   
    const getLiveUpdateLocation = async () => {
-  const shopId = selectedTrackShopData?._id || selectedTrackShopData?.shopId;
-
-  if (!shopId) {
-    console.error("❌ No shopId found in selectedTrackShopData");
-    return;
-  }
+     const id = localStorage.getItem("shopid")
     try {
       const res = await axios.get(
-        `https://hazir-hay-backend.vercel.app/shops/getLiveLocation/${shopId}`,
+        `https://hazir-hay-backend.vercel.app/shops/getLiveLocation/${id}`,
         {
           headers: { Authorization: `Bearer ${token}` },
           params: { t: Date.now() },
