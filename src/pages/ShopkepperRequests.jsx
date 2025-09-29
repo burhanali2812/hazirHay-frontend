@@ -359,21 +359,19 @@ function ShopkepperRequests({ refreshFlag, setRefreshFlag }) {
 
   return (
     <>
-      <div class="d-flex justify-content-between align-items-center bg-light mb-4 w-100 p-2">
+      <div class="d-flex justify-content-between align-items-center bg-light mb-4 w-100 p-3">
         <h5 class="mb-0 fw-semibold text-secondary">Requests</h5>
 
         <button
-          className={`btn d-flex align-items-center border border-${
-            isOnline ? "success" : "danger"
-          }  overflow-hidden p-0`}
+          className={`btn d-flex align-items-center shadow-sm  overflow-hidden p-0`}
           onClick={toggleStatus}
         >
           <span
             className={`bg-${
               isOnline ? "success" : "danger"
-            } text-white d-flex align-items-center justify-content-center px-2 py-2`}
+            } text-white d-flex align-items-center justify-content-center px-1 py-1`}
           >
-            {isOnline ? <FaWifi size={20} /> : <MdWifiOff size={20} />}
+            {isOnline ? <FaWifi size={18} /> : <MdWifiOff size={18} />}
           </span>
           <span
             className={`text-${
