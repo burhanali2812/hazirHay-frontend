@@ -22,17 +22,17 @@ function Tracking({ setUpdateAppjs }) {
   const [routeInfo, setRouteInfo] = useState(null);
   const [loading, setLoading] = useState(false);
   const [cencelOrderLoading, setCancelOrderLoading] = useState(false);
-    const [shopLiveCoordinates, setShopLiveCoordinates] = useState([]);
+  const [shopLiveCoordinates, setShopLiveCoordinates] = useState([]);
 
   const navigate = useNavigate();
   const position = selectedTrackShopData?.location?.[0]?.coordinates;
   console.log("position", position);
   console.log("selectedTrackShopData", selectedTrackShopData);
   console.log("ID", selectedTrackShopData?.shopId);
-  localStorage.setItem("shopid", selectedTrackShopData?.shopId)
-  
-   const getLiveUpdateLocation = async () => {
-     const id = localStorage.getItem("shopid")
+  localStorage.setItem("shopid", selectedTrackShopData?.shopId);
+
+  const getLiveUpdateLocation = async () => {
+    const id = localStorage.getItem("shopid");
     try {
       const res = await axios.get(
         `https://hazir-hay-backend.vercel.app/shops/getLiveLocation/${id}`,
@@ -43,7 +43,7 @@ function Tracking({ setUpdateAppjs }) {
       );
       if (res.data.success) {
         console.log(res.data.message);
-        setShopLiveCoordinates(res.data.coordinates)
+        setShopLiveCoordinates(res.data.coordinates);
       }
     } catch (error) {
       console.log(error);
@@ -52,9 +52,7 @@ function Tracking({ setUpdateAppjs }) {
 
   useEffect(() => {
     const interval = setInterval(() => {
-  
-getLiveUpdateLocation();
-     
+      getLiveUpdateLocation();
     }, 3000);
 
     return () => clearInterval(interval);
@@ -372,19 +370,18 @@ getLiveUpdateLocation();
                   }}
                   className="shadow-sm"
                 >
-                 {shopCoordinates && position && (
-  <UserShopRoute
-    userCoords={[position[1], position[0]]} // [lat, lng]
-    shopCoords={
-      shopLiveCoordinates && shopLiveCoordinates.length === 2
-        ? [shopLiveCoordinates[1], shopLiveCoordinates[0]] // live shop
-        : [shopCoordinates[1], shopCoordinates[0]]         // fallback
-    }
-    onRouteInfo={(info) => setRouteInfo(info)}
-    type="live"
-  />
-)}
-
+                  {shopCoordinates && position && (
+                    <UserShopRoute
+                      userCoords={[position[1], position[0]]} // [lat, lng]
+                      shopCoords={
+                        shopLiveCoordinates && shopLiveCoordinates.length === 2
+                          ? [shopLiveCoordinates[1], shopLiveCoordinates[0]] // live shop
+                          : [shopCoordinates[1], shopCoordinates[0]] // fallback
+                      }
+                      onRouteInfo={(info) => setRouteInfo(info)}
+                      type="live"
+                    />
+                  )}
                 </div>
 
                 <div

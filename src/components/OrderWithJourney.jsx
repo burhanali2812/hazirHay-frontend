@@ -63,15 +63,14 @@ function OrderWithJourney() {
 
     return () => clearInterval(interval);
   }, []);
-  const serviceCharges = 0;
-  const grandTotal = 0;
+
 
   return (
-    <div style={{ marginBottom: "65px" }}>
+    <div style={{ marginBottom: "65px" }} className="bg-white container">
       <div>
         <div
           style={{
-            height: "380px",
+            height: "400px",
             width: "100%",
             borderRadius: "5px",
             overflow: "hidden",
