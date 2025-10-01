@@ -4,6 +4,9 @@ import notFound from "../images/notFound.png";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
+import completed from "../images/completed.png";
+import rejected from "../images/rejected.png";
+import pending from "../images/pending.png";
 
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
@@ -209,6 +212,13 @@ function Tracking({ setUpdateAppjs }) {
     setTrackingDetailsModal(true);
   };
 
+  const finalImage =
+    selectedTrackShopData?.status === "pending"
+      ? pending
+      : selectedTrackShopData?.status === "completed"
+      ? completed
+      : rejected;
+
   return (
     <div className="container mt-3 " style={{ overflowY: 0 }}>
       {loading && (
@@ -361,28 +371,82 @@ function Tracking({ setUpdateAppjs }) {
               </div>
 
               <div className="modal-body bg-white">
-                <div
-                  style={{
-                    height: "380px",
-                    width: "100%",
-                    borderRadius: "5px",
-                    overflow: "hidden",
-                  }}
-                  className="shadow-sm"
-                >
-                  {shopCoordinates && position && (
-                    <UserShopRoute
-                      userCoords={[position[1], position[0]]} // [lat, lng]
-                      shopCoords={
-                        shopLiveCoordinates && shopLiveCoordinates.length === 2
-                          ? [shopLiveCoordinates[1], shopLiveCoordinates[0]] // live shop
-                          : [shopCoordinates[1], shopCoordinates[0]] // fallback
-                      }
-                      onRouteInfo={(info) => setRouteInfo(info)}
-                      type="live"
+                {selectedTrackShopData?.status === "accepted" ? (
+                  <div
+                    style={{
+                      height: "380px",
+                      width: "100%",
+                      borderRadius: "5px",
+                      overflow: "hidden",
+                    }}
+                    className="shadow-sm"
+                  >
+                    {shopCoordinates && position && (
+                      <UserShopRoute
+                        userCoords={[position[1], position[0]]} 
+                        shopCoords={
+                          shopLiveCoordinates &&
+                          shopLiveCoordinates.length === 2
+                            ? [shopLiveCoordinates[1], shopLiveCoordinates[0]] 
+                            : [shopCoordinates[1], shopCoordinates[0]] 
+                        }
+                        onRouteInfo={(info) => setRouteInfo(info)}
+                        type="live"
+                      />
+                    )}
+                  </div>
+                ) : (
+                  <div
+                    className="d-flex flex-column justify-content-center align-items-center text-center shadow-sm container"
+                  
+                  >
+                    <img
+                      src={finalImage}
+                      alt="No Data"
+                      className="mb-0"
+                      style={{ width: "200px", height: "auto" }}
                     />
-                  )}
-                </div>
+
+                    <h4 className={`fw-bold text-${selectedTrackShopData?.status === "completed" ? "success" : selectedTrackShopData?.status === "rejected" ? "danger" : "warning"} mb-2 mt-0`}>
+                      {selectedTrackShopData?.status === "completed"
+                        ? "Order Completed Successfully"
+                        : selectedTrackShopData?.status === "rejected"
+                        ? "Order Rejected"
+                        : "Order Pending"}
+                    </h4>
+
+                    <p
+                      className="text-muted"
+                      style={{ maxWidth: "380px", fontSize: "15px" }}
+                    >
+                      {selectedTrackShopData?.status === "completed" && (
+                        <>
+                          Your order has been successfully completed 🎉. Thank
+                          you for shopping with us.
+                        </>
+                      )}
+                      {selectedTrackShopData?.status === "rejected" && (
+                        <>
+                          Unfortunately, your order was rejected. Please contact
+                          support for more details.
+                        </>
+                      )}
+                      {selectedTrackShopData?.status === "pending" && (
+                        <>
+                          Your order is pending. When the shopkeeper accepts it,
+                          you will be notified.
+                        </>
+                      )}
+                      {!selectedTrackShopData?.status && (
+                        <>
+                          The checkout ID you entered doesn’t match our records.
+                          Kindly re-check the ID (e.g.,{" "}
+                          <strong>CHK-XXX-XXX</strong>) or try a different one.
+                        </>
+                      )}
+                    </p>
+                  </div>
+                )}
 
                 <div
                   className="card border-0 shadow-sm mt-3"
