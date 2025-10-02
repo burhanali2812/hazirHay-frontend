@@ -116,6 +116,23 @@ function OrderWithJourney() {
   const serviceCharges = distance * rate;
   const grandTotal = Number(selectedTrackShopData?.totalCost) + Number(serviceCharges);
 
+  const handleShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: "Check this out!",
+          text: "This is something interesting.",
+          url: window.location.href,
+        });
+        console.log("Shared successfully");
+      } catch (error) {
+        console.log("Sharing failed", error);
+      }
+    } else {
+      alert("Sharing not supported on this browser.");
+    }
+  };
+
   return (
     <div style={{ marginBottom: "65px" }} className="bg-white container">
       <div>
@@ -345,9 +362,9 @@ function OrderWithJourney() {
           tabIndex="-1"
           style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
         >
-          <div className="modal-dialog modal-lg modal-dialog-centered">
-            <div className="modal-content border-2 shadow-lg rounded-5">
-              <div className="modal-body bg-white">
+          <div className="modal-dialog modal-lg modal-dialog-centered ">
+            <div className="modal-content">
+              <div className="modal-body bg-white  rounded-5 border-0 shadow-sm ">
                 {/* Animation */}
                 <div className="text-center d-flex justify-content-center">
                   <DotLottieReact
@@ -387,23 +404,6 @@ function OrderWithJourney() {
                       </li>
                     ))}
 
-                  {/* Grand Total */}
-                  <li className="list-group-item d-flex justify-content-between align-items-center bg-light">
-                    <span className="fw-bold text-dark">
-                      <i className="fa-solid fa-calculator me-2 text-secondary"></i>
-                      Grand Total
-                    </span>
-                    <span
-                      className="fw-bold text-primary"
-                      style={{ fontSize: "20px" }}
-                    >
-                      Rs.{" "}
-                      {selectedTrackShopData?.orders
-                        ?.filter((order) => order?.status === "accepted")
-                        ?.reduce((sum, o) => sum + (o?.cost || 0), 0)}
-                      /-
-                    </span>
-                  </li>
                 </ul>
                           <hr className="my-4" />
        <div>
@@ -450,10 +450,10 @@ function OrderWithJourney() {
 
                 {/* Buttons */}
                 <div className="d-flex justify-content-end gap-3 mt-4">
-                  <button className="btn btn-outline-primary btn-sm text-center ">
+                  <button className="btn btn-outline-primary btn-sm text-center " onClick={handleShare}>
                     <i className="fa-solid fa-share-nodes me-2"></i> 
                   </button>
-                  <button className="btn btn-outline-success btn-sm">
+                  <button className="btn btn-outline-success btn-sm" onClick={() => window.print()}>
                     <i className="fa-solid fa-download me-2"></i> 
                   </button>
                   <button className="btn btn-success btn-sm" onClick={()=> {
