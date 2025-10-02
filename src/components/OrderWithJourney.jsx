@@ -2,15 +2,54 @@ import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import UserShopRoute from "./UserShopRoute";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import { DotLottieReact } from "@lottiefiles/dotlottie-react";
+import successAudio from "../sounds/success.mp3";
 function OrderWithJourney() {
   const [routeInfo, setRouteInfo] = useState(null);
   const [shopKepperCords, setShopKepperCords] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [orderCompleteModal, setOrderCompleteModal] = useState(false);
   const location = useLocation();
   const selectedTrackShopData = location.state;
   console.log("selectedShop", selectedTrackShopData);
-    const token = localStorage.getItem("token");
+  const token = localStorage.getItem("token");
+  const navigate = useNavigate();
 
   const position = selectedTrackShopData?.orders[0]?.location?.[0]?.coordinates;
+
+  const completedOrder = async () => {
+    setLoading(true);
+    const requests =
+      selectedTrackShopData?.orders?.map((order) => ({ _id: order._id })) || [];
+
+    if (requests.length === 0) {
+      setLoading(false);
+      return alert("No orders to complete");
+    }
+
+    try {
+      const res = await axios.put(
+        "https://hazir-hay-backend.vercel.app/requests/completeRequest",
+        { requests },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          params: { t: Date.now() }, // avoid caching
+        }
+      );
+
+      if (res.data.success) {
+        setLoading(false);
+        alert(res.data.message);
+        // navigate("/admin/shopKepper/requests");
+        setOrderCompleteModal(true);
+      }
+    } catch (error) {
+      setLoading(false);
+      console.error("Error completing orders:", error);
+    }
+  };
+
   const updateLocation = async (lat, lng) => {
     const payload = {
       lat,
@@ -45,7 +84,7 @@ function OrderWithJourney() {
           const lat = pos.coords.latitude;
           const lng = pos.coords.longitude;
           setShopKepperCords([lng, lat]);
-         updateLocation(lat,lng)
+          updateLocation(lat, lng);
         },
         (error) => {
           if (error.code === error.PERMISSION_DENIED) {
@@ -63,7 +102,19 @@ function OrderWithJourney() {
 
     return () => clearInterval(interval);
   }, []);
+  useEffect(() => {
+    if (orderCompleteModal) {
+      const audio = new Audio(successAudio);
+      audio.play().catch((err) => {
+        console.error("Autoplay blocked:", err);
+      });
+    }
+  }, [orderCompleteModal]);
 
+  const distance = selectedTrackShopData?.orders[0]?.serviceCharges?.distance || 0;
+  const rate = selectedTrackShopData?.orders[0]?.serviceCharges?.rate || 0;
+  const serviceCharges = distance * rate;
+  const grandTotal = Number(selectedTrackShopData?.totalCost) + Number(serviceCharges);
 
   return (
     <div style={{ marginBottom: "65px" }} className="bg-white container">
@@ -211,24 +262,212 @@ function OrderWithJourney() {
                           </span>
                           <span
                             className="fw-bold text-primary"
-                            style={{ fontSize: "20px" }}
+                            style={{ fontSize: "18px" }}
                           >
                             Rs. {order?.cost}/-
                           </span>
                         </li>
                       </ul>
+
                     </div>
                   ) : null
                 )}
               </div>
             </>
           )}
-          <button className="w-100  mt-2 btn btn-warning  rounded-pill">
-            <i class="fa-solid fa-circle-check me-1"></i>
-            Complete Order{" "}
+          <hr className="my-4" />
+       <div>
+           <h5 className="text-center fw-bold text-dark mb-3">
+            Payment Summary
+          </h5>
+          <ul className="list-group list-group-flush mb-3">
+            <li className="list-group-item d-flex justify-content-between align-items-center">
+              <span>
+                <i className="fa-solid fa-money-bill me-2 text-secondary"></i>
+                Total Order Cost
+              </span>
+              <span
+                className="fw-bold text-success"
+                style={{ fontSize: "15px" }}
+              >
+                Rs. {selectedTrackShopData?.totalCost}/-
+              </span>
+            </li>
+            <li className="list-group-item d-flex justify-content-between align-items-center">
+              <span>
+             
+                <i className="fa-solid fa-person-biking me-2 text-secondary"></i>
+                Service Charges
+              </span>
+              <span className="fw-bold text-success" style={{ fontSize: "15px" }}>
+                Rs. {serviceCharges}/-
+              </span>   
+            </li>
+            <li className="list-group-item d-flex justify-content-between align-items-center bg-light">
+              <span className="fw-bold text-dark">
+                <i className="fa-solid fa-calculator me-2 text-secondary"></i>
+                Grand Total
+              </span>
+              <span
+                className="fw-bold text-primary"  
+                style={{ fontSize: "20px" }}
+              >
+                Rs. {grandTotal}/-
+              </span>
+            </li>
+          </ul>
+       </div>
+          <button
+            className="w-100  mt-2 btn btn-warning  rounded-pill"
+            onClick={completedOrder}
+            disabled={loading}
+          >
+            {loading ? (
+              <>
+                Completing...
+                <div
+                  className="spinner-border spinner-border-sm text-dark ms-2"
+                  role="status"
+                ></div>
+              </>
+            ) : (
+              <>
+                <i class="fa-solid fa-circle-check me-1"></i>
+                Complete Order{" "}
+              </>
+            )}
           </button>
         </div>
       </div>
+      {orderCompleteModal && (
+        <div
+          className="modal fade show d-block"
+          tabIndex="-1"
+          style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+        >
+          <div className="modal-dialog modal-lg modal-dialog-centered">
+            <div className="modal-content border-2 shadow-lg rounded-5">
+              <div className="modal-body bg-white">
+                {/* Animation */}
+                <div className="text-center d-flex justify-content-center">
+                  <DotLottieReact
+                    src="https://lottie.host/d78f201d-181a-450c-803f-43ab471ef7f1/ENnJonrsix.lottie"
+                    loop
+                    autoplay
+                    style={{ width: "225px", height: "185px" }}
+                  />
+                </div>
+
+                <h4 className="text-center text-success fw-bold mb-4">
+                  Order Completed!
+                </h4>
+
+                <h5 className="fw-bold text-dark mb-3">Order Details</h5>
+
+                <ul className="list-group list-group-flush">
+                  {selectedTrackShopData?.orders
+                    ?.filter((order) => order?.status === "accepted")
+                    ?.map((order, index) => (
+                      <li
+                        key={index}
+                        className="list-group-item d-flex justify-content-between align-items-center"
+                      >
+                        <div>
+                          <p className="mb-1">
+                            {index + 1} {" : "}
+                            {order?.category} -{order?.subCategory}{" "}
+                            <span
+                              className="fw-bold text-primary"
+                              style={{ fontSize: "16px" }}
+                            >
+                              Rs. {order?.cost}/-
+                            </span>
+                          </p>
+                        </div>
+                      </li>
+                    ))}
+
+                  {/* Grand Total */}
+                  <li className="list-group-item d-flex justify-content-between align-items-center bg-light">
+                    <span className="fw-bold text-dark">
+                      <i className="fa-solid fa-calculator me-2 text-secondary"></i>
+                      Grand Total
+                    </span>
+                    <span
+                      className="fw-bold text-primary"
+                      style={{ fontSize: "20px" }}
+                    >
+                      Rs.{" "}
+                      {selectedTrackShopData?.orders
+                        ?.filter((order) => order?.status === "accepted")
+                        ?.reduce((sum, o) => sum + (o?.cost || 0), 0)}
+                      /-
+                    </span>
+                  </li>
+                </ul>
+                          <hr className="my-4" />
+       <div>
+           <h5 className="text-center fw-bold text-dark mb-3">
+            Payment Summary
+          </h5>
+          <ul className="list-group list-group-flush mb-3">
+            <li className="list-group-item d-flex justify-content-between align-items-center">
+              <span>
+                <i className="fa-solid fa-money-bill me-2 text-secondary"></i>
+                Total Order Cost
+              </span>
+              <span
+                className="fw-bold text-success"
+                style={{ fontSize: "15px" }}
+              >
+                Rs. {selectedTrackShopData?.totalCost}/-
+              </span>
+            </li>
+            <li className="list-group-item d-flex justify-content-between align-items-center">
+              <span>
+             
+                <i className="fa-solid fa-person-biking me-2 text-secondary"></i>
+                Service Charges
+              </span>
+              <span className="fw-bold text-success" style={{ fontSize: "15px" }}>
+                Rs. {serviceCharges}/-
+              </span>   
+            </li>
+            <li className="list-group-item d-flex justify-content-between align-items-center bg-light">
+              <span className="fw-bold text-dark">
+                <i className="fa-solid fa-calculator me-2 text-secondary"></i>
+                Grand Total
+              </span>
+              <span
+                className="fw-bold text-primary"  
+                style={{ fontSize: "20px" }}
+              >
+                Rs. {grandTotal}/-
+              </span>
+            </li>
+          </ul>
+       </div>
+
+                {/* Buttons */}
+                <div className="d-flex justify-content-end gap-3 mt-4">
+                  <button className="btn btn-outline-primary btn-sm text-center ">
+                    <i className="fa-solid fa-share-nodes me-2"></i> 
+                  </button>
+                  <button className="btn btn-outline-success btn-sm">
+                    <i className="fa-solid fa-download me-2"></i> 
+                  </button>
+                  <button className="btn btn-success btn-sm" onClick={()=> {
+                    setOrderCompleteModal(false);
+                    navigate("/admin/shopKepper/requests");
+                  }}>
+                    <i className="fa-solid fa-plus me-2"></i> More Request
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -421,8 +421,8 @@ function Tracking({ setUpdateAppjs }) {
                     >
                       {selectedTrackShopData?.status === "completed" && (
                         <>
-                          Your order has been successfully completed 🎉. Thank
-                          you for shopping with us.
+                          Your order has been successfully completed . Thank
+                          you for choosing our services.
                         </>
                       )}
                       {selectedTrackShopData?.status === "rejected" && (

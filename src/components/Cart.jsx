@@ -242,30 +242,40 @@ function Cart({ cartData, setUpdateAppjs, areaName, setCartData, setRefreshFlag 
       return false;
     }
   };
+const handleNext = async () => {
+  try {
+    setDistanceLoading(true);
 
-  const handleNext = async () => {
-  setDistanceLoading(true);
+    let success = await fetchAllDistances();
 
-  let success = await fetchAllDistances();
-
-  if (success) {
-    setOrderSummaryModal(true);
-    setDistanceLoading(false);
-    return;
-  }
-
-  // ⏳ Retry after 2 seconds
-  console.log("Retrying distance fetch in 2 seconds...");
-  setTimeout(async () => {
-    success = await fetchAllDistances();
     if (success) {
       setOrderSummaryModal(true);
-    } else {
-      alert("Could not fetch distance. Please try again.");
+      return;
     }
+
+    // If failed
+    const result = await Swal.fire({
+      title: "Waiting for distance",
+      html: "Could not fetch distance. Please try again.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Try Again",
+    });
+
+    if (result.isConfirmed) {
+      // retry without recursion
+      await fetchAllDistances();
+      return handleNext();
+    }
+  } catch (err) {
+    console.error("Error in handleNext:", err);
+  } finally {
     setDistanceLoading(false);
-  }, 2000);
+  }
 };
+
 
 
   // e.g., "28.97"
