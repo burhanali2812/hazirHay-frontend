@@ -17,7 +17,7 @@ function OrderWithJourney() {
   console.log("selectedShop", selectedTrackShopData);
   const token = localStorage.getItem("token");
   const navigate = useNavigate();
-   const ref = useRef();
+  const ref = useRef();
 
   const position = selectedTrackShopData?.orders[0]?.location?.[0]?.coordinates;
 
@@ -114,12 +114,14 @@ function OrderWithJourney() {
     }
   }, [orderCompleteModal]);
 
-  const distance = selectedTrackShopData?.orders[0]?.serviceCharges?.distance || 0;
+  const distance =
+    selectedTrackShopData?.orders[0]?.serviceCharges?.distance || 0;
   const rate = selectedTrackShopData?.orders[0]?.serviceCharges?.rate || 0;
-  const serviceCharges = (distance * rate).toFixed(2);
-  const grandTotal = Number(selectedTrackShopData?.totalCost) + Number(serviceCharges);
+  const serviceCharges = Number(distance * rate).toFixed(2);
+  const grandTotal =
+    Number(selectedTrackShopData?.totalCost) + Number(serviceCharges);
 
- const handleShare = async () => {
+  const handleShare = async () => {
     console.log("Button clicked ✅");
     setShareLoading(true);
 
@@ -158,7 +160,7 @@ function OrderWithJourney() {
       setShareLoading(false);
       console.error("Sharing failed", error);
     }
-  }
+  };
 
   return (
     <div style={{ marginBottom: "65px" }} className="bg-white container">
@@ -312,7 +314,6 @@ function OrderWithJourney() {
                           </span>
                         </li>
                       </ul>
-
                     </div>
                   ) : null
                 )}
@@ -320,47 +321,49 @@ function OrderWithJourney() {
             </>
           )}
           <hr className="my-4" />
-       <div>
-           <h5 className="text-center fw-bold text-dark mb-3">
-            Payment Summary
-          </h5>
-          <ul className="list-group list-group-flush mb-3">
-            <li className="list-group-item d-flex justify-content-between align-items-center">
-              <span>
-                <i className="fa-solid fa-money-bill me-2 text-secondary"></i>
-                Total Order Cost
-              </span>
-              <span
-                className="fw-bold text-success"
-                style={{ fontSize: "15px" }}
-              >
-                Rs. {selectedTrackShopData?.totalCost}/-
-              </span>
-            </li>
-            <li className="list-group-item d-flex justify-content-between align-items-center">
-              <span>
-             
-                <i className="fa-solid fa-person-biking me-2 text-secondary"></i>
-                Service Charges
-              </span>
-              <span className="fw-bold text-success" style={{ fontSize: "15px" }}>
-                Rs. {serviceCharges}/-
-              </span>   
-            </li>
-            <li className="list-group-item d-flex justify-content-between align-items-center bg-light">
-              <span className="fw-bold text-dark">
-                <i className="fa-solid fa-calculator me-2 text-secondary"></i>
-                Grand Total
-              </span>
-              <span
-                className="fw-bold text-primary"  
-                style={{ fontSize: "20px" }}
-              >
-                Rs. {grandTotal}/-
-              </span>
-            </li>
-          </ul>
-       </div>
+          <div>
+            <h5 className="text-center fw-bold text-dark mb-3">
+              Payment Summary
+            </h5>
+            <ul className="list-group list-group-flush mb-3">
+              <li className="list-group-item d-flex justify-content-between align-items-center">
+                <span>
+                  <i className="fa-solid fa-money-bill me-2 text-secondary"></i>
+                  Total Order Cost
+                </span>
+                <span
+                  className="fw-bold text-success"
+                  style={{ fontSize: "15px" }}
+                >
+                  Rs. {selectedTrackShopData?.totalCost}/-
+                </span>
+              </li>
+              <li className="list-group-item d-flex justify-content-between align-items-center">
+                <span>
+                  <i className="fa-solid fa-person-biking me-2 text-secondary"></i>
+                  Service Charges
+                </span>
+                <span
+                  className="fw-bold text-success"
+                  style={{ fontSize: "15px" }}
+                >
+                  Rs. {serviceCharges}/-
+                </span>
+              </li>
+              <li className="list-group-item d-flex justify-content-between align-items-center bg-light">
+                <span className="fw-bold text-dark">
+                  <i className="fa-solid fa-calculator me-2 text-secondary"></i>
+                  Grand Total
+                </span>
+                <span
+                  className="fw-bold text-primary"
+                  style={{ fontSize: "20px" }}
+                >
+                  Rs. {grandTotal}/-
+                </span>
+              </li>
+            </ul>
+          </div>
           <button
             className="w-100  mt-2 btn btn-warning  rounded-pill"
             onClick={completedOrder}
@@ -385,7 +388,7 @@ function OrderWithJourney() {
       </div>
       {orderCompleteModal && (
         <div
-        ref={ref} 
+          ref={ref}
           className="modal fade show d-block"
           tabIndex="-1"
           style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
@@ -431,76 +434,83 @@ function OrderWithJourney() {
                         </div>
                       </li>
                     ))}
-
                 </ul>
-                          <hr className="my-4" />
-       <div>
-           <h5 className="text-center fw-bold text-dark mb-3">
-            Payment Summary
-          </h5>
-          <ul className="list-group list-group-flush mb-3">
-            <li className="list-group-item d-flex justify-content-between align-items-center">
-              <span>
-                <i className="fa-solid fa-money-bill me-2 text-secondary"></i>
-                Total Order Cost
-              </span>
-              <span
-                className="fw-bold text-success"
-                style={{ fontSize: "15px" }}
-              >
-                Rs. {selectedTrackShopData?.totalCost}/-
-              </span>
-            </li>
-            <li className="list-group-item d-flex justify-content-between align-items-center">
-              <span>
-             
-                <i className="fa-solid fa-person-biking me-2 text-secondary"></i>
-                Service Charges
-              </span>
-              <span className="fw-bold text-success" style={{ fontSize: "15px" }}>
-                Rs. {serviceCharges}/-
-              </span>   
-            </li>
-            <li className="list-group-item d-flex justify-content-between align-items-center bg-light">
-              <span className="fw-bold text-dark">
-                <i className="fa-solid fa-calculator me-2 text-secondary"></i>
-                Grand Total
-              </span>
-              <span
-                className="fw-bold text-primary"  
-                style={{ fontSize: "20px" }}
-              >
-                Rs. {grandTotal}/-
-              </span>
-            </li>
-          </ul>
-       </div>
+                <hr className="my-4" />
+                <div>
+                  <h5 className="text-center fw-bold text-dark mb-3">
+                    Payment Summary
+                  </h5>
+                  <ul className="list-group list-group-flush mb-3">
+                    <li className="list-group-item d-flex justify-content-between align-items-center">
+                      <span>
+                        <i className="fa-solid fa-money-bill me-2 text-secondary"></i>
+                        Total Order Cost
+                      </span>
+                      <span
+                        className="fw-bold text-success"
+                        style={{ fontSize: "15px" }}
+                      >
+                        Rs. {selectedTrackShopData?.totalCost}/-
+                      </span>
+                    </li>
+                    <li className="list-group-item d-flex justify-content-between align-items-center">
+                      <span>
+                        <i className="fa-solid fa-person-biking me-2 text-secondary"></i>
+                        Service Charges
+                      </span>
+                      <span
+                        className="fw-bold text-success"
+                        style={{ fontSize: "15px" }}
+                      >
+                        Rs. {serviceCharges}/-
+                      </span>
+                    </li>
+                    <li className="list-group-item d-flex justify-content-between align-items-center bg-light">
+                      <span className="fw-bold text-dark">
+                        <i className="fa-solid fa-calculator me-2 text-secondary"></i>
+                        Grand Total
+                      </span>
+                      <span
+                        className="fw-bold text-primary"
+                        style={{ fontSize: "20px" }}
+                      >
+                        Rs. {grandTotal}/-
+                      </span>
+                    </li>
+                  </ul>
+                </div>
 
                 {/* Buttons */}
                 <div className="d-flex justify-content-end gap-3 mt-4">
-                  <button className="btn btn-outline-primary btn-sm text-center " onClick={handleShare} disabled={shareLoading}>
-                   {
-                    shareLoading ? (
+                  <button
+                    className="btn btn-outline-primary btn-sm text-center "
+                    onClick={handleShare}
+                    disabled={shareLoading}
+                  >
+                    {shareLoading ? (
                       <>
-                       <div
-                  className="spinner-border spinner-border-sm text-dark ms-2"
-                  role="status"
-                ></div>
+                        <div
+                          className="spinner-border spinner-border-sm text-dark ms-2"
+                          role="status"
+                        ></div>
                       </>
-                    ):(
-                      <i className="fa-solid fa-share-nodes me-2"></i> 
-                    )
-                   }
-                    
-                    
+                    ) : (
+                      <i className="fa-solid fa-share-nodes me-2"></i>
+                    )}
                   </button>
-                  <button className="btn btn-outline-success btn-sm" onClick={() => window.print()}>
-                    <i className="fa-solid fa-download me-2"></i> 
+                  <button
+                    className="btn btn-outline-success btn-sm"
+                    onClick={() => window.print()}
+                  >
+                    <i className="fa-solid fa-download me-2"></i>
                   </button>
-                  <button className="btn btn-success btn-sm" onClick={()=> {
-                    setOrderCompleteModal(false);
-                    navigate("/admin/shopKepper/requests");
-                  }}>
+                  <button
+                    className="btn btn-success btn-sm"
+                    onClick={() => {
+                      setOrderCompleteModal(false);
+                      navigate("/admin/shopKepper/requests");
+                    }}
+                  >
                     <i className="fa-solid fa-plus me-2"></i> More Request
                   </button>
                 </div>

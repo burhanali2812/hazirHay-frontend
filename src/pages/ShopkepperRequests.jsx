@@ -880,7 +880,7 @@ function ShopkepperRequests({ refreshFlag, setRefreshFlag }) {
                                   <span className="text-success ms-2">
                                     {(
                                       totalPrice?.actualPrice + fixCharges
-                                    ).toFixed(0)}
+                                    )}
                                     /-
                                   </span>
                                 </h5>
