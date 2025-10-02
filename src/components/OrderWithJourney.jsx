@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import UserShopRoute from "./UserShopRoute";
 import axios from "axios";
+import * as htmlToImage from "html-to-image";
 import { useNavigate } from "react-router-dom";
 import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import successAudio from "../sounds/success.mp3";
@@ -15,6 +16,7 @@ function OrderWithJourney() {
   console.log("selectedShop", selectedTrackShopData);
   const token = localStorage.getItem("token");
   const navigate = useNavigate();
+   const ref = useRef();
 
   const position = selectedTrackShopData?.orders[0]?.location?.[0]?.coordinates;
 
@@ -116,22 +118,37 @@ function OrderWithJourney() {
   const serviceCharges = distance * rate;
   const grandTotal = Number(selectedTrackShopData?.totalCost) + Number(serviceCharges);
 
-  const handleShare = async () => {
-    if (navigator.share) {
-      try {
+ const handleShare = async () => {
+    if (!ref.current) return;
+
+    try {
+      // Step 1: Take screenshot (high quality)
+      const dataUrl = await htmlToImage.toPng(ref.current, {
+        quality: 1,
+        pixelRatio: 3,
+      });
+
+      // Step 2: Convert to Blob (needed for share)
+      const res = await fetch(dataUrl);
+      const blob = await res.blob();
+
+      const file = new File([blob], "screenshot.png", { type: "image/png" });
+
+      // Step 3: Share
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
         await navigator.share({
           title: "Check this out!",
-          text: "This is something interesting.",
-          url: window.location.href,
+          text: "Here’s a screenshot ",
+          files: [file],
         });
-        console.log("Shared successfully");
-      } catch (error) {
-        console.log("Sharing failed", error);
+        console.log("Shared successfully!");
+      } else {
+        alert("Sharing with files not supported on this browser.");
       }
-    } else {
-      alert("Sharing not supported on this browser.");
+    } catch (error) {
+      console.error("Sharing failed", error);
     }
-  };
+  }
 
   return (
     <div style={{ marginBottom: "65px" }} className="bg-white container">

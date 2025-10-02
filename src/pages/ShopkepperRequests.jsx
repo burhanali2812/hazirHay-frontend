@@ -96,6 +96,7 @@ function ShopkepperRequests({ refreshFlag, setRefreshFlag }) {
   };
 
   const fetchRequests = async () => {
+    setStatusLoading(true);
     console.log(user._id);
 
     try {
@@ -110,6 +111,7 @@ function ShopkepperRequests({ refreshFlag, setRefreshFlag }) {
       if (response.data.success) {
         setRequests(response.data.data || []);
         console.log("request fetch", response.data.data);
+         setStatusLoading(false);
 
         if (refreshFlag) {
           alert("New Request Added");
@@ -117,16 +119,19 @@ function ShopkepperRequests({ refreshFlag, setRefreshFlag }) {
       } else {
         console.warn("No requests found:", response.data.message);
         setRequests([]);
+        setStatusLoading(false);
       }
     } catch (error) {
       console.error(
         "Error fetching requests:",
         error.response?.data?.message || error.message
       );
+      setStatusLoading(false);
       setRequests([]);
     }
   };
   const getShopkepperStatus = async () => {
+      setStatusLoading(true);
     try {
       const response = await axios.get(
         `https://hazir-hay-backend.vercel.app/shopKeppers/getShopKepperStatus/${user._id}`,
@@ -137,10 +142,12 @@ function ShopkepperRequests({ refreshFlag, setRefreshFlag }) {
       );
 
       if (response.status === 200) {
+          setStatusLoading(false);
         console.log("Current Status:", response.data.data);
         setIsOnline(response.data.data);
       }
     } catch (error) {
+        setStatusLoading(false);
       console.error("Error fetching status:", error);
       alert(error.response?.data?.message || "Failed to fetch status!");
     }
@@ -394,7 +401,7 @@ function ShopkepperRequests({ refreshFlag, setRefreshFlag }) {
               role="status"
               aria-hidden="true"
             ></span>
-            Status Updating...
+             Updating...
           </button>
         </div>
       ) : (

@@ -264,7 +264,7 @@ const handleNext = async () => {
       confirmButtonText: "Try Again",
     });
 
-    if (result.isConfirmed) {
+    if (!result.isConfirmed) {
       // retry without recursion
       await fetchAllDistances();
       return handleNext();
