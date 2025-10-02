@@ -328,7 +328,7 @@ function ShopkepperRequests({ refreshFlag, setRefreshFlag }) {
     }, 2000);
   };
 
-  const fixCharges = fixRate * fixDistance;
+  const fixCharges = (fixRate * fixDistance).toFixed(2);
   const finalRequests = acceptedOrderRequest ? [acceptedOrderRequest] : result;
   console.log("accpted", acceptedOrderRequest);
 

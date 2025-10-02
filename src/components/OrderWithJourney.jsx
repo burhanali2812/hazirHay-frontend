@@ -11,6 +11,7 @@ function OrderWithJourney() {
   const [shopKepperCords, setShopKepperCords] = useState([]);
   const [loading, setLoading] = useState(false);
   const [orderCompleteModal, setOrderCompleteModal] = useState(false);
+  const [shareLoading, setShareLoading] = useState(false);
   const location = useLocation();
   const selectedTrackShopData = location.state;
   console.log("selectedShop", selectedTrackShopData);
@@ -115,11 +116,12 @@ function OrderWithJourney() {
 
   const distance = selectedTrackShopData?.orders[0]?.serviceCharges?.distance || 0;
   const rate = selectedTrackShopData?.orders[0]?.serviceCharges?.rate || 0;
-  const serviceCharges = distance * rate;
+  const serviceCharges = (distance * rate).toFixed(2);
   const grandTotal = Number(selectedTrackShopData?.totalCost) + Number(serviceCharges);
 
  const handleShare = async () => {
     console.log("Button clicked ✅");
+    setShareLoading(true);
 
     if (!ref.current) {
       alert("ref is null ❌");
@@ -146,11 +148,14 @@ function OrderWithJourney() {
           text: "Here’s a screenshot ",
           files: [file],
         });
+        setShareLoading(false);
         console.log("Shared successfully!");
       } else {
+        setShareLoading(false);
         alert("Sharing with files not supported on this browser.");
       }
     } catch (error) {
+      setShareLoading(false);
       console.error("Sharing failed", error);
     }
   }
@@ -473,8 +478,21 @@ function OrderWithJourney() {
 
                 {/* Buttons */}
                 <div className="d-flex justify-content-end gap-3 mt-4">
-                  <button className="btn btn-outline-primary btn-sm text-center " onClick={handleShare}>
-                    <i className="fa-solid fa-share-nodes me-2"></i> 
+                  <button className="btn btn-outline-primary btn-sm text-center " onClick={handleShare} disabled={shareLoading}>
+                   {
+                    shareLoading ? (
+                      <>
+                       <div
+                  className="spinner-border spinner-border-sm text-dark ms-2"
+                  role="status"
+                ></div>
+                      </>
+                    ):(
+                      <i className="fa-solid fa-share-nodes me-2"></i> 
+                    )
+                   }
+                    
+                    
                   </button>
                   <button className="btn btn-outline-success btn-sm" onClick={() => window.print()}>
                     <i className="fa-solid fa-download me-2"></i> 
