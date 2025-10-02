@@ -119,7 +119,12 @@ function OrderWithJourney() {
   const grandTotal = Number(selectedTrackShopData?.totalCost) + Number(serviceCharges);
 
  const handleShare = async () => {
-    if (!ref.current) return;
+    console.log("Button clicked ✅");
+
+    if (!ref.current) {
+      alert("ref is null ❌");
+      return;
+    }
 
     try {
       // Step 1: Take screenshot (high quality)
@@ -375,6 +380,7 @@ function OrderWithJourney() {
       </div>
       {orderCompleteModal && (
         <div
+        ref={ref} 
           className="modal fade show d-block"
           tabIndex="-1"
           style={{ backgroundColor: "rgba(0,0,0,0.5)" }}

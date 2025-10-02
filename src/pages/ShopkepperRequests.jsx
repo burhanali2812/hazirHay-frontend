@@ -95,8 +95,10 @@ function ShopkepperRequests({ refreshFlag, setRefreshFlag }) {
     }
   };
 
-  const fetchRequests = async () => {
-    setStatusLoading(true);
+  const fetchRequests = async (type) => {
+    if(type==="auto"){
+      setStatusLoading(true);
+    }
     console.log(user._id);
 
     try {
@@ -155,13 +157,13 @@ function ShopkepperRequests({ refreshFlag, setRefreshFlag }) {
 
   useEffect(() => {
     getShopData();
-    fetchRequests();
+    fetchRequests("auto");
     getShopkepperStatus();
   }, []);
 
   useEffect(() => {
     if (refreshFlag) {
-      fetchRequests();
+      fetchRequests("auto");
       setRefreshFlag(false);
     }
   }, [refreshFlag]);
@@ -235,7 +237,7 @@ function ShopkepperRequests({ refreshFlag, setRefreshFlag }) {
         }
       );
       if (response.data.success) {
-        fetchRequests();
+        fetchRequests("none");
         const finalType = type === "accept" ? "accepted" : "rejected";
         setSelectedRequest((prev) => ({
           ...prev,
