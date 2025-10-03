@@ -16,7 +16,7 @@ function ShopkepperRequests({ refreshFlag, setRefreshFlag }) {
   const [detailsModalLoading, setDetailsModalLoading] = useState(null);
   const [declinedModal, setDEclinedModal] = useState(false);
   const [statusLoading, setStatusLoading] = useState(false);
-  
+
   const [shop, setShop] = useState(null);
   const [isOnline, setIsOnline] = useState(false);
   const [declineReason, setDeclineReason] = useState("");
@@ -96,7 +96,7 @@ function ShopkepperRequests({ refreshFlag, setRefreshFlag }) {
   };
 
   const fetchRequests = async (type) => {
-    if(type==="auto"){
+    if (type === "auto") {
       setStatusLoading(true);
     }
     console.log(user._id);
@@ -113,7 +113,7 @@ function ShopkepperRequests({ refreshFlag, setRefreshFlag }) {
       if (response.data.success) {
         setRequests(response.data.data || []);
         console.log("request fetch", response.data.data);
-         setStatusLoading(false);
+        setStatusLoading(false);
 
         if (refreshFlag) {
           alert("New Request Added");
@@ -133,7 +133,7 @@ function ShopkepperRequests({ refreshFlag, setRefreshFlag }) {
     }
   };
   const getShopkepperStatus = async () => {
-      setStatusLoading(true);
+    setStatusLoading(true);
     try {
       const response = await axios.get(
         `https://hazir-hay-backend.vercel.app/shopKeppers/getShopKepperStatus/${user._id}`,
@@ -144,12 +144,12 @@ function ShopkepperRequests({ refreshFlag, setRefreshFlag }) {
       );
 
       if (response.status === 200) {
-          setStatusLoading(false);
+        setStatusLoading(false);
         console.log("Current Status:", response.data.data);
         setIsOnline(response.data.data);
       }
     } catch (error) {
-        setStatusLoading(false);
+      setStatusLoading(false);
       console.error("Error fetching status:", error);
       alert(error.response?.data?.message || "Failed to fetch status!");
     }
@@ -333,7 +333,7 @@ function ShopkepperRequests({ refreshFlag, setRefreshFlag }) {
   console.log("accpted", acceptedOrderRequest);
 
   const toggleStatus = async (e) => {
-     setStatusLoading(true);
+    setStatusLoading(true);
     try {
       const newStatus = !isOnline;
 
@@ -351,7 +351,7 @@ function ShopkepperRequests({ refreshFlag, setRefreshFlag }) {
       );
 
       if (response.status === 200) {
-         setStatusLoading(false);
+        setStatusLoading(false);
         alert(response.data.message || "Status updated successfully!");
 
         setIsOnline(newStatus); // update UI state
@@ -365,6 +365,8 @@ function ShopkepperRequests({ refreshFlag, setRefreshFlag }) {
       setStatusLoading(false);
     }
   };
+
+  const grandTotalWithCharges = (Number(totalPrice?.actualPrice) + Number(fixCharges)).toFixed(0);
 
   return (
     <>
@@ -403,7 +405,7 @@ function ShopkepperRequests({ refreshFlag, setRefreshFlag }) {
               role="status"
               aria-hidden="true"
             ></span>
-             Updating...
+            Updating...
           </button>
         </div>
       ) : (
@@ -855,7 +857,7 @@ function ShopkepperRequests({ refreshFlag, setRefreshFlag }) {
                                 <li className="list-group-item d-flex justify-content-between align-items-center">
                                   <span>
                                     <i className="fa-solid fa-gift me-2 text-success"></i>{" "}
-                                    Earning
+                                    Bonus
                                   </span>
                                   <span className="fw-semibold text-success">
                                     {(
@@ -878,9 +880,7 @@ function ShopkepperRequests({ refreshFlag, setRefreshFlag }) {
                                     (Incl. service charges)
                                   </span>
                                   <span className="text-success ms-2">
-                                    {(
-                                      totalPrice?.actualPrice + fixCharges
-                                    )}
+                                    {grandTotalWithCharges}
                                     /-
                                   </span>
                                 </h5>
