@@ -192,51 +192,54 @@ function UserDashboard({
 
   const getAllRequests = async () => {
     try {
-      const response = await axios.get("https://hazir-hay-backend.vercel.app/requests/getAllRequests", {
-        headers: { Authorization: `Bearer ${token}` },
-        params: { t: Date.now() }, // Prevent caching
-      })
+      const response = await axios.get(
+        "https://hazir-hay-backend.vercel.app/requests/getAllRequests",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          params: { t: Date.now() }, // Prevent caching
+        }
+      );
       if (response.data.success) {
         setAllRequests(response.data.data || []);
         console.log("All Requests", response.data.data);
       } else {
         console.error("Failed to fetch requests");
         setAllRequests([]);
-
       }
-
     } catch (error) {
       console.log("Error fetching requests:", error.message);
-      
     }
-  }
+  };
   useEffect(() => {
     getAllRequests();
   }, []);
 
-  const findRatio = (id,type)=>{
-    if(!allRequests || allRequests.length === 0) return 0;
+  const findRatio = (id, type) => {
+    if (!allRequests || allRequests.length === 0) return 0;
     console.log("allRequests", allRequests);
     console.log("id", id);
-    
-    
-    const Totalrequest = allRequests.filter(req => req.shopOwnerId === id);
-    const acceptedRequests = Totalrequest.filter(req => req.status === 'completed');
-    const rejectedRequests = Totalrequest.filter(req => req.status === 'rejected');
+
+    const Totalrequest = allRequests.filter((req) => req.shopOwnerId === id);
+    const acceptedRequests = Totalrequest.filter(
+      (req) => req.status === "completed"
+    );
+    const rejectedRequests = Totalrequest.filter(
+      (req) => req.status === "rejected"
+    );
     console.log("Totalrequest", Totalrequest);
-      console.log("acceptedRequests", acceptedRequests);
-      console.log("rejectedRequests", rejectedRequests);
-    
-    if(type === 'accepted'){
+    console.log("acceptedRequests", acceptedRequests);
+    console.log("rejectedRequests", rejectedRequests);
+
+    if (type === "accepted") {
       const ratio = (acceptedRequests.length / Totalrequest.length) * 100;
       return ratio.toFixed(0);
-    } else if(type === 'rejected'){
+    } else if (type === "rejected") {
       const ratio = (rejectedRequests.length / Totalrequest.length) * 100;
       return ratio.toFixed(0);
     } else {
       return Totalrequest.length;
     }
-  }
+  };
 
   const getShopWithShopkeppers = async (provider) => {
     setDetailLoading(provider._id);
@@ -617,13 +620,29 @@ function UserDashboard({
     async function fetchDistances() {
       const result = await calculateDistances();
       console.log("shoppppppppppsss", result);
-      
+
       setShopData(result);
       console.log("ShopData for distance", result);
     }
 
     fetchDistances();
   }, [finalServices, selectedArea]); // <- dependency array
+
+  const completeOrderRatioSelectedShop = findRatio(
+    selectedShopWithShopkepper?.shop?.owner,
+    "accepted"
+  );
+  console.log("completeOrderRatioSelectedShop", completeOrderRatioSelectedShop);
+  const rejectedRatio = findRatio(
+    selectedShopWithShopkepper?.shop?.owner,
+    "rejected"
+  );
+  console.log("rejectedRatio", rejectedRatio);
+  const totalRequests = findRatio(
+    selectedShopWithShopkepper?.shop?.owner,
+    "total"
+  );
+  console.log("totalRequests", totalRequests);
 
   return (
     <div>
@@ -1056,149 +1075,168 @@ function UserDashboard({
                 </div>
 
                 {shopData.length > 0 ? (
-              <div className="row g-4">
-  {shopData.map((shop, index) => {
-    const averageRating = findAverageRating(shop.reviews);
-    const acceptedRatio = findRatio(shop?.owner?._id, "accepted");
-    const rejectedRatio = findRatio(shop?.owner?._id, "rejected");
+                  <div className="row g-4">
+                    {shopData.map((shop, index) => {
+                      const averageRating = findAverageRating(shop.reviews);
+                      const acceptedRatio = findRatio(
+                        shop?.owner?._id,
+                        "accepted"
+                      );
+                      const rejectedRatio = findRatio(
+                        shop?.owner?._id,
+                        "rejected"
+                      );
+                       const totalOrders = findRatio(
+                        shop?.owner?._id,
+                        "total"
+                      );
 
-    return (
-      <div className="col-12 col-md-6 col-lg-4" key={index}>
-        <div className="card shadow-sm border-0 rounded-2 ">
-          <div className="card-body p-3">
-            {/* Header Section */}
-            <div className="d-flex align-items-center mb-3">
-              {/* Shop Image */}
-              <div
-                className="rounded-circle bg-light border d-flex align-items-center justify-content-center overflow-hidden flex-shrink-0"
-                style={{
-                  width: "85px",
-                  height: "85px",
-                  cursor: "pointer",
-                }}
-              >
-                <img
-                  src={shop.shopPicture || "/default-image.jpg"}
-                  alt="Shop"
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    objectFit: "cover",
-                  }}
-                />
-              </div>
+                      return (
+                        <div className="col-12 col-md-6 col-lg-4" key={index}>
+                          <div className="card shadow-sm border-0 rounded-2 ">
+                            <div className="card-body p-3">
+                              {/* Header Section */}
+                              <div className="d-flex align-items-center mb-3">
+                                {/* Shop Image */}
+                                <div
+                                  className="rounded-circle bg-light border d-flex align-items-center justify-content-center overflow-hidden flex-shrink-0"
+                                  style={{
+                                    width: "85px",
+                                    height: "85px",
+                                    cursor: "pointer",
+                                  }}
+                                >
+                                  <img
+                                    src={
+                                      shop.shopPicture || "/default-image.jpg"
+                                    }
+                                    alt="Shop"
+                                    style={{
+                                      width: "100%",
+                                      height: "100%",
+                                      objectFit: "cover",
+                                    }}
+                                  />
+                                </div>
 
-              {/* Shop Details */}
-              <div className="ms-3 flex-grow-1">
-                {/* Shop Name + Rating */}
-                <div className="d-flex justify-content-between align-items-center mb-1">
-                  <h6
-                    className="fw-semibold text-dark mb-0 text-truncate"
-                    title={shop.shopName}
-                    style={{ maxWidth: "70%", cursor: "pointer" }}
-                  >
-                    {shop.shopName.length > 12
-                      ? `${shop.shopName.slice(0, 12)}...`
-                      : shop.shopName}
-                  </h6>
+                                {/* Shop Details */}
+                                <div className="ms-3 flex-grow-1">
+                                  {/* Shop Name + Rating */}
+                                  <div className="d-flex justify-content-between align-items-center mb-1">
+                                    <h6
+                                      className="fw-semibold text-dark mb-0 text-truncate"
+                                      title={shop.shopName}
+                                      style={{
+                                        maxWidth: "70%",
+                                        cursor: "pointer",
+                                      }}
+                                    >
+                                      {shop.shopName.length > 12
+                                        ? `${shop.shopName.slice(0, 12)}...`
+                                        : shop.shopName}
+                                    </h6>
 
-                  <div className="text-warning small fw-semibold">
-                    <i className="fa-solid fa-star me-1"></i>
-                    {averageRating}/5
+                                    <div className="text-warning small fw-semibold">
+                                      <i className="fa-solid fa-star me-1"></i>
+                                      {averageRating}/5
+                                    </div>
+                                  </div>
+
+                                  {/* Price and Distance */}
+                                  {shop.servicesOffered
+                                    .filter(
+                                      (service) =>
+                                        service.subCategory?.name ===
+                                        selectedSubCategory
+                                    )
+                                    .map((service, index) => (
+                                      <p
+                                        key={index}
+                                        className="mb-1 fw-semibold text-primary small"
+                                      >
+                                        Rs. {service.subCategory.price}/-{" "}
+                                        <span className="text-muted ms-1">
+                                          | {shop.distance} km away
+                                        </span>
+                                      </p>
+                                    ))}
+
+                                  {/* Ratios */}
+                                  <div className="d-flex justify-content-between small mt-1">
+                                    <span className="fw-bold">
+                                      COR:{" "}
+                                      <span className="text-success fw-semibold">
+                                        {acceptedRatio || 0}%
+                                      </span>
+                                    </span>
+                                    <span className="fw-bold">
+                                      ROR:{" "}
+                                      <span className="text-danger fw-semibold">
+                                        {rejectedRatio || 0}%
+                                      </span>
+                                    </span>
+                                     <span className="fw-bold">
+                                      TO:{" "}
+                                      <span className="text-primary fw-semibold">
+                                        {totalOrders || 0}
+                                      </span>
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Action Buttons */}
+                              <div className="d-flex justify-content-around mt-2">
+                                <button
+                                  className={`btn btn-sm px-2 rounded-pill ${
+                                    shop.isLive ? "btn-success" : "btn-danger"
+                                  }`}
+                                  onClick={() => addToCart(shop, "main")}
+                                  disabled={addCartLoading === shop._id}
+                                >
+                                  {addCartLoading === shop._id ? (
+                                    <>
+                                      Wait...
+                                      <div
+                                        className="spinner-border spinner-border-sm text-light ms-2"
+                                        role="status"
+                                      ></div>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <i class="fa-solid fa-cart-plus me-2"></i>
+                                      Add to Cart
+                                    </>
+                                  )}
+                                </button>
+
+                                <button
+                                  className="btn btn-sm btn-info px-2 rounded-pill  "
+                                  onClick={() => getShopWithShopkeppers(shop)}
+                                  disabled={detailLoading === shop._id}
+                                >
+                                  {detailLoading === shop._id ? (
+                                    <>
+                                      Loading...
+                                      <div
+                                        className="spinner-border spinner-border-sm text-primary ms-2"
+                                        role="status"
+                                      ></div>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <i class="fa-solid fa-circle-info me-2"></i>
+                                      Shop Details
+                                    </>
+                                  )}
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
-                </div>
-
-                {/* Price and Distance */}
-                {shop.servicesOffered
-                  .filter(
-                    (service) =>
-                      service.subCategory?.name === selectedSubCategory
-                  )
-                  .map((service, index) => (
-                    <p
-                      key={index}
-                      className="mb-1 fw-semibold text-primary small"
-                    >
-                      Rs. {service.subCategory.price}/-{" "}
-                      <span className="text-muted ms-1">
-                        | {shop.distance} km away
-                      </span>
-                    </p>
-                  ))}
-
-                {/* Ratios */}
-                <div className="d-flex justify-content-between small mt-1">
-                  <span>
-                    COR:{" "}
-                    <span className="text-success fw-semibold">
-                      {acceptedRatio || 0}%
-                    </span>
-                  </span>
-                  <span>
-                    ROR:{" "}
-                    <span className="text-danger fw-semibold">
-                      {rejectedRatio || 0}%
-                    </span>
-                  </span>
-
-                 
-                </div>
-              </div>
-            </div>
-
-            {/* Action Buttons */}
-            <div className="d-flex justify-content-around mt-2">
-              <button
-                className={`btn btn-sm px-3 rounded-pill ${
-                  shop.isLive ? "btn-success" : "btn-danger"
-                }`}
-                onClick={() => addToCart(shop, "main")}
-                disabled={addCartLoading === shop._id}
-              >
-                {addCartLoading === shop._id ? (
-                  <>
-                    Wait...
-                    <div
-                      className="spinner-border spinner-border-sm text-light ms-2"
-                      role="status"
-                    ></div>
-                  </>
-                ) : (
-                 <>
-                  <i class="fa-solid fa-cart-plus me-2"></i>
-                  Add to Cart
-                 </>
-                )}
-              </button>
-
-              <button
-                className="btn btn-sm btn-info px-3 rounded-pill  "
-                onClick={() => getShopWithShopkeppers(shop)}
-                disabled={detailLoading === shop._id}
-              >
-                {detailLoading === shop._id ? (
-                  <>
-                    Loading...
-                    <div
-                      className="spinner-border spinner-border-sm text-primary ms-2"
-                      role="status"
-                    ></div>
-                  </>
-                ) : (
-                 <>
-                  <i class="fa-solid fa-circle-info me-2"></i>
-                  Shop Details
-                 </>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  })}
-</div>
-
                 ) : (
                   <div
                     className="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center bg-dark bg-opacity-75"
@@ -1214,15 +1252,6 @@ function UserDashboard({
                     </button>
                   </div>
                 )}
-              </div>
-              <div className="modal-footer">
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  onClick={() => setSubCatModal(false)}
-                >
-                  Close
-                </button>
               </div>
             </div>
           </div>
@@ -1312,6 +1341,41 @@ function UserDashboard({
                     </p>
                   )}
                 </div>
+               <div className="d-flex flex-wrap align-items-center justify-content-between bg-light p-3 rounded-4 shadow-sm border mb-3">
+  {/* COR */}
+  <div className="d-flex align-items-center me-3 mb-2">
+    <i className="fa-solid fa-circle-check text-success me-2"></i>
+    <span className="text-secondary small fw-semibold">
+      Complete Order Ratio (COR):{" "}
+      <span className="text-success fw-bold">
+        {completeOrderRatioSelectedShop ? completeOrderRatioSelectedShop : 0}%
+      </span>
+    </span>
+  </div>
+
+  {/* ROR */}
+  <div className="d-flex align-items-center me-3 mb-2">
+    <i className="fa-solid fa-circle-xmark text-danger me-2"></i>
+    <span className="text-secondary small fw-semibold">
+      Rejected Order Ratio (ROR):{" "}
+      <span className="text-danger fw-bold">
+        {rejectedRatio ? rejectedRatio : 0}%
+      </span>
+    </span>
+  </div>
+
+  {/* TO */}
+  <div className="d-flex align-items-center mb-2">
+    <i className="fa-solid fa-box text-primary me-2"></i>
+    <span className="text-secondary small fw-semibold">
+      Total Orders (TO):{" "}
+      <span className="text-primary fw-bold">
+        {totalRequests ? totalRequests : 0}
+      </span>
+    </span>
+  </div>
+</div>
+
 
                 <div className="d-flex justify-content-center gap-2 mt-1">
                   {/* Call Button */}
