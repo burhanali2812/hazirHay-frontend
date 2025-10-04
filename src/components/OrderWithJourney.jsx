@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import successAudio from "../sounds/success.mp3";
 function OrderWithJourney() {
+    const user = JSON.parse(sessionStorage.getItem("user"));
   const [routeInfo, setRouteInfo] = useState(null);
   const [shopKepperCords, setShopKepperCords] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -20,7 +21,34 @@ function OrderWithJourney() {
   const ref = useRef();
 
   const position = selectedTrackShopData?.orders[0]?.location?.[0]?.coordinates;
+  const sendNotificationToUser = async (type) => {
+    if (!selectedTrackShopData) return;
+    if (!user) return;  
+    const payload = {
+      type: "success",
+      message: `Your order has been completed successfully of Rs. ${selectedTrackShopData?.totalCost}/- . Thank you for choosing our service! cheeckoutId: `,
+      checkoutId: selectedTrackShopData?.orders[0]?.checkoutId,
+      userId: type === "shop" ? user._id : selectedTrackShopData?.orders[0]?.userId,
+    };
 
+    try {
+      const res = await axios.post(
+        "https://hazir-hay-backend.vercel.app/notification/addNotification",
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
+      if (res.data.success) {
+        console.log("Notification sent:", res.data.data);
+      }
+    } catch (error) {
+      console.error("Error sending notification:", error);
+    }
+  };
   const completedOrder = async () => {
     setLoading(true);
     const requests =
@@ -43,6 +71,8 @@ function OrderWithJourney() {
 
       if (res.data.success) {
         setLoading(false);
+        sendNotificationToUser("shop");
+        sendNotificationToUser("user");
         alert(res.data.message);
         // navigate("/admin/shopKepper/requests");
         setOrderCompleteModal(true);

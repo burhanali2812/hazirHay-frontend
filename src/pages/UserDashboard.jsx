@@ -33,6 +33,7 @@ function UserDashboard({
 
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [availableServices, setAvailableServices] = useState([]);
+  const [allRequests, setAllRequests] = useState([]);
   const [page, setPage] = useState(0);
   const [selectedShopWithShopkepper, setSelectedShopWithShopkepper] =
     useState(null);
@@ -99,7 +100,7 @@ function UserDashboard({
              }</strong> is currently not live.
            </p>
            <p class="text-muted">
-             Don’t worry 😊 — your request will be sent, and when the provider comes online, 
+             Don’t worry— your request will be sent, and when the provider comes online, 
              they will contact you shortly.
            </p>`,
         icon: "info",
@@ -188,6 +189,54 @@ function UserDashboard({
       setAddCartLoading(null);
     }
   };
+
+  const getAllRequests = async () => {
+    try {
+      const response = await axios.get("https://hazir-hay-backend.vercel.app/requests/getAllRequests", {
+        headers: { Authorization: `Bearer ${token}` },
+        params: { t: Date.now() }, // Prevent caching
+      })
+      if (response.data.success) {
+        setAllRequests(response.data.data || []);
+        console.log("All Requests", response.data.data);
+      } else {
+        console.error("Failed to fetch requests");
+        setAllRequests([]);
+
+      }
+
+    } catch (error) {
+      console.log("Error fetching requests:", error.message);
+      
+    }
+  }
+  useEffect(() => {
+    getAllRequests();
+  }, []);
+
+  const findRatio = (id,type)=>{
+    if(!allRequests || allRequests.length === 0) return 0;
+    console.log("allRequests", allRequests);
+    console.log("id", id);
+    
+    
+    const Totalrequest = allRequests.filter(req => req.shopOwnerId === id);
+    const acceptedRequests = Totalrequest.filter(req => req.status === 'completed');
+    const rejectedRequests = Totalrequest.filter(req => req.status === 'rejected');
+    console.log("Totalrequest", Totalrequest);
+      console.log("acceptedRequests", acceptedRequests);
+      console.log("rejectedRequests", rejectedRequests);
+    
+    if(type === 'accepted'){
+      const ratio = (acceptedRequests.length / Totalrequest.length) * 100;
+      return ratio.toFixed(0);
+    } else if(type === 'rejected'){
+      const ratio = (rejectedRequests.length / Totalrequest.length) * 100;
+      return ratio.toFixed(0);
+    } else {
+      return Totalrequest.length;
+    }
+  }
 
   const getShopWithShopkeppers = async (provider) => {
     setDetailLoading(provider._id);
@@ -567,6 +616,8 @@ function UserDashboard({
 
     async function fetchDistances() {
       const result = await calculateDistances();
+      console.log("shoppppppppppsss", result);
+      
       setShopData(result);
       console.log("ShopData for distance", result);
     }
@@ -1005,131 +1056,154 @@ function UserDashboard({
                 </div>
 
                 {shopData.length > 0 ? (
-                  <div className="row g-3">
-                    {shopData.map((shop, index) => {
-                      const averageRating = findAverageRating(shop.reviews);
-                      return (
-                        <div className="col-12 col-md-6 col-lg-4 " key={index}>
-                          <div className="mt-3 overflow-hidden container">
-                            <div className="card-body ">
-                              <div className="d-flex align-items-center">
-                                {/* Shop Image */}
-                                <div
-                                  className="rounded-circle border flex-shrink-0 d-flex align-items-center justify-content-center bg-light"
-                                  style={{
-                                    width: "90px",
-                                    height: "90px",
-                                    overflow: "hidden",
-                                    cursor: "pointer",
-                                  }}
-                                >
-                                  <img
-                                    src={
-                                      shop.shopPicture || "/default-image.jpg"
-                                    }
-                                    alt="Shop"
-                                    style={{
-                                      objectFit: "cover",
-                                      width: "100%",
-                                      height: "100%",
-                                    }}
-                                  />
-                                </div>
+              <div className="row g-4">
+  {shopData.map((shop, index) => {
+    const averageRating = findAverageRating(shop.reviews);
+    const acceptedRatio = findRatio(shop?.owner?._id, "accepted");
+    const rejectedRatio = findRatio(shop?.owner?._id, "rejected");
 
-                                {/* Shop Details */}
-                                <div className="ms-3 flex-grow-1">
-                                  {/* Shop name and rating */}
-                                  <div className="d-flex justify-content-between align-items-center mb-1">
-                                    <p
-                                      className="text-dark fw-semibold mb-0 text-truncate"
-                                      style={{
-                                        maxWidth: "70%",
-                                        cursor: "pointer",
-                                      }}
-                                      title={shop.shopName}
-                                    >
-                                      {shop.shopName.length > 10
-                                        ? `${shop.shopName.slice(0, 10)}...`
-                                        : shop.shopName}
-                                    </p>
+    return (
+      <div className="col-12 col-md-6 col-lg-4" key={index}>
+        <div className="card shadow-sm border-0 rounded-2 ">
+          <div className="card-body p-3">
+            {/* Header Section */}
+            <div className="d-flex align-items-center mb-3">
+              {/* Shop Image */}
+              <div
+                className="rounded-circle bg-light border d-flex align-items-center justify-content-center overflow-hidden flex-shrink-0"
+                style={{
+                  width: "85px",
+                  height: "85px",
+                  cursor: "pointer",
+                }}
+              >
+                <img
+                  src={shop.shopPicture || "/default-image.jpg"}
+                  alt="Shop"
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                  }}
+                />
+              </div>
 
-                                    <p className="mb-0 text-muted small d-flex align-items-center">
-                                      <i className="fa-solid fa-star text-warning me-1"></i>
-                                      <strong>{averageRating}</strong>/5
-                                    </p>
-                                  </div>
+              {/* Shop Details */}
+              <div className="ms-3 flex-grow-1">
+                {/* Shop Name + Rating */}
+                <div className="d-flex justify-content-between align-items-center mb-1">
+                  <h6
+                    className="fw-semibold text-dark mb-0 text-truncate"
+                    title={shop.shopName}
+                    style={{ maxWidth: "70%", cursor: "pointer" }}
+                  >
+                    {shop.shopName.length > 12
+                      ? `${shop.shopName.slice(0, 12)}...`
+                      : shop.shopName}
+                  </h6>
 
-                                  {/* Price */}
-                                  {shop.servicesOffered
-                                    .filter(
-                                      (service) =>
-                                        service.subCategory?.name ===
-                                        selectedSubCategory
-                                    )
-                                    .map((service, index) => (
-                                      <p
-                                        key={index}
-                                        className="mb-0 text-primary fw-bold"
-                                        style={{ fontSize: "15px" }}
-                                      >
-                                        Rs. {service.subCategory.price}/- |{" "}
-                                        <span
-                                          className="ms-1"
-                                          style={{ color: "#000080" }}
-                                        >
-                                          {shop.distance} km away
-                                        </span>
-                                      </p>
-                                    ))}
-
-                                  <div className="d-flex justify-content-between gap-1 mt-1">
-                                    <button
-                                      className={`btn btn-${
-                                        shop.isLive ? "success" : "danger"
-                                      } btn-sm `}
-                                      onClick={() => addToCart(shop, "main")}
-                                      disabled={addCartLoading === shop._id}
-                                    >
-                                      {addCartLoading === shop._id ? (
-                                        <>
-                                          Wait...
-                                          <div
-                                            className="spinner-border spinner-border-sm text-light ms-2"
-                                            role="status"
-                                          ></div>
-                                        </>
-                                      ) : (
-                                        <>Add to cart</>
-                                      )}
-                                    </button>
-                                    <button
-                                      className="btn btn-info btn-sm "
-                                      onClick={() =>
-                                        getShopWithShopkeppers(shop)
-                                      }
-                                      disabled={detailLoading === shop._id}
-                                    >
-                                      {detailLoading === shop._id ? (
-                                        <>
-                                          Loading...
-                                          <div
-                                            className="spinner-border spinner-border-sm text-light ms-2"
-                                            role="status"
-                                          ></div>
-                                        </>
-                                      ) : (
-                                        <>Shop Details</>
-                                      )}
-                                    </button>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
+                  <div className="text-warning small fw-semibold">
+                    <i className="fa-solid fa-star me-1"></i>
+                    {averageRating}/5
                   </div>
+                </div>
+
+                {/* Price and Distance */}
+                {shop.servicesOffered
+                  .filter(
+                    (service) =>
+                      service.subCategory?.name === selectedSubCategory
+                  )
+                  .map((service, index) => (
+                    <p
+                      key={index}
+                      className="mb-1 fw-semibold text-primary small"
+                    >
+                      Rs. {service.subCategory.price}/-{" "}
+                      <span className="text-muted ms-1">
+                        | {shop.distance} km away
+                      </span>
+                    </p>
+                  ))}
+
+                {/* Ratios */}
+                <div className="d-flex justify-content-between small mt-1">
+                  <span>
+                    COR:{" "}
+                    <span className="text-success fw-semibold">
+                      {acceptedRatio || 0}%
+                    </span>
+                  </span>
+                  <span>
+                    ROR:{" "}
+                    <span className="text-danger fw-semibold">
+                      {rejectedRatio || 0}%
+                    </span>
+                  </span>
+                 
+                    <span className={`text-light  ${shop?.isLive ? "bg-success" : "bg-danger"} rounded-pill px-2`}>
+                      {
+                        shop?.isLive ? "Online" : "Offline"
+                      }
+                    </span>
+                 
+                </div>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="d-flex justify-content-around mt-2">
+              <button
+                className={`btn btn-sm px-3  ${
+                  shop.isLive ? "btn-success" : "btn-danger"
+                }`}
+                onClick={() => addToCart(shop, "main")}
+                disabled={addCartLoading === shop._id}
+              >
+                {addCartLoading === shop._id ? (
+                  <>
+                    Wait...
+                    <div
+                      className="spinner-border spinner-border-sm text-light ms-2"
+                      role="status"
+                    ></div>
+                  </>
+                ) : (
+                 <>
+                  <i class="fa-solid fa-cart-plus me-2"></i>
+                  Add to Cart
+                 </>
+                )}
+              </button>
+
+              <button
+                className="btn btn-sm btn-info px-3 "
+                onClick={() => getShopWithShopkeppers(shop)}
+                disabled={detailLoading === shop._id}
+              >
+                {detailLoading === shop._id ? (
+                  <>
+                    Loading...
+                    <div
+                      className="spinner-border spinner-border-sm text-primary ms-2"
+                      role="status"
+                    ></div>
+                  </>
+                ) : (
+                 <>
+                  <i class="fa-solid fa-circle-info me-2"></i>
+                  Shop Details
+                 </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  })}
+</div>
+
                 ) : (
                   <div
                     className="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center bg-dark bg-opacity-75"
