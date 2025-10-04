@@ -1140,12 +1140,7 @@ function UserDashboard({
                       {rejectedRatio || 0}%
                     </span>
                   </span>
-                 
-                    <span className={`text-light  ${shop?.isLive ? "bg-success" : "bg-danger"} rounded-pill px-2`}>
-                      {
-                        shop?.isLive ? "Online" : "Offline"
-                      }
-                    </span>
+
                  
                 </div>
               </div>
@@ -1154,7 +1149,7 @@ function UserDashboard({
             {/* Action Buttons */}
             <div className="d-flex justify-content-around mt-2">
               <button
-                className={`btn btn-sm px-3  ${
+                className={`btn btn-sm px-3 rounded-pill ${
                   shop.isLive ? "btn-success" : "btn-danger"
                 }`}
                 onClick={() => addToCart(shop, "main")}
@@ -1177,7 +1172,7 @@ function UserDashboard({
               </button>
 
               <button
-                className="btn btn-sm btn-info px-3 "
+                className="btn btn-sm btn-info px-3 rounded-pill  "
                 onClick={() => getShopWithShopkeppers(shop)}
                 disabled={detailLoading === shop._id}
               >
