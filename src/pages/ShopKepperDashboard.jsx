@@ -87,7 +87,7 @@ useEffect(() => {
       {/* HEADER CARD */}
       <div
         className="card shadow-sm border-0 bg-white p-4 mb-4"
-        style={{ borderRadius: "20px" }}
+        style={{ borderBottomLeftRadius: "20px", borderBottomRightRadius: "20px" }}
       >
         <div className="d-flex justify-content-between align-items-center flex-wrap text-center text-md-start">
           <div className="flex-grow-1">

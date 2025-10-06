@@ -419,7 +419,24 @@ const updateShopkepper = async () => {
     setLoading(false);
   }
 };
-
+   const getUserStatus = async()=>{
+    try {
+      const res = await axios.get(`https://hazir-hay-backend.vercel.app/shopKeppers/getBusyStatus/${user?._id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+        params: { t: Date.now() }, // avoid caching
+      });
+      if(res.data.success){
+       if(res.data.data){
+        navigate("/admin/user/orderWithJourney");
+       }
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
+  useEffect(() => {
+    getUserStatus();
+  }, []);
 
   return (
     <>
