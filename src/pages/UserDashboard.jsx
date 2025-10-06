@@ -1188,8 +1188,8 @@ function UserDashboard({
                               {/* Action Buttons */}
                               <div className="d-flex justify-content-around mt-2">
                                 <button
-                                  className={`btn btn-sm px-2 rounded-pill ${
-                                    shop.isLive ? "btn-success" : "btn-danger"
+                                  className={`btn btn-sm px-2  ${
+                                    shop.isLive ? "btn-primary" : "btn-danger"
                                   }`}
                                   onClick={() => addToCart(shop, "main")}
                                   disabled={addCartLoading === shop._id}
@@ -1211,7 +1211,7 @@ function UserDashboard({
                                 </button>
 
                                 <button
-                                  className="btn btn-sm btn-info px-2 rounded-pill  "
+                                  className="btn btn-sm btn-outline-primary px-2   "
                                   onClick={() => getShopWithShopkeppers(shop)}
                                   disabled={detailLoading === shop._id}
                                 >
