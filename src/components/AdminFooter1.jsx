@@ -3,14 +3,17 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, Outlet } from "react-router-dom";
 import "./adminFooter.css";
 
-function AdminFooter({ topText, setUpdate, setShopKepperStatus , unSeenNotification, onUpdate, cartData}) {
+function AdminFooter({ topText, setUpdate, setShopKepperStatus , unSeenNotification, onUpdate, cartData, shopKepperStatus2}) {
   const navigate = useNavigate();
   const [active, setActive] = useState(localStorage.getItem("key") || "home");
+
   const [showOffcanvas, setShowOffcanvas] = useState(false);
   const currentUser = JSON.parse(sessionStorage.getItem("user"));
   const role = sessionStorage.getItem("role");
   const user = JSON.parse(sessionStorage.getItem("user"));
   const token = localStorage.getItem("token");
+
+
  
 
 
@@ -54,7 +57,7 @@ function AdminFooter({ topText, setUpdate, setShopKepperStatus , unSeenNotificat
         key: "requests",
         icon: "fas fa-envelope-open-text",
         label: "Requests",
-        path: "/admin/shopKepper/requests",
+        path: shopKepperStatus2 ? "/admin/user/orderWithJourney" : "/admin/shopKepper/requests",
       },
       {
         key: "notification",

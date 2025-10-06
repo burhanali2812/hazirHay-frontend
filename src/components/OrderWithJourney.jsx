@@ -1,20 +1,18 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useLocation } from "react-router-dom";
 import UserShopRoute from "./UserShopRoute";
 import axios from "axios";
 import * as htmlToImage from "html-to-image";
 import { useNavigate } from "react-router-dom";
 import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import successAudio from "../sounds/success.mp3";
-function OrderWithJourney() {
+function OrderWithJourney({setStausUpdate}) {
     const user = JSON.parse(sessionStorage.getItem("user"));
   const [routeInfo, setRouteInfo] = useState(null);
   const [shopKepperCords, setShopKepperCords] = useState([]);
   const [loading, setLoading] = useState(false);
   const [orderCompleteModal, setOrderCompleteModal] = useState(false);
   const [shareLoading, setShareLoading] = useState(false);
-  const location = useLocation();
-  const selectedTrackShopData = location.state;
+  const selectedTrackShopData = JSON.parse(localStorage.getItem("currentCheckout"));
   console.log("selectedShop", selectedTrackShopData);
   const token = localStorage.getItem("token");
   const navigate = useNavigate();
@@ -49,6 +47,26 @@ function OrderWithJourney() {
       console.error("Error sending notification:", error);
     }
   };
+  const updateShopkepper = async () => {
+  try {
+    const response = await axios.put(
+      `https://hazir-hay-backend.vercel.app/shopKeppers/updateBusy/${user._id}`,
+      {isBusy : false}, // no body, so pass empty object
+      {
+        headers: { Authorization: `Bearer ${token}` },
+        params: { t: Date.now() },
+      }
+    );
+
+    if (response.data.success) {
+      setStausUpdate(true);
+      alert("Shopkeeper status updated to busy");
+      console.log("Shopkeeper status updated to busy");
+    }
+  } catch (error) {
+    console.error("Error updating shopkeeper status:", error);
+  }
+};
   const completedOrder = async () => {
     setLoading(true);
     const requests =
@@ -71,6 +89,7 @@ function OrderWithJourney() {
 
       if (res.data.success) {
         setLoading(false);
+        updateShopkepper();
         sendNotificationToUser("shop");
         sendNotificationToUser("user");
         alert(res.data.message);

@@ -35,12 +35,15 @@ function App() {
   const [UpdateAppjs, setUpdateAppjs] = useState(false);
   const [shopWithShopkepper, setShopWithShopkepper] = useState([]);
   const [refreshFlag, setRefreshFlag] = useState(false);
+    const [statusUpdate, setStausUpdate] = useState(false);
   const [cartData, setCartData] = useState([]);
+    const role = sessionStorage.getItem("role");
 
   const [areaName, setAreaName] = useState("");
   const [coordinates, setCoordinates] = useState([]);
   const [notification, setNotification] = useState([]);
   const [unSeenNotification, setUnSeenNotification] = useState([]);
+    const [shopKepperStatus2, setShopKepperStatus2] = useState(false);
   
     const user = JSON.parse(sessionStorage.getItem("user"));
 
@@ -108,6 +111,34 @@ function App() {
       setTotalShopKepper([]);
     }
   };
+    const getUserStatus = async()=>{
+    try {
+      const res = await axios.get(`https://hazir-hay-backend.vercel.app/shopKeppers/getBusyStatus/${user?._id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+        params: { t: Date.now() }, // avoid caching
+      });
+      if(res.data.success){
+        setShopKepperStatus2(res.data.data);
+       // alert(res.data.data ? "You are currently marked as busy." : "You are currently marked as available.");
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
+  useEffect(() => {
+    if(statusUpdate){
+        if (role === "shopKepper") {
+          getUserStatus();
+        }
+        setStausUpdate(false);
+    }
+  }, [statusUpdate]);
+
+  useEffect(() => {
+    if (role === "shopKepper") {
+      getUserStatus();
+    }
+  }, [role]);
 
   const getNotifications = async()=>{
     console.log("fetching.....Notifications");
@@ -242,6 +273,7 @@ const deleteNotification = async (id) => {
               setShopKepperStatus={setShopKepperStatus}
               unSeenNotification={unSeenNotification} onUpdate = {updateNotification}
               cartData={cartData}
+              shopKepperStatus2 = {shopKepperStatus2}
             />
           }
         >
@@ -335,7 +367,7 @@ const deleteNotification = async (id) => {
           <Route path="user/findShops" element={<FindShops />} />
           <Route path="user/notification" element={<Notification notification={notification} onDelete={deleteNotification}/>} />
           <Route path="user/contact" element={<ContactUs />} />
-          <Route path="user/orderWithJourney" element={<OrderWithJourney  />} />
+          <Route path="user/orderWithJourney" element={<OrderWithJourney  setStausUpdate = {setStausUpdate}/>} />
         </Route>
       </Routes>
     </>

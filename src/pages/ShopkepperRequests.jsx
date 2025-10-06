@@ -367,41 +367,59 @@ function ShopkepperRequests({ refreshFlag, setRefreshFlag }) {
   };
 
   const grandTotalWithCharges = (Number(totalPrice?.actualPrice) + Number(fixCharges)).toFixed(0);
-
-    const ProgressOrder = async () => {
-      console.log("startJourneyOrders", startJourneyOrders);
-      
-    setLoading(true);
-    const requests =
-      startJourneyOrders?.orders?.map((order) => ({ _id: order._id })) || [];
-
-    if (requests.length === 0) {
-      setLoading(false);
-      return alert("No orders to progress");
-    }
-
-    try {
-      const res = await axios.put(
-        "https://hazir-hay-backend.vercel.app/requests/progressRequest",
-        { requests },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-          params: { t: Date.now() }, // avoid caching
-        }
-      );
-
-      if (res.data.success) {
-        setLoading(false);
-        alert(res.data.message);
-         navigate("/admin/user/orderWithJourney", {
-                                      state: acceptedOrderRequest,
-                                    })
+const updateShopkepper = async () => {
+  try {
+    const response = await axios.put(
+      `https://hazir-hay-backend.vercel.app/shopKeppers/updateBusy/${user._id}`,
+      {isBusy : true}, // no body, so pass empty object
+      {
+        headers: { Authorization: `Bearer ${token}` },
+        params: { t: Date.now() },
       }
-    } catch (error) {
-      setLoading(false);
-      console.error("Error completing orders:", error);
+    );
+
+    if (response.data.success) {
+      alert("Shopkeeper status updated to busy");
+      console.log("Shopkeeper status updated to busy");
     }
-  };
+  } catch (error) {
+    console.error("Error updating shopkeeper status:", error);
+  }
+};
+
+
+  const ProgressOrder = async () => {
+  if (!startJourneyOrders?.length) {
+    alert("No orders to progress");
+    return;
+  }
+
+  setLoading(true);
+
+  try {
+    const res = await axios.put(
+      "https://hazir-hay-backend.vercel.app/requests/progressRequest",
+      { requests: startJourneyOrders },
+      {
+        headers: { Authorization: `Bearer ${token}` },
+        params: { t: Date.now() }, // avoid caching
+      }
+    );
+
+    if (res.data.success) {
+      await updateShopkepper();
+      alert(res.data.message);
+      localStorage.setItem("currentCheckout", JSON.stringify(acceptedOrderRequest));
+      navigate("/admin/user/orderWithJourney");
+    }
+  } catch (error) {
+    console.error("Error completing orders:", error);
+    alert("Something went wrong while progressing orders.");
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <>
