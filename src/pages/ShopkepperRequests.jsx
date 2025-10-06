@@ -15,8 +15,8 @@ function ShopkepperRequests({ refreshFlag, setRefreshFlag }) {
   const [detailsModal, setDetailsModal] = useState(false);
   const [detailsModalLoading, setDetailsModalLoading] = useState(null);
   const [declinedModal, setDEclinedModal] = useState(false);
-  const [statusLoading, setStatusLoading] = useState(false);
-
+  const [loading, setLoading] = useState(false);
+ const [statusLoading, setStatusLoading] = useState(false);
   const [shop, setShop] = useState(null);
   const [isOnline, setIsOnline] = useState(false);
   const [declineReason, setDeclineReason] = useState("");
@@ -368,6 +368,41 @@ function ShopkepperRequests({ refreshFlag, setRefreshFlag }) {
 
   const grandTotalWithCharges = (Number(totalPrice?.actualPrice) + Number(fixCharges)).toFixed(0);
 
+    const ProgressOrder = async () => {
+      console.log("startJourneyOrders", startJourneyOrders);
+      
+    setLoading(true);
+    const requests =
+      startJourneyOrders?.orders?.map((order) => ({ _id: order._id })) || [];
+
+    if (requests.length === 0) {
+      setLoading(false);
+      return alert("No orders to progress");
+    }
+
+    try {
+      const res = await axios.put(
+        "https://hazir-hay-backend.vercel.app/requests/progressRequest",
+        { requests },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          params: { t: Date.now() }, // avoid caching
+        }
+      );
+
+      if (res.data.success) {
+        setLoading(false);
+        alert(res.data.message);
+         navigate("/admin/user/orderWithJourney", {
+                                      state: acceptedOrderRequest,
+                                    })
+      }
+    } catch (error) {
+      setLoading(false);
+      console.error("Error completing orders:", error);
+    }
+  };
+
   return (
     <>
       <div class="d-flex justify-content-between align-items-center bg-light mb-4 w-100 p-3">
@@ -526,11 +561,10 @@ function ShopkepperRequests({ refreshFlag, setRefreshFlag }) {
                               </div>
                               {acceptedOrderRequest && (
                                 <button
+                                disabled={loading}
                                   className="w-100 btn mt-2 btn-primary btn-sm rounded-pill"
-                                  onClick={() =>
-                                    navigate("/admin/user/orderWithJourney", {
-                                      state: acceptedOrderRequest,
-                                    })
+                                  onClick={ProgressOrder
+                                   
                                   }
                                 >
                                   <i class="fa-solid fa-flag-checkered me-1"></i>
@@ -887,11 +921,8 @@ function ShopkepperRequests({ refreshFlag, setRefreshFlag }) {
 
                                 <button
                                   className="btn btn-success btn-sm rounded-pill w-100 mt-3"
-                                  disabled={acceptedOrders.length === 0}
-                                  onClick={() =>
-                                    navigate("/admin/user/orderWithJourney", {
-                                      state: acceptedOrderRequest,
-                                    })
+                                  disabled={acceptedOrders.length === 0 || loading}
+                                  onClick={ProgressOrder
                                   }
                                 >
                                   <i class="fa-solid fa-flag-checkered me-1"></i>

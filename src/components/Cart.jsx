@@ -252,23 +252,7 @@ const handleNext = async () => {
       setOrderSummaryModal(true);
       return;
     }
-
-    // If failed
-    const result = await Swal.fire({
-      title: "Waiting for distance",
-      html: "Could not fetch distance. Please try again.",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#d33",
-      cancelButtonColor: "#3085d6",
-      confirmButtonText: "Try Again",
-    });
-
-    if (!result.isConfirmed) {
-      // retry without recursion
-      await fetchAllDistances();
-      return handleNext();
-    }
+    alert(" Failed to fetch distances. Please try again.");
   } catch (err) {
     console.error("Error in handleNext:", err);
   } finally {
