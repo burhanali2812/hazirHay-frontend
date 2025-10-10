@@ -16,7 +16,7 @@ function ShopkepperRequests({ refreshFlag, setRefreshFlag }) {
   const [detailsModalLoading, setDetailsModalLoading] = useState(null);
   const [declinedModal, setDEclinedModal] = useState(false);
   const [loading, setLoading] = useState(false);
- const [statusLoading, setStatusLoading] = useState(false);
+  const [statusLoading, setStatusLoading] = useState(false);
   const [shop, setShop] = useState(null);
   const [isOnline, setIsOnline] = useState(false);
   const [declineReason, setDeclineReason] = useState("");
@@ -298,6 +298,27 @@ function ShopkepperRequests({ refreshFlag, setRefreshFlag }) {
     (order) => order.status === "accepted"
   );
 
+  const acceptedOrdersForJourney = {
+    checkoutId: acceptedOrderRequest?.checkoutId,
+    orders: startJourneyOrders,
+    totalCost: startJourneyOrders?.reduce(
+      (sum, order) => sum + (order.cost || 0),
+      0
+    ),
+  };
+  const rejectedOrders = result?.find((req) =>
+    req?.orders?.some((order) => order.status === "rejected")
+  );
+  const finalRejectedOrdersFordelete = rejectedOrders?.orders?.filter(
+    (order) => order.status === "rejected"
+  );
+
+  console.log("acceptedorders...", acceptedOrderRequest);
+  console.log("start jpurney......", acceptedOrdersForJourney);
+  console.log("finalRejectedOrdersFordelete.........", finalRejectedOrdersFordelete);
+
+
+
   console.log(result);
 
   const [userCoords, setUserCoords] = useState(null);
@@ -366,69 +387,97 @@ function ShopkepperRequests({ refreshFlag, setRefreshFlag }) {
     }
   };
 
-  const grandTotalWithCharges = (Number(totalPrice?.actualPrice) + Number(fixCharges)).toFixed(0);
-const updateShopkepper = async () => {
-  try {
-    const response = await axios.put(
-      `https://hazir-hay-backend.vercel.app/shopKeppers/updateBusy/${user._id}`,
-      {isBusy : true}, // no body, so pass empty object
-      {
-        headers: { Authorization: `Bearer ${token}` },
-        params: { t: Date.now() },
-      }
-    );
-
-    if (response.data.success) {
-      alert("Shopkeeper status updated to busy");
-      console.log("Shopkeeper status updated to busy");
+  const handleDeleteRejectedOrders = async () => {
+    if (!finalRejectedOrdersFordelete?.length) {
+      alert("No orders to delete");
+      return;
     }
-  } catch (error) {
-    console.error("Error updating shopkeeper status:", error);
+    try {
+      const res = await axios.put(
+        "https://hazir-hay-backend.vercel.app/requests/markDeleteRequestByShopkeeper",
+        { requests: finalRejectedOrdersFordelete },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          params: { t: Date.now() }, // avoid caching
+        }
+      );
+
+      if (res.data.success) {
+
+        alert(res.data.message);
+        fetchRequests("auto");
+
+      }
+    } catch (error) {
+      console.error("Error deleting orders:", error);
+      alert("Something went wrong while deleting orders.");
+    }
+
   }
-};
+
+  const grandTotalWithCharges = (Number(totalPrice?.actualPrice) + Number(fixCharges)).toFixed(0);
+  const updateShopkepper = async () => {
+    try {
+      const response = await axios.put(
+        `https://hazir-hay-backend.vercel.app/shopKeppers/updateBusy/${user._id}`,
+        { isBusy: true }, // no body, so pass empty object
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          params: { t: Date.now() },
+        }
+      );
+
+      if (response.data.success) {
+        alert("Shopkeeper status updated to busy");
+        console.log("Shopkeeper status updated to busy");
+      }
+    } catch (error) {
+      console.error("Error updating shopkeeper status:", error);
+    }
+  };
 
 
   const ProgressOrder = async () => {
-  if (!startJourneyOrders?.length) {
-    alert("No orders to progress");
-    return;
-  }
-
-  setLoading(true);
-
-  try {
-    const res = await axios.put(
-      "https://hazir-hay-backend.vercel.app/requests/progressRequest",
-      { requests: startJourneyOrders },
-      {
-        headers: { Authorization: `Bearer ${token}` },
-        params: { t: Date.now() }, // avoid caching
-      }
-    );
-
-    if (res.data.success) {
-      await updateShopkepper();
-      alert(res.data.message);
-      localStorage.setItem("currentCheckout", JSON.stringify(acceptedOrderRequest));
-      navigate("/admin/user/orderWithJourney");
+    if (!startJourneyOrders?.length) {
+      alert("No orders to progress");
+      return;
     }
-  } catch (error) {
-    console.error("Error completing orders:", error);
-    alert("Something went wrong while progressing orders.");
-  } finally {
-    setLoading(false);
-  }
-};
-   const getUserStatus = async()=>{
+
+    setLoading(true);
+
+    try {
+      const res = await axios.put(
+        "https://hazir-hay-backend.vercel.app/requests/progressRequest",
+        { requests: startJourneyOrders },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          params: { t: Date.now() }, // avoid caching
+        }
+      );
+
+      if (res.data.success) {
+        await updateShopkepper();
+        alert(res.data.message);
+        localStorage.setItem("currentCheckout", JSON.stringify(acceptedOrdersForJourney));
+        navigate("/admin/user/orderWithJourney");
+      }
+    } catch (error) {
+      console.error("Error completing orders:", error);
+      alert("Something went wrong while progressing orders.");
+    } finally {
+      setLoading(false);
+    }
+  };
+  const getUserStatus = async () => {
     try {
       const res = await axios.get(`https://hazir-hay-backend.vercel.app/shopKeppers/getBusyStatus/${user?._id}`, {
         headers: { Authorization: `Bearer ${token}` },
         params: { t: Date.now() }, // avoid caching
       });
-      if(res.data.success){
-       if(res.data.data){
-        navigate("/admin/user/orderWithJourney");
-       }
+      if (res.data.success) {
+        if (res.data.data) {
+          navigate("/admin/user/orderWithJourney");
+        }
       }
     } catch (error) {
       console.log(error);
@@ -448,16 +497,14 @@ const updateShopkepper = async () => {
           onClick={toggleStatus}
         >
           <span
-            className={`bg-${
-              isOnline ? "success" : "danger"
-            } text-white d-flex align-items-center justify-content-center px-1 py-1`}
+            className={`bg-${isOnline ? "success" : "danger"
+              } text-white d-flex align-items-center justify-content-center px-1 py-1`}
           >
             {isOnline ? <FaWifi size={18} /> : <MdWifiOff size={18} />}
           </span>
           <span
-            className={`text-${
-              isOnline ? "success" : "danger"
-            } fw-semibold px-3`}
+            className={`text-${isOnline ? "success" : "danger"
+              } fw-semibold px-3`}
           >
             {isOnline ? "Online" : "Offline"}
           </span>
@@ -492,6 +539,7 @@ const updateShopkepper = async () => {
                     const serviceCharges = rate * totalDistance;
                     const totalOrdersCost = checkoutGroup.totalCost;
                     const grandTotal = totalOrdersCost + serviceCharges;
+                    const rejectedOrders = checkoutGroup?.orders?.filter((order) => order.status === "rejected")
 
                     return (
                       <div className="col-lg-4 col-md-6" key={index}>
@@ -581,7 +629,7 @@ const updateShopkepper = async () => {
                                   }
                                 >
                                   {detailsModalLoading ===
-                                  checkoutGroup.checkoutId ? (
+                                    checkoutGroup.checkoutId ? (
                                     <>
                                       <span className="spinner-border spinner-border-sm me-2"></span>
                                       Loading...
@@ -594,12 +642,44 @@ const updateShopkepper = async () => {
                                   )}
                                 </button>
                               </div>
+                              {
+                                rejectedOrders?.length > 0 && (
+                                  <div className="card border-0 shadow-sm mt-4 rounded-4 overflow-hidden">
+                                    <div className="card-body bg-light position-relative">
+                                      <div className="d-flex align-items-center mb-3">
+                                        <div>
+                                          <h5 className="card-title mb-0 fw-bold text-danger">
+                                            {rejectedOrders.length === 1
+                                              ? "Rejected Order"
+                                              : "Rejected Orders"}
+                                          </h5>
+                                          <small className="text-muted">
+                                            You can permanently remove {rejectedOrders.length === 1 ? "this order" : "these orders"} if they’re no longer needed.
+                                          </small>
+                                        </div>
+                                      </div>
+
+                                      <div className="d-flex justify-content-end">
+                                        <button
+                                          type="button"
+                                          className="btn btn-danger btn-sm px-4 py-2 d-flex align-items-center gap-2 fw-semibold shadow-sm rounded-pill"
+                                         onClick={handleDeleteRejectedOrders}
+                                        >
+                                          <i className="fas fa-trash-alt"></i>
+                                          Permanently Delete
+                                        </button>
+                                      </div>
+                                    </div>
+                                  </div>
+                                )
+                              }
+
                               {acceptedOrderRequest && (
                                 <button
-                                disabled={loading}
+                                  disabled={loading}
                                   className="w-100 btn mt-2 btn-primary btn-sm rounded-pill"
                                   onClick={ProgressOrder
-                                   
+
                                   }
                                 >
                                   <i class="fa-solid fa-flag-checkered me-1"></i>
@@ -829,11 +909,10 @@ const updateShopkepper = async () => {
                                     {/* Action Buttons */}
                                     <div className="d-flex justify-content-between flex-wrap gap-2">
                                       <button
-                                        className={`btn ${
-                                          order.status === "accepted"
+                                        className={`btn ${order.status === "accepted"
                                             ? "btn-secondary"
                                             : "btn-outline-success"
-                                        } btn-sm rounded-pill px-3`}
+                                          } btn-sm rounded-pill px-3`}
                                         onClick={() =>
                                           updateRequest(order._id, "accept")
                                         }
@@ -852,11 +931,10 @@ const updateShopkepper = async () => {
                                         )}
                                       </button>
                                       <button
-                                        className={`btn ${
-                                          order.status === "rejected"
+                                        className={`btn ${order.status === "rejected"
                                             ? "btn-secondary"
                                             : "btn-outline-danger"
-                                        } btn-sm rounded-pill px-3`}
+                                          } btn-sm rounded-pill px-3`}
                                         onClick={() =>
                                           // updateRequest(order._id, "decline")
                                           handleDeclineRequest(order)

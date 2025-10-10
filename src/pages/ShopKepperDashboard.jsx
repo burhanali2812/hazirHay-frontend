@@ -70,7 +70,7 @@ useEffect(() => {
         setTotalOrdersEarnings(earning);
 
         setPendingOrders(orders.filter((o) => o.status === "pending"));
-        setRejectedOrders(orders.filter((o) => o.status === "rejected"));
+        setRejectedOrders(orders.filter((o) => o.status === "rejected" || o.status === "deleted"));
         setCompletedOrders(orders.filter((o) => o.status === "completed"));
         setInprogressOrder(orders.filter((o) => o.status === "inProgress"));
       }

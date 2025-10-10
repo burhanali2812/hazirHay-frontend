@@ -129,10 +129,14 @@ const clearAllNotifications = async () => {
     <span className="badge bg-secondary ms-1">{notification.length}</span>
   </h5>
 
-  <button className="btn btn-danger btn-sm rounded-pill d-flex align-items-center gap-2 px-3" onClick={clearAllNotifications}>
+{
+  notification.length > 0 && (
+      <button className="btn btn-danger btn-sm rounded-pill d-flex align-items-center gap-2 px-3" onClick={clearAllNotifications}>
     <i className="fa-solid fa-trash"></i>
     <span>Clear All</span>
   </button>
+  )
+}
 </div>
 
 
