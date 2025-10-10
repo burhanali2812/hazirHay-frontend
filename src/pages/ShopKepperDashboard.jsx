@@ -16,6 +16,8 @@ function ShopKepperDashboard({ setUpdate, shopKepperStatus, setUpdateAppjs }) {
   const [inProgressOrdercount, setinProgressOrderCount] = useState(0);
   const [completedOrderscount, setcompletedOrdersCount] = useState(0);
   const [rejectedOrderscount, setrejectedOrdersCount] = useState(0);
+    const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
 
   useEffect(() => {
     setUpdateAppjs(true);
@@ -82,6 +84,11 @@ useEffect(() => {
     getShopkepperOrders();
   }, [token]);
 
+  const handleApplyFilter = () => {
+    console.log("Filter applied:", startDate, endDate);
+    
+  }
+
   return (
     <div style={{ marginBottom: "80px" }} className="container-fluid px-3 px-md-5">
       {/* HEADER CARD */}
@@ -113,10 +120,10 @@ useEffect(() => {
 
         <div className="d-flex justify-content-end">
           <button
-            className="btn btn-primary btn-sm px-3"
+            className="btn btn-primary btn-sm"
             onClick={() => setFilterModal(true)}
           >
-            <i className="fa-solid fa-filter me-2"></i> Filter
+            <i className="fa-solid fa-filter"></i>
           </button>
         </div>
 
@@ -211,6 +218,7 @@ useEffect(() => {
       </div>
 
       {/* FILTER MODAL */}
+   
       {filterModal && (
         <div
           className="modal fade show d-block"
@@ -222,6 +230,7 @@ useEffect(() => {
         >
           <div className="modal-dialog modal-sm modal-dialog-centered">
             <div className="modal-content shadow border-0 rounded-4">
+              {/* Header */}
               <div
                 className="modal-header text-white py-2 px-3"
                 style={{ backgroundColor: "#0d6efd" }}
@@ -236,12 +245,55 @@ useEffect(() => {
                 ></button>
               </div>
 
-              <div className="modal-body text-center p-3">
-                <div className="d-flex flex-column gap-2">
-                  <input type="date" className="form-control" />
-                  <input type="date" className="form-control" />
-                  <button className="btn btn-primary mt-3 w-100">
-                    <i className="fa-solid fa-filter me-2"></i>Apply Filter
+              {/* Body */}
+              <div className="modal-body text-center p-4">
+                <div className="mb-3">
+                  <i
+                    className="fa-solid fa-calendar-days text-primary mb-2"
+                    style={{ fontSize: "2rem" }}
+                  ></i>
+                  <p className="text-muted mb-0" style={{ fontSize: "14px" }}>
+                    Select a <strong>Start Date</strong> and <strong>End Date</strong> to view orders placed between these dates.
+                  </p>
+                </div>
+
+                <div className="d-flex flex-column gap-3">
+                  {/* Start Date */}
+                  <div className="text-start">
+                    <label className="form-label fw-semibold text-secondary mb-1">
+                      <i className="fa-solid fa-calendar-day me-2 text-primary"></i>
+                      Start Date
+                    </label>
+                    <input
+                      type="date"
+                      className="form-control shadow-sm"
+                      style={{ borderRadius: "10px" }}
+                      value={startDate}
+                      onChange={(e) => setStartDate(e.target.value)}
+                    />
+                  </div>
+
+                  {/* End Date */}
+                  <div className="text-start">
+                    <label className="form-label fw-semibold text-secondary mb-1">
+                      <i className="fa-solid fa-calendar-check me-2 text-success"></i>
+                      End Date
+                    </label>
+                    <input
+                      type="date"
+                      className="form-control shadow-sm"
+                      style={{ borderRadius: "10px" }}
+                      value={endDate}
+                      onChange={(e) => setEndDate(e.target.value)}
+                    />
+                  </div>
+
+                  {/* Button */}
+                  <button
+                    className="btn btn-primary mt-2 w-100 rounded-pill fw-semibold"
+                    onClick={handleApplyFilter}
+                  >
+                    <i className="fa-solid fa-magnifying-glass me-2"></i>Apply Filter
                   </button>
                 </div>
               </div>
@@ -249,6 +301,7 @@ useEffect(() => {
           </div>
         </div>
       )}
+    
     </div>
   );
 }

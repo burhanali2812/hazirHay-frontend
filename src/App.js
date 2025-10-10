@@ -365,7 +365,7 @@ const deleteNotification = async (id) => {
             element={<Tracking setUpdateAppjs={setUpdateAppjs} />}
           />
           <Route path="user/findShops" element={<FindShops />} />
-          <Route path="user/notification" element={<Notification notification={notification} onDelete={deleteNotification}/>} />
+          <Route path="user/notification" element={<Notification notification={notification} onDelete={deleteNotification} setNotification={setNotification} setUnSeenNotification={setUnSeenNotification}/>} />
           <Route path="user/contact" element={<ContactUs />} />
           <Route path="user/orderWithJourney" element={<OrderWithJourney  setStausUpdate = {setStausUpdate}/>} />
         </Route>

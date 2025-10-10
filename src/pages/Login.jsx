@@ -5,6 +5,7 @@ import "animate.css";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
+import Swal from "sweetalert2";
 import "../components/adminFooter.css";
 function Login() {
   const navigate = useNavigate();
@@ -53,7 +54,17 @@ function Login() {
         loginPayload
       );
       if (response.status === 200) {
-        toast.success(response.data.message || "Login successful!");
+                Swal.fire({
+                  title: "Successful!",
+                  text: response.data.message || "Login successful!",
+                  icon: "success",
+                  timer: 900,
+                  showConfirmButton: false,
+                  background: "#f9f9f9",
+                  customClass: {
+                    popup: "swirl-popup",
+                  },
+                });
         localStorage.setItem("token", response.data.token);
         console.log("role", role);
         sessionStorage.setItem("user", JSON.stringify(response.data.user));
@@ -77,9 +88,27 @@ function Login() {
       }
     } catch (error) {
       if (error.response) {
-        toast.error(error.response.data.message || "Login failed!");
+      
+         Swal.fire({
+                title: "Error!",
+                text: error.response.data.message || "Login failed!",
+                icon: "error",
+                background: "#f9f9f9",
+                customClass: {
+                  popup: "swirl-popup",
+                },
+              });
       } else {
-        toast.error("Something went wrong! Please try again.");
+        
+         Swal.fire({
+                title: "Error!",
+                text: "Slow or no internet! Please try again.",
+                icon: "error",
+                background: "#f9f9f9",
+                customClass: {
+                  popup: "swirl-popup",
+                },
+              });
       }
     } finally {
       setLoading(false);
