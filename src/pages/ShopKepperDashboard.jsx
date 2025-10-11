@@ -23,11 +23,12 @@ function ShopKepperDashboard({ setUpdate, shopKepperStatus, setUpdateAppjs }) {
     setUpdateAppjs(true);
   }, []);
 useEffect(() => {
+  if (!orders) return;
+  
   const intervals = [];
 
-  // Helper function to animate any counter
   const animateCount = (setter, targetLength) => {
-    setter(0); // reset before start
+    setter(0);
     const interval = setInterval(() => {
       setter((prev) => {
         if (prev < targetLength) return prev + 1;
@@ -38,56 +39,90 @@ useEffect(() => {
     intervals.push(interval);
   };
 
-  if (orders?.length > 0) animateCount(setTotalOrdersCount, orders.length);
-  if (completedOrders?.length > 0) animateCount(setcompletedOrdersCount, completedOrders.length);
-  if (pendingOrders?.length > 0) animateCount(setpendingOrdersCount, pendingOrders.length);
-  if (inProgressOrder?.length > 0) animateCount(setinProgressOrderCount, inProgressOrder.length);
-  if (rejectedOrders?.length > 0) animateCount(setrejectedOrdersCount, rejectedOrders.length);
+  animateCount(setTotalOrdersCount, orders.length);
+  animateCount(setcompletedOrdersCount, completedOrders?.length || 0);
+  animateCount(setpendingOrdersCount, pendingOrders?.length || 0);
+  animateCount(setinProgressOrderCount, inProgressOrder?.length || 0);
+  animateCount(setrejectedOrdersCount, rejectedOrders?.length || 0);
 
-  // Cleanup: clear all intervals
   return () => intervals.forEach((i) => clearInterval(i));
-}, [orders, completedOrders, pendingOrders, rejectedOrders, inProgressOrder]);
+}, [orders, completedOrders, pendingOrders, inProgressOrder, rejectedOrders]);
 
 
-  const getShopkepperOrders = async () => {
-    try {
-      const res = await axios.get(
-        `https://hazir-hay-backend.vercel.app/requests/getshopRequest/${user?._id}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            params: { t: Date.now() },
-          },
-        }
-      );
-      if (res.data.success) {
-        const orders = res.data.data;
-        setOrders(orders);
 
-        const earning = orders
-          .filter((order) => order.status === "completed")
-          .reduce((acc, order) => acc + (order.cost || 0), 0);
-        setTotalOrdersEarnings(earning);
-
-        setPendingOrders(orders.filter((o) => o.status === "pending"));
-        setRejectedOrders(orders.filter((o) => o.status === "rejected" || o.status === "deleted"));
-        setCompletedOrders(orders.filter((o) => o.status === "completed"));
-        setInprogressOrder(orders.filter((o) => o.status === "inProgress"));
+const getShopkeeperOrders = async (type) => {
+  try {
+    // 🔹 Validate date range only if filtering
+    if (type === "filter") {
+      if (!startDate || !endDate) {
+        alert("Please select both dates");
+        return;
       }
-    } catch (error) {
-      console.log(error);
-      alert("Error in getting orders");
     }
-  };
 
-  useEffect(() => {
-    getShopkepperOrders();
-  }, [token]);
+    const res = await axios.get(
+      `https://hazir-hay-backend.vercel.app/requests/getshopRequest/${user?._id}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        params: { t: Date.now() }, // 👈 to prevent caching
+      }
+    );
 
-  const handleApplyFilter = () => {
-    console.log("Filter applied:", startDate, endDate);
-    
+    if (res.data.success) {
+      let orders = res.data.data;
+
+      // 🔹 Apply frontend date filter if dates are selected
+      if (startDate && endDate) {
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+
+        orders = orders.filter((req) => {
+          const createdAt = new Date(req.createdAt);
+          return createdAt >= start && createdAt <= end;
+        });
+      }
+
+      console.log("Filtered Orders:", orders);
+
+      // 🔹 Set all states
+      setOrders(orders);
+
+      const earning = orders
+        .filter((order) => order.status === "completed")
+        .reduce((acc, order) => acc + (order.cost || 0), 0);
+      setTotalOrdersEarnings(earning);
+
+      setPendingOrders(orders.filter((o) => o.status === "pending"));
+      setRejectedOrders(
+        orders.filter((o) => o.status === "rejected" || o.status === "deleted")
+      );
+      setCompletedOrders(orders.filter((o) => o.status === "completed"));
+      setInprogressOrder(orders.filter((o) => o.status === "inProgress"));
+
+      if (type === "filter") {
+        setStartDate("");
+        setEndDate("")
+        setFilterModal(false);
+      }
+    }
+  } catch (error) {
+    console.error("Error fetching orders:", error);
+    alert("Error while getting orders");
   }
+};
+  useEffect(() => {
+    getShopkeeperOrders("auto");
+  }, [token]);
+const handleApplyFilter = () => {
+  console.log("Filter applied:", startDate, endDate);
+  getShopkeeperOrders("filter");
+};
+
+
+
 
   return (
     <div style={{ marginBottom: "80px" }} className="container-fluid px-3 px-md-5">

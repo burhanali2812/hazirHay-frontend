@@ -224,7 +224,7 @@ function UserDashboard({
       (req) => req.status === "completed"
     );
     const rejectedRequests = Totalrequest.filter(
-      (req) => req.status === "rejected"
+      (req) => req.status === "rejected" ||  req.status === "deleted"
     );
     console.log("Totalrequest", Totalrequest);
     console.log("acceptedRequests", acceptedRequests);
