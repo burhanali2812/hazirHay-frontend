@@ -126,71 +126,88 @@ const handleApplyFilter = () => {
   return (
     <div style={{ marginBottom: "80px" }} className="container-fluid px-3 px-md-5">
       {/* HEADER CARD */}
-      <div
-        className="card shadow-sm border-0 bg-white p-4 mb-4"
-        style={{ borderBottomLeftRadius: "20px", borderBottomRightRadius: "20px" }}
-      >
-        <div className="d-flex justify-content-between align-items-center flex-wrap text-center text-md-start">
-          <div className="flex-grow-1">
-            <h5 className="fw-bold text-dark mb-1">{user?.name}</h5>
-            <p className="text-muted small mb-0">{user?.email}</p>
-          </div>
-          <div className="mt-3 mt-md-0">
-            <img
-              src={user?.profilePicture}
-              alt="profile"
-              className="rounded-circle border"
-              style={{
-                width: "60px",
-                height: "60px",
-                objectFit: "cover",
-                border: "3px solid #0d6efd",
-              }}
-            />
-          </div>
-        </div>
+<div
+  className="card shadow-sm border-0 bg-white p-3 p-md-4 mb-3"
+  style={{ borderRadius: "14px" }}
+>
+  {/* Profile Section */}
+  <div className="d-flex align-items-center">
+    <img
+      src={user?.profilePicture}
+      alt="profile"
+      className="rounded-circle border"
+      style={{
+        width: "50px",
+        height: "50px",
+        objectFit: "cover",
+        border: "2px solid #0d6efd",
+      }}
+    />
+    <div className="ms-3">
+      <h6 className="fw-bold text-dark mb-1">{user?.name}</h6>
+      <p className="text-muted small mb-0">{user?.email}</p>
+    </div>
+  </div>
 
-        <hr className="my-3" />
+  <hr className="my-3" />
 
-        <div className="d-flex justify-content-end">
-          <button
-            className="btn btn-primary btn-sm"
-            onClick={() => setFilterModal(true)}
-          >
-            <i className="fa-solid fa-filter"></i>
-          </button>
-        </div>
-
-        <div className="text-center mt-4">
-          <h6 className="fw-semibold text-secondary mb-2">Total Orders Earning</h6>
-          <h2 className="fw-bold text-primary mb-2">
-            Rs. {totalOrdersEarnings.toLocaleString("en-IN")}/-
-          </h2>
-          <p className="text-success fw-semibold">
-            <i className="fa-solid fa-gift me-1"></i> Bonus: Rs. 0/-
-          </p>
-        </div>
+  {/* Redesigned Earnings Section */}
+  <div className="d-flex flex-wrap justify-content-between align-items-center">
+    <div className="d-flex flex-column flex-md-row align-items-start align-items-md-center gap-2">
+      <div className="me-md-3">
+        <span className="text-secondary fw-semibold small d-block">
+          Total Earnings
+        </span>
+        <span className="fw-bold text-primary" style={{ fontSize: "1.05rem" }}>
+          Rs. {totalOrdersEarnings.toLocaleString("en-IN")}/-
+        </span>
       </div>
+
+      {/* <div>
+        <span className="text-success fw-semibold small">
+          <i className="fa-solid fa-gift me-1"></i> Bonus: Rs. 0/-
+        </span>
+      </div> */}
+    </div>
+
+    <button
+      className="btn btn-primary btn-sm d-flex align-items-center  mt-md-0"
+      onClick={() => setFilterModal(true)}
+      style={{
+        borderRadius: "6px",
+        padding: "4px 12px",
+        fontWeight: "500",
+      }}
+    >
+      <i className="fa-solid fa-filter me-1"></i> Filter
+    </button>
+  </div>
+</div>
+
+
+
+
+
 
       {/* DASHBOARD CARDS */}
     <div className="row g-3">
   {/* Total Orders */}
   <div className="col-12">
-    <div className="card p-4 shadow-sm border-0 bg-white d-flex flex-row justify-content-between align-items-center rounded-4">
+    <div className="card p-3 shadow-sm border-0 bg-white d-flex flex-row justify-content-between align-items-center rounded-4">
       <div className="d-flex align-items-center gap-3">
         <div
           className="rounded-circle d-flex align-items-center justify-content-center"
           style={{
             background: "rgba(13,110,253,0.1)",
-            width: "50px",
-            height: "50px",
+            width: "45px",
+            height: "45px",
           }}
         >
-          <i className="fa-solid fa-box-open text-primary fs-4"></i>
+          <i className="fa-solid fa-box-open text-primary fs-5"></i>
         </div>
-        <h6 className="fw-semibold text-secondary m-0">Total Orders</h6>
+        <h6 className="fw-semibold text-secondary m-0 " style={{fontSize : "15px"}}>Total Orders</h6>
       </div>
-      <h4 className="fw-bold text-dark m-0">{TotalOrderscount}</h4>
+      <h5 className="fw-bold text-dark m-0 "style={{fontSize : "17px"}}>{TotalOrderscount}</h5>
     </div>
   </div>
 
@@ -234,7 +251,7 @@ const handleApplyFilter = () => {
     return (
       <div key={index} className="col-6 col-md-6 col-lg-6">
         <div
-          className="card p-3 shadow-sm border-0 bg-white rounded-4 d-flex flex-column justify-content-between align-items-center text-center"
+          className="card p-2 shadow-sm border-0 bg-white rounded-4 d-flex flex-column justify-content-between align-items-center text-center"
           style={{
             minHeight: "140px",
           }}
@@ -244,34 +261,35 @@ const handleApplyFilter = () => {
               className="rounded-circle d-flex align-items-center justify-content-center mb-2"
               style={{
                 background: card.bg,
-                width: "45px",
-                height: "45px",
+                width: "40px",
+                height: "40px",
               }}
             >
               <i
-                className={`fa-solid ${card.icon} text-${card.color} fs-5`}
+                className={`fa-solid ${card.icon} text-${card.color} `}
               ></i>
             </div>
-            <h6 className="fw-semibold text-secondary mb-0">{card.title}</h6>
+            <h6 className="fw-semibold text-secondary mb-0 small">{card.title}</h6>
           </div>
 
-          <h4 className="fw-bold text-dark mt-2 mb-1">{card.count}</h4>
+          <h4 className="fw-bold text-dark mt-2 mb-1 small">{card.count}</h4>
 
-          <div className="w-100 px-3">
+          <div className="w-100 px-3 mt-1">
             <div
               className="progress"
               role="progressbar"
               aria-valuenow={percent}
               aria-valuemin="0"
               aria-valuemax="100"
-              style={{ height: "6px" }}
+              style={{ height: "15px" }}
             >
+              
               <div
                 className={`progress-bar bg-${card.color} progress-bar-striped progress-bar-animated`}
                 style={{ width: `${percent}%` }}
-              ></div>
+              > <small className="text-light">{percent}%</small></div>
             </div>
-            <small className="text-muted">{percent}%</small>
+           
           </div>
         </div>
       </div>
