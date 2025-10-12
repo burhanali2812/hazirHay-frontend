@@ -22,6 +22,7 @@ import FindShops from "./pages/FindShops";
 import Notification from "./pages/Notification";
 import ContactUs from "./pages/ContactUs";
 import OrderWithJourney from "./components/OrderWithJourney";
+import MyShop from "./pages/MyShop";
 
 function App() {
   const [topText, setTopText] = useState("");
@@ -331,6 +332,12 @@ const deleteNotification = async (id) => {
                 refreshFlag={refreshFlag}
                 setRefreshFlag = {setRefreshFlag}
               />
+            }
+          />
+           <Route
+            path="shopKepper/myShop"
+            element={
+              <MyShop/>
             }
           />
           <Route

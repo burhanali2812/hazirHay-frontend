@@ -66,14 +66,13 @@ const getShopkeeperOrders = async (type) => {
         headers: {
           Authorization: `Bearer ${token}`,
         },
-        params: { t: Date.now() }, // 👈 to prevent caching
+        params: { t: Date.now() }, 
       }
     );
 
     if (res.data.success) {
       let orders = res.data.data;
 
-      // 🔹 Apply frontend date filter if dates are selected
       if (startDate && endDate) {
         const start = new Date(startDate);
         const end = new Date(endDate);
@@ -87,7 +86,7 @@ const getShopkeeperOrders = async (type) => {
 
       console.log("Filtered Orders:", orders);
 
-      // 🔹 Set all states
+   
       setOrders(orders);
 
       const earning = orders
@@ -174,83 +173,112 @@ const handleApplyFilter = () => {
       </div>
 
       {/* DASHBOARD CARDS */}
-      <div className="row g-3">
-        {/* Total Orders */}
-        <div className="col-12">
-          <div className="card p-4 shadow-sm border-0 bg-white d-flex flex-row justify-content-between align-items-center rounded-4">
-            <div className="d-flex align-items-center gap-3">
-              <div
-                className="rounded-circle d-flex align-items-center justify-content-center"
-                style={{
-                  background: "rgba(13,110,253,0.1)",
-                  width: "50px",
-                  height: "50px",
-                }}
-              >
-                <i className="fa-solid fa-box-open text-primary fs-4"></i>
-              </div>
-              <h6 className="fw-semibold text-secondary m-0">Total Orders</h6>
-            </div>
-            <h4 className="fw-bold text-dark m-0">{TotalOrderscount}</h4>
-          </div>
+    <div className="row g-3">
+  {/* Total Orders */}
+  <div className="col-12">
+    <div className="card p-4 shadow-sm border-0 bg-white d-flex flex-row justify-content-between align-items-center rounded-4">
+      <div className="d-flex align-items-center gap-3">
+        <div
+          className="rounded-circle d-flex align-items-center justify-content-center"
+          style={{
+            background: "rgba(13,110,253,0.1)",
+            width: "50px",
+            height: "50px",
+          }}
+        >
+          <i className="fa-solid fa-box-open text-primary fs-4"></i>
         </div>
+        <h6 className="fw-semibold text-secondary m-0">Total Orders</h6>
+      </div>
+      <h4 className="fw-bold text-dark m-0">{TotalOrderscount}</h4>
+    </div>
+  </div>
 
-        {/* Four Small Cards */}
-        {[
-          {
-            title: "Pending",
-            count: pendingOrderscount,
-            color: "warning",
-            icon: "fa-hourglass-half",
-            bg: "rgba(255,193,7,0.1)",
-          },
-          {
-            title: "In Progress",
-            count: inProgressOrdercount,
-            color: "info",
-            icon: "fa-spinner",
-            bg: "rgba(13,202,240,0.1)",
-          },
-          {
-            title: "Completed",
-            count: completedOrderscount,
-            color: "success",
-            icon: "fa-check-circle",
-            bg: "rgba(25,135,84,0.1)",
-          },
-          {
-            title: "Rejected",
-            count: rejectedOrderscount,
-            color: "danger",
-            icon: "fa-xmark-circle",
-            bg: "rgba(220,53,69,0.1)",
-          },
-        ].map((card, index) => (
-          <div key={index} className="col-6 col-md-6 col-lg-6">
+  {/* Four Small Cards */}
+  {[
+    {
+      title: "Pending",
+      count: pendingOrderscount,
+      color: "warning",
+      icon: "fa-hourglass-half",
+      bg: "rgba(255,193,7,0.1)",
+    },
+    {
+      title: "In Progress",
+      count: inProgressOrdercount,
+      color: "info",
+      icon: "fa-spinner",
+      bg: "rgba(13,202,240,0.1)",
+    },
+    {
+      title: "Completed",
+      count: completedOrderscount,
+      color: "success",
+      icon: "fa-check-circle",
+      bg: "rgba(25,135,84,0.1)",
+    },
+    {
+      title: "Rejected",
+      count: rejectedOrderscount,
+      color: "danger",
+      icon: "fa-xmark-circle",
+      bg: "rgba(220,53,69,0.1)",
+    },
+  ].map((card, index) => {
+    // avoid divide by zero
+    const percent =
+      TotalOrderscount > 0
+        ? Math.round((card.count / TotalOrderscount) * 100)
+        : 0;
+
+    return (
+      <div key={index} className="col-6 col-md-6 col-lg-6">
+        <div
+          className="card p-3 shadow-sm border-0 bg-white rounded-4 d-flex flex-column justify-content-between align-items-center text-center"
+          style={{
+            minHeight: "140px",
+          }}
+        >
+          <div className="d-flex flex-column align-items-center justify-content-center">
             <div
-              className="card p-3 shadow-sm border-0 bg-white rounded-4 d-flex flex-column justify-content-between align-items-center text-center"
+              className="rounded-circle d-flex align-items-center justify-content-center mb-2"
               style={{
-                minHeight: "130px",
+                background: card.bg,
+                width: "45px",
+                height: "45px",
               }}
             >
-              <div className="d-flex flex-column align-items-center justify-content-center">
-                <div
-                  className="rounded-circle d-flex align-items-center justify-content-center mb-2"
-                  style={{
-                    background: card.bg,
-                    width: "45px",
-                    height: "45px",
-                  }}
-                >
-                  <i className={`fa-solid ${card.icon} text-${card.color} fs-5`}></i>
-                </div>
-                <h6 className="fw-semibold text-secondary mb-0">{card.title}</h6>
-              </div>
-              <h4 className="fw-bold text-dark mt-2 mb-0">{card.count}</h4>
+              <i
+                className={`fa-solid ${card.icon} text-${card.color} fs-5`}
+              ></i>
             </div>
+            <h6 className="fw-semibold text-secondary mb-0">{card.title}</h6>
           </div>
-        ))}
+
+          <h4 className="fw-bold text-dark mt-2 mb-1">{card.count}</h4>
+
+          <div className="w-100 px-3">
+            <div
+              className="progress"
+              role="progressbar"
+              aria-valuenow={percent}
+              aria-valuemin="0"
+              aria-valuemax="100"
+              style={{ height: "6px" }}
+            >
+              <div
+                className={`progress-bar bg-${card.color} progress-bar-striped progress-bar-animated`}
+                style={{ width: `${percent}%` }}
+              ></div>
+            </div>
+            <small className="text-muted">{percent}%</small>
+          </div>
+        </div>
       </div>
+    );
+  })}
+</div>
+
 
       {/* FILTER MODAL */}
    

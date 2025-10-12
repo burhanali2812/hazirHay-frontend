@@ -62,8 +62,14 @@ function AdminFooter({ topText, setUpdate, setShopKepperStatus , unSeenNotificat
       {
         key: "notification",
         icon: "fa-solid fa-bell",
-        label: "Notifications",
+        label: "Notifica...",
         path: "/admin/user/notification",
+      },
+       {
+        key: "shop",
+        icon: "fa-solid fa-shop",
+        label: "Shop",
+        path: "/admin/shopKepper/myShop",
       },
       {
         key: "setting",
