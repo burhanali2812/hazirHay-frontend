@@ -127,8 +127,8 @@ const handleApplyFilter = () => {
     <div style={{ marginBottom: "80px" }} className="container-fluid px-3 px-md-5">
       {/* HEADER CARD */}
 <div
-  className="card shadow-sm border-0 bg-white p-3 p-md-4 mb-3"
-  style={{ borderRadius: "14px" }}
+  className="card  border-1 p-3 p-md-4 mb-3 mt-2"
+  style={{ borderRadius: "14px"  , background: "linear-gradient(180deg, #ffffff, #ffe3fb)"}}
 >
   {/* Profile Section */}
   <div className="d-flex align-items-center">
@@ -141,6 +141,7 @@ const handleApplyFilter = () => {
         height: "50px",
         objectFit: "cover",
         border: "2px solid #0d6efd",
+       
       }}
     />
     <div className="ms-3">
@@ -193,7 +194,9 @@ const handleApplyFilter = () => {
     <div className="row g-3">
   {/* Total Orders */}
   <div className="col-12">
-    <div className="card p-3 shadow-sm border-0 bg-white d-flex flex-row justify-content-between align-items-center rounded-4">
+    <div className="card p-3 shadow-sm border-0  d-flex flex-row justify-content-between align-items-center rounded-4"
+    style={{background: "linear-gradient(115deg, #ffffff, #ffe3fb)"}}
+    >
       <div className="d-flex align-items-center gap-3">
         <div
           className="rounded-circle d-flex align-items-center justify-content-center"
@@ -251,9 +254,10 @@ const handleApplyFilter = () => {
     return (
       <div key={index} className="col-6 col-md-6 col-lg-6">
         <div
-          className="card p-2 shadow-sm border-0 bg-white rounded-4 d-flex flex-column justify-content-between align-items-center text-center"
+          className="card p-2 shadow-sm border-0  rounded-4 d-flex flex-column justify-content-between align-items-center text-center"
           style={{
             minHeight: "140px",
+            background: "linear-gradient(115deg, #ffffff, #ffe3fb)"
           }}
         >
           <div className="d-flex flex-column align-items-center justify-content-center">

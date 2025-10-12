@@ -167,8 +167,7 @@ function OrderWithJourney({setStausUpdate}) {
     selectedTrackShopData?.orders[0]?.serviceCharges?.distance || 0;
   const rate = selectedTrackShopData?.orders[0]?.serviceCharges?.rate || 0;
   const serviceCharges = Number(distance * rate).toFixed(2);
-  const grandTotal =
-    Number(selectedTrackShopData?.totalCost) + Number(serviceCharges);
+  const grandTotal = (Number(selectedTrackShopData?.totalCost) + Number(serviceCharges)).toFixed(0);
 
   const handleShare = async () => {
     console.log("Button clicked ✅");

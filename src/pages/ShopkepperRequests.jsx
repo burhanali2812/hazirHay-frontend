@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import offline from "../images/offline.png";
 import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 import axios from "axios";
 import UserShopRoute from "../components/UserShopRoute";
 import noData from "../images/noData.png";
@@ -19,6 +20,7 @@ function ShopkepperRequests({ refreshFlag, setRefreshFlag }) {
   const [statusLoading, setStatusLoading] = useState(false);
   const [shop, setShop] = useState(null);
   const [isOnline, setIsOnline] = useState(false);
+  const [requestDeleteLoading, setRequestDeleteLoading] = useState(false);
   const [declineReason, setDeclineReason] = useState("");
   const navigate = useNavigate();
   const [totalPrice, setTotalPrice] = useState({
@@ -387,11 +389,32 @@ function ShopkepperRequests({ refreshFlag, setRefreshFlag }) {
     }
   };
 
-  const handleDeleteRejectedOrders = async () => {
+  const handleDeleteRejectedOrders = async (type) => {
+ 
     if (!finalRejectedOrdersFordelete?.length) {
       alert("No orders to delete");
       return;
     }
+    if(type === "yes"){
+       const result = await Swal.fire({
+      title: "Delete All Rejected Orders?",
+      text: "You won't be able to undo this action.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#6c757d",
+      confirmButtonText: "Yes, Delete all!",
+      background: "#f9f9f9",
+      customClass: {
+        popup: "swirl-popup",
+      },
+    });
+    if (!result.isConfirmed) {
+      return
+    }
+    }
+   
+       setRequestDeleteLoading(true)
     try {
       const res = await axios.put(
         "https://hazir-hay-backend.vercel.app/requests/markDeleteRequestByShopkeeper",
@@ -403,14 +426,28 @@ function ShopkepperRequests({ refreshFlag, setRefreshFlag }) {
       );
 
       if (res.data.success) {
-
-        alert(res.data.message);
+        setRequestDeleteLoading(false)
         fetchRequests("auto");
+        if(type === "yes"){
+            Swal.fire({
+          title: "Deleted!",
+          text: "All rejected orders have been deleted permanently.",
+          icon: "success",
+          timer: 900,
+          showConfirmButton: false,
+          background: "#f9f9f9",
+          customClass: {
+            popup: "swirl-popup",
+          },
+        });
+        }
 
       }
     } catch (error) {
+      setRequestDeleteLoading(false)
       console.error("Error deleting orders:", error);
       alert("Something went wrong while deleting orders.");
+      
     }
 
   }
@@ -457,6 +494,7 @@ function ShopkepperRequests({ refreshFlag, setRefreshFlag }) {
 
       if (res.data.success) {
         await updateShopkepper();
+        await handleDeleteRejectedOrders("none");
         alert(res.data.message);
         localStorage.setItem("currentCheckout", JSON.stringify(acceptedOrdersForJourney));
         navigate("/admin/user/orderWithJourney");
@@ -486,6 +524,32 @@ function ShopkepperRequests({ refreshFlag, setRefreshFlag }) {
   useEffect(() => {
     getUserStatus();
   }, []);
+
+  const markOrderDeleteById = async (order) => {
+    setSelectedRequest((prev) => ({
+      ...prev,
+      orders: prev.orders?.filter((ord) => ord._id !== order._id),
+    }));
+    try {
+      const res = await axios.put(
+        `https://hazir-hay-backend.vercel.app/requests/markDelete/${order._id}`,
+        {}, // no body needed
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          params: { t: Date.now() },
+        }
+      );
+
+      if (res.data.success) {
+        alert(res.data.message);
+        fetchRequests("none");
+      }
+    } catch (error) {
+      console.error("Error deleting orders:", error);
+      alert("Something went wrong while deleting order.");
+    }
+  };
+
 
   return (
     <>
@@ -526,7 +590,7 @@ function ShopkepperRequests({ refreshFlag, setRefreshFlag }) {
           </button>
         </div>
       ) : (
-        <div className="container">
+        <div className="container " style={{marginBottom : "65px"}}>
           {isOnline ? (
             <>
               {finalRequests?.length !== 0 ? (
@@ -643,18 +707,18 @@ function ShopkepperRequests({ refreshFlag, setRefreshFlag }) {
                                 </button>
                               </div>
                               {
-                                rejectedOrders?.length > 0 && (
+                                rejectedOrders?.length === checkoutGroup?.orders?.length && (
                                   <div className="card border-0 shadow-sm mt-4 rounded-4 overflow-hidden">
                                     <div className="card-body bg-light position-relative">
                                       <div className="d-flex align-items-center mb-3">
                                         <div>
                                           <h5 className="card-title mb-0 fw-bold text-danger">
-                                            {rejectedOrders.length === 1
-                                              ? "Rejected Order"
-                                              : "Rejected Orders"}
+                                            All Orders Rejected
                                           </h5>
                                           <small className="text-muted">
-                                            You can permanently remove {rejectedOrders.length === 1 ? "this order" : "these orders"} if they’re no longer needed.
+                                            You’ve rejected all the orders in this request. Would you like to
+                                            <span className="fw-semibold text-dark"> permanently delete this request</span>
+                                            so it no longer appears in your list?
                                           </small>
                                         </div>
                                       </div>
@@ -663,16 +727,33 @@ function ShopkepperRequests({ refreshFlag, setRefreshFlag }) {
                                         <button
                                           type="button"
                                           className="btn btn-danger btn-sm px-4 py-2 d-flex align-items-center gap-2 fw-semibold shadow-sm rounded-pill"
-                                         onClick={handleDeleteRejectedOrders}
+                                          onClick={()=>handleDeleteRejectedOrders("yes")}
+                                          disabled={requestDeleteLoading}
                                         >
-                                          <i className="fas fa-trash-alt"></i>
-                                          Permanently Delete
+                                          {
+                                            requestDeleteLoading ? (
+                                              <>
+                                                Deleting...
+                                                <div
+                                                  className="spinner-border spinner-border-sm text-light ms-2"
+                                                  role="status"
+                                                ></div>
+                                              </>
+                                            ) : (
+                                              <>
+                                                <i className="fas fa-trash-alt"></i>
+                                                Delete Request
+                                              </>
+                                            )
+                                          }
+
                                         </button>
                                       </div>
                                     </div>
                                   </div>
                                 )
                               }
+
 
                               {acceptedOrderRequest && (
                                 <button
@@ -884,6 +965,11 @@ function ShopkepperRequests({ refreshFlag, setRefreshFlag }) {
                                         <i className="fa-solid fa-box me-2 text-primary"></i>
                                         Order #{order.orderId}
                                       </h6>
+                                      {
+                                        order.status === "rejected" && (
+                                          <i class="fa-solid fa-trash text-danger" onClick={() => markOrderDeleteById(order)}></i>
+                                        )
+                                      }
                                       <span
                                         className="badge bg-primary text-light mt-1 border "
                                         style={{
@@ -910,8 +996,8 @@ function ShopkepperRequests({ refreshFlag, setRefreshFlag }) {
                                     <div className="d-flex justify-content-between flex-wrap gap-2">
                                       <button
                                         className={`btn ${order.status === "accepted"
-                                            ? "btn-secondary"
-                                            : "btn-outline-success"
+                                          ? "btn-secondary"
+                                          : "btn-outline-success"
                                           } btn-sm rounded-pill px-3`}
                                         onClick={() =>
                                           updateRequest(order._id, "accept")
@@ -932,8 +1018,8 @@ function ShopkepperRequests({ refreshFlag, setRefreshFlag }) {
                                       </button>
                                       <button
                                         className={`btn ${order.status === "rejected"
-                                            ? "btn-secondary"
-                                            : "btn-outline-danger"
+                                          ? "btn-secondary"
+                                          : "btn-outline-danger"
                                           } btn-sm rounded-pill px-3`}
                                         onClick={() =>
                                           // updateRequest(order._id, "decline")
