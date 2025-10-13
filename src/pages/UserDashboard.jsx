@@ -1162,7 +1162,12 @@ function UserDashboard({
                                     ))}
 
                                   {/* Ratios */}
-                                  <div className="d-flex justify-content-between small mt-1">
+                                 
+                                  {
+                                    shop.isBlocked ? (
+                                   ""
+                                    ):(
+                                       <div className="d-flex justify-content-between small mt-1">
                                     <span className="fw-bold">
                                       COR:{" "}
                                       <span className="text-success fw-semibold">
@@ -1182,11 +1187,23 @@ function UserDashboard({
                                       </span>
                                     </span>
                                   </div>
+                                    )
+                                  }
                                 </div>
                               </div>
 
                               {/* Action Buttons */}
-                              <div className="d-flex justify-content-around mt-2">
+                            {
+                              shop.isBlocked ? (
+                                <>
+                                        <span className="text-danger ">
+                                  This shop is temporarily blocked due to order cancellations.
+                                </span>
+                                <button className="btn btn-danger w-100 mt-1 " disabled= {true}> <i class="fa-solid fa-ban me-1"></i>Blocked</button>
+                           
+                                </>
+                              ):(
+                                  <div className="d-flex justify-content-around mt-2">
                                 <button
                                   className={`btn btn-sm px-2  ${
                                     shop.isLive ? "btn-primary" : "btn-danger"
@@ -1231,6 +1248,8 @@ function UserDashboard({
                                   )}
                                 </button>
                               </div>
+                              )
+                            }
                             </div>
                           </div>
                         </div>

@@ -1,7 +1,7 @@
 body {
   margin: 0;
   font-family: "PT Serif";
-  background: snow
+  background: linear-gradient(115deg, #9ee2ff, #ffffff)
 }
 
 code {

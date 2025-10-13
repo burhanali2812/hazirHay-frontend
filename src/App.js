@@ -23,6 +23,7 @@ import Notification from "./pages/Notification";
 import ContactUs from "./pages/ContactUs";
 import OrderWithJourney from "./components/OrderWithJourney";
 import MyShop from "./pages/MyShop";
+import Blocked from "./pages/Blocked";
 
 function App() {
   const [topText, setTopText] = useState("");
@@ -45,6 +46,7 @@ function App() {
   const [notification, setNotification] = useState([]);
   const [unSeenNotification, setUnSeenNotification] = useState([]);
     const [shopKepperStatus2, setShopKepperStatus2] = useState(false);
+    const [isBlocked, setIsBlocked] = useState(false);
   
     const user = JSON.parse(sessionStorage.getItem("user"));
 
@@ -250,6 +252,8 @@ const deleteNotification = async (id) => {
     fetchShopKepper();
   }, [update]);
 
+
+
   return (
     <>
       <Routes>
@@ -319,8 +323,9 @@ const deleteNotification = async (id) => {
             path="shopKepper/dashboard"
             element={
               <ShopKepperDashboard
-                shopKepperStatus={shopKepperStatus}
+               
                 setUpdateAppjs={setUpdateAppjs}
+              
               />
             }
           />
@@ -338,6 +343,12 @@ const deleteNotification = async (id) => {
             path="shopKepper/myShop"
             element={
               <MyShop/>
+            }
+          />
+          <Route
+            path="shopKepper/sh&BlTr&bl&5&comp&shbl&tr"
+            element={
+              <Blocked/>
             }
           />
           <Route

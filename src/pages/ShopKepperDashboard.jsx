@@ -1,7 +1,7 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
-
-function ShopKepperDashboard({ setUpdate, shopKepperStatus, setUpdateAppjs }) {
+import { useCheckBlockedStatus } from "../components/useCheckBlockedStatus";
+function ShopKepperDashboard({  setUpdateAppjs, }) {
   const user = JSON.parse(sessionStorage.getItem("user"));
   const token = localStorage.getItem("token");
   const [orders, setOrders] = useState([]);
@@ -17,7 +17,12 @@ function ShopKepperDashboard({ setUpdate, shopKepperStatus, setUpdateAppjs }) {
   const [completedOrderscount, setcompletedOrdersCount] = useState(0);
   const [rejectedOrderscount, setrejectedOrdersCount] = useState(0);
     const [startDate, setStartDate] = useState("");
+      const [shop, setShop] = useState(null);
   const [endDate, setEndDate] = useState("");
+    const [filterLoading, setFilterLoading] = useState(false);
+      const role = sessionStorage.getItem("role");
+
+      useCheckBlockedStatus(token); // Custom hook to check if shopkeeper is blocked
 
   useEffect(() => {
     setUpdateAppjs(true);
@@ -54,9 +59,12 @@ const getShopkeeperOrders = async (type) => {
   try {
     // 🔹 Validate date range only if filtering
     if (type === "filter") {
+      setFilterLoading(true);
       if (!startDate || !endDate) {
         alert("Please select both dates");
+        setFilterLoading(false);
         return;
+
       }
     }
 
@@ -102,6 +110,7 @@ const getShopkeeperOrders = async (type) => {
       setInprogressOrder(orders.filter((o) => o.status === "inProgress"));
 
       if (type === "filter") {
+        setFilterLoading(false);
         setStartDate("");
         setEndDate("")
         setFilterModal(false);
@@ -110,6 +119,9 @@ const getShopkeeperOrders = async (type) => {
   } catch (error) {
     console.error("Error fetching orders:", error);
     alert("Error while getting orders");
+    if (type === "filter") {
+      setFilterLoading(false);
+    }
   }
 };
   useEffect(() => {
@@ -119,16 +131,39 @@ const handleApplyFilter = () => {
   console.log("Filter applied:", startDate, endDate);
   getShopkeeperOrders("filter");
 };
+  const getShopData = async () => {
+    try {
+      const response = await axios.get(
+        `https://hazir-hay-backend.vercel.app/shops/shopData/${user._id}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          params: { t: Date.now() },
+        }
+      );
+      if (response.data.success === true) {
+        console.log("Shop Data:", response.data.shop);
+        setShop(response.data.shop);
+      }
+    } catch (err) {
+      console.error("Error fetching shop data:", err);
+      return null;
+    }
+  };
 
+  useEffect(() => {
+      getShopData();
+  }, [role]);
 
-
+  const cancelRequestPercent = shop ? Math.min((shop.cancelRequest / 5) * 100, 100) : 0;
+  const cancelPercent = Math.round(cancelRequestPercent);
 
   return (
     <div style={{ marginBottom: "80px" }} className="container-fluid px-3 px-md-5">
       {/* HEADER CARD */}
 <div
-  className="card  border-1 p-3 p-md-4 mb-3 mt-2"
-  style={{ borderRadius: "14px"  , background: "linear-gradient(180deg, #ffffff, #ffe3fb)"}}
+  className="card  border-0 p-3 p-md-4 mb-3 mt-2"
+  
+  style={{ borderRadius: "14px"  , background: "linear-gradient(115deg, #ffffff, #ffffff)"}}
 >
   {/* Profile Section */}
   <div className="d-flex align-items-center">
@@ -192,10 +227,106 @@ const handleApplyFilter = () => {
 
       {/* DASHBOARD CARDS */}
     <div className="row g-3">
+  <div className="col-12">
+  <div
+    className="card p-3 shadow-sm border-0 d-flex flex-column rounded-4"
+    style={{
+      background: "linear-gradient(135deg, #ffffff 0%, #f9fafb 100%)",
+    }}
+  >
+    {/* Header Row */}
+    <div className="d-flex justify-content-between align-items-center flex-wrap">
+      <div className="d-flex align-items-center gap-3">
+        <div
+          className="rounded-circle d-flex align-items-center justify-content-center"
+          style={{
+            background: "rgba(220,53,69,0.1)",
+            width: "45px",
+            height: "45px",
+          }}
+        >
+          <i className="fa-solid fa-ban text-danger fs-5"></i>
+        </div>
+        <div>
+          <h6 className="fw-semibold text-secondary m-0" style={{ fontSize: "15px" }}>
+            Cancel Requests
+          </h6>
+          <small className="text-muted" style={{ fontSize: "12px" }}>
+            Monitor your cancellation activity
+          </small>
+        </div>
+      </div>
+
+      <h5 className="fw-bold text-dark m-0" style={{ fontSize: "17px" }}>
+        {shop?.cancelRequest}
+      </h5>
+    </div>
+
+    {/* Progress Section */}
+    <div className="mt-3">
+      <div
+        className="progress"
+        role="progressbar"
+        aria-valuenow={cancelPercent}
+        aria-valuemin="0"
+        aria-valuemax="100"
+        style={{
+          height: "11px",
+          borderRadius: "20px",
+          overflow: "hidden",
+        }}
+      >
+        <div
+          className={`progress-bar progress-bar-striped progress-bar-animated bg-${
+            cancelPercent >= 80 ? "danger" : cancelPercent >= 80 ? "warning" : "success"
+          }`}
+          style={{ width: `${cancelPercent}%`, transition: "width 0.6s ease" }}
+        ></div>
+      </div>
+      <div className="d-flex justify-content-between mt-1">
+        <small className="text-muted">Cancellation Rate</small>
+        <small
+          className={`fw-semibold ${
+            cancelPercent >= 80 ? "text-danger" : "text-success"
+          }`}
+        >
+          {cancelPercent}%
+        </small>
+      </div>
+    </div>
+
+    {/* Warning Section */}
+    {cancelPercent >= 80 && (
+      <div
+        className="mt-3 p-3 rounded-3 border-start border-4 border-danger"
+        style={{
+          background: "rgba(255, 0, 0, 0.05)",
+        }}
+      >
+        <div className="d-flex align-items-center gap-2 mb-1">
+          <i className="fa-solid fa-triangle-exclamation text-danger fs-6"></i>
+          <span className="text-danger fw-semibold small">
+            High cancellation rate detected!
+          </span>
+        </div>
+       <small className="text-muted">
+  You have made <span className="fw-semibold text-dark">4 cancellations</span>. 
+  Once you reach <span className="fw-semibold text-dark">5 cancellations</span>, 
+  your account will be <span className="fw-semibold text-danger">temporarily restricted for 7 days</span>.
+</small>
+
+      </div>
+    )}
+  </div>
+</div>
+
+
+
+
   {/* Total Orders */}
   <div className="col-12">
     <div className="card p-3 shadow-sm border-0  d-flex flex-row justify-content-between align-items-center rounded-4"
-    style={{background: "linear-gradient(115deg, #ffffff, #ffe3fb)"}}
+    style={{background: "linear-gradient(115deg, #ffffff, #ffffff)"}}
     >
       <div className="d-flex align-items-center gap-3">
         <div
@@ -257,7 +388,7 @@ const handleApplyFilter = () => {
           className="card p-2 shadow-sm border-0  rounded-4 d-flex flex-column justify-content-between align-items-center text-center"
           style={{
             minHeight: "140px",
-            background: "linear-gradient(115deg, #ffffff, #ffe3fb)"
+            background: "linear-gradient(115deg, #ffffff, #ffffff)"
           }}
         >
           <div className="d-flex flex-column align-items-center justify-content-center">
@@ -377,8 +508,20 @@ const handleApplyFilter = () => {
                   <button
                     className="btn btn-primary mt-2 w-100 rounded-pill fw-semibold"
                     onClick={handleApplyFilter}
+                    disabled = {filterLoading}
                   >
-                    <i className="fa-solid fa-magnifying-glass me-2"></i>Apply Filter
+                    {
+                      filterLoading ? (
+                        <><span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                        <span>Applying...</span>
+                        </>
+                      ):(
+                        <>
+                        <i className="fa-solid fa-magnifying-glass me-2"></i>Apply Filter
+                        </>
+                      )
+                    }
+                    
                   </button>
                 </div>
               </div>

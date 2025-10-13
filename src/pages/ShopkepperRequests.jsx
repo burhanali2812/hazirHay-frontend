@@ -7,6 +7,7 @@ import UserShopRoute from "../components/UserShopRoute";
 import noData from "../images/noData.png";
 import { FaWifi } from "react-icons/fa";
 import { MdWifiOff } from "react-icons/md";
+import { useCheckBlockedStatus } from "../components/useCheckBlockedStatus";
 function ShopkepperRequests({ refreshFlag, setRefreshFlag }) {
   const user = JSON.parse(sessionStorage.getItem("user"));
   const [requests, setRequests] = useState([]);
@@ -30,6 +31,7 @@ function ShopkepperRequests({ refreshFlag, setRefreshFlag }) {
   const [routeInfo, setRouteInfo] = useState(null);
   const [declineOrder, setDeclineOrder] = useState(null);
   const token = localStorage.getItem("token");
+  useCheckBlockedStatus(token); // Custom hook to check if shopkeeper is blocked
 
   const declineList = [
     "Not available at requested time",
@@ -418,7 +420,7 @@ function ShopkepperRequests({ refreshFlag, setRefreshFlag }) {
     try {
       const res = await axios.put(
         "https://hazir-hay-backend.vercel.app/requests/markDeleteRequestByShopkeeper",
-        { requests: finalRejectedOrdersFordelete },
+        { requests: finalRejectedOrdersFordelete, type: "delete" },
         {
           headers: { Authorization: `Bearer ${token}` },
           params: { t: Date.now() }, // avoid caching

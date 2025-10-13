@@ -5,23 +5,27 @@ import * as htmlToImage from "html-to-image";
 import { useNavigate } from "react-router-dom";
 import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import successAudio from "../sounds/success.mp3";
-function OrderWithJourney({setStausUpdate}) {
-    const user = JSON.parse(sessionStorage.getItem("user"));
+import Swal from "sweetalert2";
+import { useCheckBlockedStatus } from "./useCheckBlockedStatus";
+function OrderWithJourney({ setStausUpdate }) {
+  const user = JSON.parse(sessionStorage.getItem("user"));
   const [routeInfo, setRouteInfo] = useState(null);
   const [shopKepperCords, setShopKepperCords] = useState([]);
   const [loading, setLoading] = useState(false);
   const [orderCompleteModal, setOrderCompleteModal] = useState(false);
   const [shareLoading, setShareLoading] = useState(false);
+    const [cancelLoading, setCalcelLoading] = useState(false);
   const selectedTrackShopData = JSON.parse(localStorage.getItem("currentCheckout"));
   console.log("selectedShop", selectedTrackShopData);
   const token = localStorage.getItem("token");
   const navigate = useNavigate();
   const ref = useRef();
+  useCheckBlockedStatus(token); // Custom hook to check if shopkeeper is blocked
 
   const position = selectedTrackShopData?.orders[0]?.location?.[0]?.coordinates;
   const sendNotificationToUser = async (type) => {
     if (!selectedTrackShopData) return;
-    if (!user) return;  
+    if (!user) return;
     const payload = {
       type: "success",
       message: `Your order has been completed successfully of Rs. ${selectedTrackShopData?.totalCost}/- . Thank you for choosing our service! cheeckoutId: `,
@@ -48,25 +52,25 @@ function OrderWithJourney({setStausUpdate}) {
     }
   };
   const updateShopkepper = async () => {
-  try {
-    const response = await axios.put(
-      `https://hazir-hay-backend.vercel.app/shopKeppers/updateBusy/${user._id}`,
-      {isBusy : false}, // no body, so pass empty object
-      {
-        headers: { Authorization: `Bearer ${token}` },
-        params: { t: Date.now() },
-      }
-    );
+    try {
+      const response = await axios.put(
+        `https://hazir-hay-backend.vercel.app/shopKeppers/updateBusy/${user._id}`,
+        { isBusy: false }, // no body, so pass empty object
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          params: { t: Date.now() },
+        }
+      );
 
-    if (response.data.success) {
-      setStausUpdate(true);
-      alert("Shopkeeper status updated to busy");
-      console.log("Shopkeeper status updated to busy");
+      if (response.data.success) {
+        setStausUpdate(true);
+        alert("Shopkeeper status updated to busy");
+        console.log("Shopkeeper status updated to busy");
+      }
+    } catch (error) {
+      console.error("Error updating shopkeeper status:", error);
     }
-  } catch (error) {
-    console.error("Error updating shopkeeper status:", error);
-  }
-};
+  };
   const completedOrder = async () => {
     setLoading(true);
     const requests =
@@ -101,6 +105,88 @@ function OrderWithJourney({setStausUpdate}) {
       console.error("Error completing orders:", error);
     }
   };
+  const cancelOrder = async () => {
+       const requests =
+      selectedTrackShopData?.orders?.map((order) => ({ _id: order._id })) || [];
+
+      const requestSize = requests.length;
+      const title = requestSize > 1 ? `Cancel all ${requestSize} orders?` : "Cancel this order?";
+      const buttonText = requestSize > 1 ? "Yes, Cancel all!" : "Yes, Cancel!";
+    const result = await Swal.fire({
+      title: title,
+      text: "You won't be able to undo this action.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#6c757d",
+      confirmButtonText: buttonText,
+      background: "#f9f9f9",
+      customClass: {
+        popup: "swirl-popup",
+      },
+    });
+    if (!result.isConfirmed) {
+      return
+    }
+ 
+    
+
+    setCalcelLoading(true)
+    try {
+      const res = await axios.put(
+        "https://hazir-hay-backend.vercel.app/requests/markDeleteRequestByShopkeeper",
+        { requests , type: "cancel"},
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          params: { t: Date.now() }, 
+        }
+      );
+
+      if (res.data.success) {
+        if(res.data.warning) {
+          setCalcelLoading(false)
+          alert(res.data.message)
+           updateShopkepper();
+        Swal.fire({
+          title: "Cancelled!",
+          text: "Orders have been cancelled successfully.",
+          icon: "success",
+          timer: 900,
+          showConfirmButton: false,
+          background: "#f9f9f9",
+          customClass: {
+            popup: "swirl-popup",
+          },
+        });
+        navigate("/admin/shopKepper/requests");
+        }
+        else {
+            setCalcelLoading(false)
+         updateShopkepper();
+        Swal.fire({
+          title: "Cancelled!",
+          text: "Orders have been cancelled successfully.",
+          icon: "success",
+          timer: 900,
+          showConfirmButton: false,
+          background: "#f9f9f9",
+          customClass: {
+            popup: "swirl-popup",
+          },
+        });
+        navigate("/admin/shopKepper/requests");
+        }
+      
+      }
+
+    } catch (error) {
+      setCalcelLoading(false)
+      console.error("Error deleting orders:", error);
+      alert("Something went wrong while deleting orders.");
+
+    }
+
+  }
 
   const updateLocation = async (lat, lng) => {
     const payload = {
@@ -302,15 +388,14 @@ function OrderWithJourney({setStausUpdate}) {
                           </span>
                           <span>
                             <span
-                              className={`badge rounded-pill ${
-                                order?.status === "pending"
+                              className={`badge rounded-pill ${order?.status === "pending"
                                   ? "bg-warning text-dark"
                                   : order?.status === "completed"
-                                  ? "bg-success"
-                                  : order?.status === "cancelled"
-                                  ? "bg-danger"
-                                  : "bg-secondary"
-                              }`}
+                                    ? "bg-success"
+                                    : order?.status === "cancelled"
+                                      ? "bg-danger"
+                                      : "bg-secondary"
+                                }`}
                             >
                               {order?.status}
                             </span>
@@ -429,6 +514,26 @@ function OrderWithJourney({setStausUpdate}) {
               <>
                 <i class="fa-solid fa-circle-check me-1"></i>
                 Complete Order{" "}
+              </>
+            )}
+          </button>
+          <button
+            className="w-100  mt-2 btn btn-outline-danger  rounded-pill"
+            onClick={cancelOrder}
+            disabled={cancelLoading}
+          >
+            {cancelLoading ? (
+              <>
+                Cancelling...
+                <div
+                  className="spinner-border spinner-border-sm text-dark ms-2"
+                  role="status"
+                ></div>
+              </>
+            ) : (
+              <>
+                <i class="fa-solid fa-circle-xmark me-1"></i>
+                Cancel Order{" "}
               </>
             )}
           </button>
