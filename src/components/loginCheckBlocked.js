@@ -1,7 +1,7 @@
 
 import axios from "axios";
 
-export const checkBlockedStatus = async (token, navigate) => {
+export const checkBlockedStatus = async (token, navigate, name) => {
   try {
     const res = await axios.get(
       "https://hazir-hay-backend.vercel.app/shops/checkShopStatus",
@@ -15,7 +15,7 @@ export const checkBlockedStatus = async (token, navigate) => {
       if (res.data.status === true) {
     
         navigate("/shopKepper/sh&BlTr&bl&5&comp&shbl&tr", {
-          state: { days: res.data.remainingDays },
+          state: { days: res.data.remainingDays , name : name},
         });
         return false;
       }

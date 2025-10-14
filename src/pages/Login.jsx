@@ -74,7 +74,7 @@ function Login() {
         sessionStorage.setItem("role", role);
 
         if (role === "shopKepper") {
-          const notBlocked = await checkBlockedStatus(response.data.token, navigate);
+          const notBlocked = await checkBlockedStatus(response.data.token, navigate, response.data.user.name);
           if (!notBlocked) return;
           setTimeout(() => {
             navigate("/admin/shopKepper/dashboard");
