@@ -1,4 +1,4 @@
-// src/utils/useCheckBlockedStatus.js
+
 import { useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
@@ -19,7 +19,7 @@ export const useCheckBlockedStatus = (token) => {
 
         if (res.data.success) {
           if (res.data.status === true) {
-            navigate("/admin/shopKepper/sh&BlTr&bl&5&comp&shbl&tr", {state : {days : res.data.remainingDays}});
+            navigate("/shopKepper/sh&BlTr&bl&5&comp&shbl&tr", {state : {days : res.data.remainingDays}});
           }
         }
       } catch (error) {

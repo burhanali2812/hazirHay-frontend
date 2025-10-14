@@ -7,6 +7,7 @@ import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
 import Swal from "sweetalert2";
 import "../components/adminFooter.css";
+import { checkBlockedStatus } from "../components/loginCheckBlocked";
 function Login() {
   const navigate = useNavigate();
   const [role, setRole] = useState("");
@@ -65,6 +66,7 @@ function Login() {
                     popup: "swirl-popup",
                   },
                 });
+            
         localStorage.setItem("token", response.data.token);
         console.log("role", role);
         sessionStorage.setItem("user", JSON.stringify(response.data.user));
@@ -72,6 +74,8 @@ function Login() {
         sessionStorage.setItem("role", role);
 
         if (role === "shopKepper") {
+          const notBlocked = await checkBlockedStatus(response.data.token, navigate);
+          if (!notBlocked) return;
           setTimeout(() => {
             navigate("/admin/shopKepper/dashboard");
           }, 1500);

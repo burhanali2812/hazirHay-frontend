@@ -269,6 +269,12 @@ const deleteNotification = async (id) => {
           }
         ></Route>
         <Route path="/shop" element={<ShopForm />}></Route>
+          <Route
+            path="shopKepper/sh&BlTr&bl&5&comp&shbl&tr"
+            element={
+              <Blocked/>
+            }
+          />
         <Route
           path="/admin/*"
           element={
@@ -381,12 +387,7 @@ const deleteNotification = async (id) => {
           <Route path="user/notification" element={<Notification notification={notification} onDelete={deleteNotification} setNotification={setNotification} setUnSeenNotification={setUnSeenNotification}/>} />
           <Route path="user/contact" element={<ContactUs />} />
           <Route path="user/orderWithJourney" element={<OrderWithJourney  setStausUpdate = {setStausUpdate}/>} />
-           <Route
-            path="shopKepper/sh&BlTr&bl&5&comp&shbl&tr"
-            element={
-              <Blocked/>
-            }
-          />
+         
         </Route>
       </Routes>
     </>

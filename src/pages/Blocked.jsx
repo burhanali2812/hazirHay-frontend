@@ -26,7 +26,7 @@ function Blocked() {
         src={block}
         alt="Blocked"
         className="img-fluid "
-        style={{ width: "225px", height: "225px", objectFit: "contain" }}
+        style={{ width: "250px", height: "250px", objectFit: "contain" }}
       />
 
       {/* Title */}
@@ -38,8 +38,8 @@ function Blocked() {
       <p
         className="text-secondary mb-2"
         style={{
-          maxWidth: "550px",
-          fontSize: "15px",
+          maxWidth: "500px",
+          fontSize: "14px",
           lineHeight: "1.6",
         }}
       >
