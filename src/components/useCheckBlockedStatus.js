@@ -19,7 +19,7 @@ export const useCheckBlockedStatus = (token) => {
 
         if (res.data.success) {
           if (res.data.status === true) {
-            navigate("/admin/shopKepper/sh&BlTr&bl&5&comp&shbl&tr");
+            navigate("/admin/shopKepper/sh&BlTr&bl&5&comp&shbl&tr", {state : {days : res.data.remainingDays}});
           }
         }
       } catch (error) {
