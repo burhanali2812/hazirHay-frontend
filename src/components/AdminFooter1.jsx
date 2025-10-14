@@ -1,6 +1,7 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { useNavigate, Outlet } from "react-router-dom";
+import { useCheckBlockedStatus } from "./useCheckBlockedStatus";
 import "./adminFooter.css";
 
 function AdminFooter({ topText, setUpdate, setShopKepperStatus , unSeenNotification, onUpdate, cartData, shopKepperStatus2}) {
@@ -12,6 +13,7 @@ function AdminFooter({ topText, setUpdate, setShopKepperStatus , unSeenNotificat
   const role = sessionStorage.getItem("role");
   const user = JSON.parse(sessionStorage.getItem("user"));
   const token = localStorage.getItem("token");
+  useCheckBlockedStatus(token)
 
 
  
