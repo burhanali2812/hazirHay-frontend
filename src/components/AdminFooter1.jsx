@@ -69,7 +69,7 @@ function AdminFooter({ topText, setUpdate, setShopKepperStatus , unSeenNotificat
         key: "shop",
         icon: "fa-solid fa-shop",
         label: "Shop",
-        path: "/admin/shopKepper/sh&BlTr&bl&5&comp&shbl&tr",
+        path: "/admin/shopKepper/myShop",
       },
       {
         key: "setting",
