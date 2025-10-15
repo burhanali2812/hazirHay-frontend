@@ -27,7 +27,7 @@ function OrderWithJourney({ setStausUpdate }) {
     if (!selectedTrackShopData) return;
     if (!user) return;
     const payload = {
-      type: "success",
+      type: "complete",
       message: `Your order has been completed successfully of Rs. ${selectedTrackShopData?.totalCost}/- . Thank you for choosing our service! cheeckoutId: `,
       checkoutId: selectedTrackShopData?.orders[0]?.checkoutId,
       userId: type === "shop" ? user._id : selectedTrackShopData?.orders[0]?.userId,

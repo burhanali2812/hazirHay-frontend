@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import track from "../images/track.png";
 import notFound from "../images/notFound.png";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useNavigate , useLocation} from "react-router-dom";
 import Swal from "sweetalert2";
 import completed from "../images/completed.png";
 import rejected from "../images/rejected.png";
@@ -26,6 +26,7 @@ function Tracking({ setUpdateAppjs }) {
   const [loading, setLoading] = useState(false);
   const [cencelOrderLoading, setCancelOrderLoading] = useState(false);
   const [shopLiveCoordinates, setShopLiveCoordinates] = useState([]);
+  const location = useLocation();
 
   const navigate = useNavigate();
   const position = selectedTrackShopData?.location?.[0]?.coordinates;
@@ -33,6 +34,34 @@ function Tracking({ setUpdateAppjs }) {
   console.log("selectedTrackShopData", selectedTrackShopData);
   console.log("ID", selectedTrackShopData?.shopId);
   localStorage.setItem("shopid", selectedTrackShopData?.shopId);
+      const orderIdFromNoti = location.state.orderId || null;
+    const checkOutIdFromNoti = location.state.checkOutId || null;
+
+useEffect(() => {
+  if (orderIdFromNoti && checkOutIdFromNoti) {
+    const fetchAndSelect = async () => {
+      setLoading(true);
+      const data = await fetchUserCart(); 
+      // data is ready here!
+
+      const selectTrackData = data.find(
+        (request) =>
+          request.orderId === orderIdFromNoti &&
+          request.checkoutId === checkOutIdFromNoti
+      );
+      const data2 = await fetchShopData(selectTrackData);
+
+      console.log("selectTrack...", selectTrackData);
+      setSelectedTrackShopData(selectTrackData);
+      setTrackingDetailsModal(true);
+      setLoading(false);
+    };
+
+    fetchAndSelect();
+  }
+}, [orderIdFromNoti, checkOutIdFromNoti]);
+
+
 
   const getLiveUpdateLocation = async () => {
     const id = localStorage.getItem("shopid");
@@ -54,12 +83,14 @@ function Tracking({ setUpdateAppjs }) {
   };
 
   useEffect(() => {
-    const interval = setInterval(() => {
+    if(selectedTrackShopData !== null && trackingDetailsModal){
+         const interval = setInterval(() => {
       getLiveUpdateLocation();
     }, 3000);
 
     return () => clearInterval(interval);
-  }, []);
+    }
+  }, [selectedTrackShopData, trackingDetailsModal]);
 
   const fetchUserCart = async () => {
     try {
@@ -72,8 +103,11 @@ function Tracking({ setUpdateAppjs }) {
       );
       if (response.data.success) {
         // alert("Cart Data Fetch SuccessFully")
+        const data = response.data.data || []
         console.log(response.data.data || []);
-        setRequestsData(response.data.data || []);
+        setRequestsData(data);
+        setLoading(false)
+        return data
       }
     } catch (error) {
       console.error("Error Fetching reuests data:", error.message);
@@ -81,8 +115,11 @@ function Tracking({ setUpdateAppjs }) {
   };
 
   useEffect(() => {
-    fetchUserCart();
-  }, []);
+    if(orderIdFromNoti === null && checkOutIdFromNoti === null){
+fetchUserCart();
+    }
+    
+  }, [orderIdFromNoti,checkOutIdFromNoti]);
 
   const deleteRequest = async (id) => {
     const result = await Swal.fire({
@@ -148,14 +185,16 @@ function Tracking({ setUpdateAppjs }) {
         }
       );
       if (res.data.success) {
+        const data = res.data.data;
         setLoading(false);
-        setSelectedShop(res.data.data);
+        setSelectedShop(data);
         console.log("shop", res.data.shop);
         setShopCoordinates(res.data.data.shop.location.coordinates);
         console.log(
           "shop Coordinates",
           res.data.data.shop.location.coordinates
         );
+        return data
       }
     } catch (error) {
       setLoading(false);
@@ -218,9 +257,9 @@ function Tracking({ setUpdateAppjs }) {
       : selectedTrackShopData?.status === "completed"
       ? completed
       : rejected;
-
+const finalSelectedTrackShopStatus = selectedTrackShopData?.status === "deleted"? "rejected" : selectedTrackShopData?.status;
   return (
-    <div className="container mt-3 " style={{ overflowY: 0 }}>
+    <div className="container mt-3 " style={{marginBottom : "65px"}}>
       {loading && (
         <div
           className="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center bg-dark bg-opacity-75"
@@ -407,10 +446,10 @@ function Tracking({ setUpdateAppjs }) {
                       style={{ width: "200px", height: "auto" }}
                     />
 
-                    <h4 className={`fw-bold text-${selectedTrackShopData?.status === "completed" ? "success" : selectedTrackShopData?.status === "rejected" ? "danger" : "warning"} mb-2 mt-0`}>
-                      {selectedTrackShopData?.status === "completed"
+                    <h4 className={`fw-bold text-${finalSelectedTrackShopStatus === "completed" ? "success" : finalSelectedTrackShopStatus === "rejected" ? "danger" : "warning"} mb-2 mt-0`}>
+                      {finalSelectedTrackShopStatus === "completed"
                         ? "Order Completed Successfully"
-                        : selectedTrackShopData?.status === "rejected"
+                        : finalSelectedTrackShopStatus === "rejected"
                         ? "Order Rejected"
                         : "Order Pending"}
                     </h4>
@@ -419,25 +458,25 @@ function Tracking({ setUpdateAppjs }) {
                       className="text-muted"
                       style={{ maxWidth: "380px", fontSize: "15px" }}
                     >
-                      {selectedTrackShopData?.status === "completed" && (
+                      {finalSelectedTrackShopStatus === "completed" && (
                         <>
                           Your order has been successfully completed . Thank
                           you for choosing our services.
                         </>
                       )}
-                      {selectedTrackShopData?.status === "rejected" && (
+                      {finalSelectedTrackShopStatus === "rejected" && (
                         <>
                           Unfortunately, your order was rejected. Please contact
                           support for more details.
                         </>
                       )}
-                      {selectedTrackShopData?.status === "pending" && (
+                      {finalSelectedTrackShopStatus === "pending" && (
                         <>
                           Your order is pending. When the shopkeeper accepts it,
                           you will be notified.
                         </>
                       )}
-                      {!selectedTrackShopData?.status && (
+                      {!finalSelectedTrackShopStatus && (
                         <>
                           The checkout ID you entered doesn’t match our records.
                           Kindly re-check the ID (e.g.,{" "}
@@ -490,7 +529,8 @@ function Tracking({ setUpdateAppjs }) {
                       </div>
 
                       {/* DISTANCE + TIME */}
-                      <div className="d-flex justify-content-around text-muted small mb-3">
+                     {selectedTrackShopData?.status === "accepted" && (
+                       <div className="d-flex justify-content-around text-muted small mb-3">
                         <span>
                           <i className="fa-solid fa-clock me-1 text-secondary"></i>
                           <b>ETA:</b> {routeInfo?.duration} mins
@@ -500,6 +540,7 @@ function Tracking({ setUpdateAppjs }) {
                           <b>Distance:</b> {routeInfo?.distance} km
                         </span>
                       </div>
+                     )}
 
                       {/* ORDER DETAILS */}
                       <div className="mt-2">
@@ -516,18 +557,18 @@ function Tracking({ setUpdateAppjs }) {
                             <span>
                               <span
                                 className={`badge rounded-pill ${
-                                  selectedTrackShopData?.status === "pending"
+                                  finalSelectedTrackShopStatus === "pending"
                                     ? "bg-warning text-dark"
-                                    : selectedTrackShopData?.status ===
+                                    : finalSelectedTrackShopStatus ===
                                       "completed"
                                     ? "bg-success"
-                                    : selectedTrackShopData?.status ===
+                                    : finalSelectedTrackShopStatus ===
                                       "cancelled"
                                     ? "bg-danger"
                                     : "bg-secondary"
                                 }`}
                               >
-                                {selectedTrackShopData?.status}
+                                {finalSelectedTrackShopStatus}
                               </span>
                             </span>
                           </li>

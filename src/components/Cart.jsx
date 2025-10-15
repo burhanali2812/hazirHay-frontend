@@ -337,7 +337,7 @@ const handleNext = async () => {
 
   const sendNotificationToUser = async (checkoutId) => {
     const payload = {
-      type: "success",
+      type: "newOrder",
       message: "Your order has been placed under checkout id",
       checkoutId,
       userId: user._id,

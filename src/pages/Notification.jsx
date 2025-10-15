@@ -2,10 +2,12 @@ import React, { useState } from "react";
 import Swal from "sweetalert2";
 import notify from "../images/notify.png";
 import axios from "axios";
-
+import { useNavigate } from "react-router-dom";
 function Notification({ notification, onDelete , setNotification, setUnSeenNotification}) {
   const [expandedIds, setExpandedIds] = useState({});
+    const role = sessionStorage.getItem("role");
 const user = JSON.parse(sessionStorage.getItem("user"));
+const navigate = useNavigate();
   const toggleExpand = (id) => {
     setExpandedIds((prev) => ({
       ...prev,
@@ -14,7 +16,11 @@ const user = JSON.parse(sessionStorage.getItem("user"));
   };
 
   const iconsList = {
-    success: {
+    complete: {
+      color: "text-success",
+      icon: "fa-solid fa-circle-check",
+    },
+     accept: {
       color: "text-success",
       icon: "fa-solid fa-circle-check",
     },
@@ -121,6 +127,12 @@ const clearAllNotifications = async () => {
     });
   };
 
+  const handleTrackNow = (notification)=>{
+   const orderId = notification.message.match(/\(ORD-[A-Z0-9-]+\)/)?.[0].replace(/[()]/g, '');
+   const checkOutId = notification.checkoutId;
+   navigate("/admin/user/tracking", {state : {orderId: orderId , checkOutId: checkOutId}})
+  }
+
   return (
     <div className="overflow-auto mb-4">
 <div className="d-flex justify-content-between align-items-center bg-light w-100 px-3 py-3 ">
@@ -173,7 +185,7 @@ const clearAllNotifications = async () => {
                   transition: "transform 0.2s ease-out",
                   cursor: "pointer",
                 }}
-                onClick={() => handleNotificationClick(notifi._id)}
+                
               >
                 <div className="card-body d-flex align-items-center justify-content-between">
                   <i
@@ -181,7 +193,9 @@ const clearAllNotifications = async () => {
                     style={{ fontSize: "2.2rem", minWidth: "40px" }}
                   ></i>
 
-                  <div className="flex-grow-1 ms-3 d-flex flex-column justify-content-center mt-1">
+                  <div className="flex-grow-1 ms-3 d-flex flex-column justify-content-center mt-1"
+                  onClick={() => handleNotificationClick(notifi._id)}
+                  >
                     <p className="mb-0">
                       {notifi.message.length > 50 && !isExpanded ? (
                         <>
@@ -235,6 +249,13 @@ const clearAllNotifications = async () => {
                 >
                   {new Date(notifi.createdAt).toLocaleString()}
                 </small>
+               <div className="container mb-2">
+                 {
+                  notifi.type === "accept" && role === "user" && (
+                    <button className="btn btn-primary btn-sm w-100 " onClick={()=>handleTrackNow(notifi)}>Track Now<i class="fa-solid fa-magnifying-glass-location ms-1"></i></button>
+                  )
+                }
+                </div>
               </div>
             );
           })}

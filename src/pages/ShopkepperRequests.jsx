@@ -194,7 +194,7 @@ function ShopkepperRequests({ refreshFlag, setRefreshFlag }) {
   }, [selectedRequest]);
 
   const sendNotificationToUser = async (order, type) => {
-    const finalType = type === "accept" ? "success" : "fail";
+    const finalType = type === "accept" ? "accept" : "fail";
     let finalMessage;
     if (type === "accept") {
       finalMessage = `Your order (${order?.orderId}) ${order?.subCategory} - ${order?.category} has been accepted under checkoutID `;
