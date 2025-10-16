@@ -321,7 +321,7 @@ const handleNext = async () => {
       .toUpperCase()
       .slice(-6); // take 6 chars
 
-    // Split into groups of 3 and join with "-"
+  
     const formatted = uniquePart.match(/.{1,3}/g).join("-");
 
     return `ORD-${formatted}`;

@@ -3,6 +3,8 @@ import Swal from "sweetalert2";
 import notify from "../images/notify.png";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { IoNavigateCircleSharp } from "react-icons/io5";
+
 function Notification({ notification, onDelete , setNotification, setUnSeenNotification}) {
   const [expandedIds, setExpandedIds] = useState({});
     const role = sessionStorage.getItem("role");
@@ -34,6 +36,10 @@ const navigate = useNavigate();
     },
     newOrder: {
       color: "text-success",
+      icon: "fa-solid fa-circle-down",
+    },
+      inProgress: {
+      color: "text-primary",
       icon: "fa-solid fa-circle-down",
     },
   };
@@ -188,10 +194,18 @@ const clearAllNotifications = async () => {
                 
               >
                 <div className="card-body d-flex align-items-center justify-content-between">
-                  <i
+                 {
+                  icon === "inProgress" ? (
+                    
+                    <IoNavigateCircleSharp />
+
+                  ):(
+                     <i
                     className={`${icon.icon} ${icon.color}`}
                     style={{ fontSize: "2.2rem", minWidth: "40px" }}
                   ></i>
+                  )
+                 }
 
                   <div className="flex-grow-1 ms-3 d-flex flex-column justify-content-center mt-1"
                   onClick={() => handleNotificationClick(notifi._id)}
@@ -251,7 +265,7 @@ const clearAllNotifications = async () => {
                 </small>
                <div className="container mb-2">
                  {
-                  notifi.type === "accept" && role === "user" && (
+                  notifi.type === "accept"  && role === "user" && (
                     <button className="btn btn-primary btn-sm w-100 " onClick={()=>handleTrackNow(notifi)}>Track Now<i class="fa-solid fa-magnifying-glass-location ms-1"></i></button>
                   )
                 }

@@ -49,6 +49,7 @@ useEffect(() => {
           request.orderId === orderIdFromNoti &&
           request.checkoutId === checkOutIdFromNoti
       );
+      setLoading(true)
       const data2 = await fetchShopData(selectTrackData);
 
       console.log("selectTrack...", selectTrackData);

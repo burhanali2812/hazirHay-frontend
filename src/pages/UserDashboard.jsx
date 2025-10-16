@@ -50,6 +50,7 @@ function UserDashboard({
 
   const [filterText, setFilterText] = useState("");
   const [FilterServices, setFilterServices] = useState([]);
+  const [loadingDelandSet, setLoadingDelandSet] = useState(false);
   const [filters, setFilters] = useState({
     status: "All",
     price: "All",
@@ -224,7 +225,7 @@ function UserDashboard({
       (req) => req.status === "completed"
     );
     const rejectedRequests = Totalrequest.filter(
-      (req) => req.status === "rejected" ||  req.status === "deleted"
+      (req) => req.status === "rejected" || req.status === "deleted"
     );
     console.log("Totalrequest", Totalrequest);
     console.log("acceptedRequests", acceptedRequests);
@@ -385,30 +386,35 @@ function UserDashboard({
     applyFilters();
   }, [filters, availableServices]);
 
-  const getUserLocations = async () => {
-    try {
-      const response = await axios.get(
-        `https://hazir-hay-backend.vercel.app/users/getUserById/${user._id}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-          params: { t: Date.now() },
-        }
-      );
-
-      if (response.data.success) {
-        setUserLocations(response.data.data.location || []);
-        console.log("ShopLocation", response.data.data.location);
-
-        // alert("successFull getUser Locations")
-      } else {
-        console.error("Failed to fetch user locations");
-        setUserLocations([]);
+const getUserLocations = async () => {
+  try {
+    const response = await axios.get(
+      `https://hazir-hay-backend.vercel.app/users/getUserById/${user._id}`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+        params: { t: Date.now() }, // to avoid cache
       }
-    } catch (error) {
-      console.error("Error fetching user locations:", error.message);
-      setUserLocations([]); // Reset state on error
+    );
+
+    if (response.data.success) {
+      const locations = response.data.data.location || [];
+      setUserLocations(locations);
+
+      const defaultLocation = locations.find((loc) => loc.isDefault);
+      if (defaultLocation) {
+        console.log("Default Location:", defaultLocation.area);
+        setSelectedLocation(defaultLocation)
+      }
+    } else {
+      console.error("Failed to fetch user locations");
+      setUserLocations([]);
     }
-  };
+  } catch (error) {
+    console.error("Error fetching user locations:", error.message);
+    setUserLocations([]);
+  }
+};
+
 
   useEffect(() => {
     setUpdateAppjs(true);
@@ -468,7 +474,7 @@ function UserDashboard({
   };
 
   const deleteUserLocation = async (location) => {
-    setLoading(true);
+    setLoadingDelandSet(true);
 
     try {
       const response = await axios.delete(
@@ -481,18 +487,18 @@ function UserDashboard({
 
       if (response.data.success) {
         alert("Location deleted successfully!");
-        setLoading(false);
+        setLoadingDelandSet(false);
         setUserLocations((prev) =>
           prev.filter((loc) => loc._id !== location._id)
         );
       } else {
         alert(response.data.message || "Failed to delete location.");
-        setLoading(false);
+        setLoadingDelandSet(false);
       }
     } catch (error) {
       console.error("Error deleting location:", error);
       alert("Server error. Please try again later.");
-      setLoading(false);
+      setLoadingDelandSet(false);
     }
   };
 
@@ -644,6 +650,35 @@ function UserDashboard({
   );
   console.log("totalRequests", totalRequests);
 
+
+  const handleSetDefault = async (locationId) => {
+    setLoadingDelandSet(true)
+  try {
+    const token = localStorage.getItem("token");
+
+    const res = await axios.put(
+      `https://hazir-hay-backend.vercel.app/users/setDefaultLocation/${locationId}`,
+      {}, // no body needed, only headers
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    if (res.data.success) {
+       setLoadingDelandSet(false)
+      setUserLocations(res.data.locations);
+    } else {
+      setLoadingDelandSet(false)
+      console.log(res.data.message);
+    }
+  } catch (error) {
+    setLoadingDelandSet(false)
+    console.error("Error setting default location:", error);
+  }
+};
+
   return (
     <div>
       <form onSubmit={(e) => e.preventDefault()}>
@@ -768,149 +803,204 @@ function UserDashboard({
         </button>
       </div>
 
-      {chooseLocationModal && (
-        <div
-          className="modal fade show d-block"
-          tabIndex="-1"
-          style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
-        >
-          <div className="modal-dialog modal-lg modal-dialog-centered">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h5 className="modal-title">Choose Address</h5>
-                <button
-                  type="button"
-                  className="btn-close"
-                  onClick={() => setChooseLocationModal(false)}
-                ></button>
-              </div>
-              <div
-                className="modal-body"
-                style={{ maxHeight: "550px", overflowY: "auto" }}
-              >
-                {userLocations.length > 0 ? (
-                  <>
-                    <div className="form-floating mb-3">
-                      <textarea
-                        className="form-control mt-1"
-                        name="currentLocation"
-                        id="currentLocationInput"
-                        placeholder="Your Current Location"
-                        value={`${selectedArea?.areaName} (${locationName})`}
-                        style={{ height: "100px" }}
-                        disabled={true}
-                      ></textarea>
-                      <label htmlFor="currentLocationInput">
-                        Selected Address (Current)
-                      </label>
-                    </div>
-                    <hr />
-                    <h3 className="text-center">Manage Your Addresses</h3>
-                    <p className="text-center text-muted">
-                      Choose your preferred address from the list below for
-                      quick access. You can also add a new address by clicking
-                      the <strong>"Add Address"</strong> button below.
-                    </p>
-                    <button
-                      className="btn btn-success w-100 mb-3"
-                      onClick={() => setSaveLocationsModal(true)}
-                    >
-                      <i class="fa-solid fa-map-location-dot me-2"></i>
-                      Add Address
-                    </button>
+  {chooseLocationModal && (
+  <>
+   
+    {loadingDelandSet && (
+      <div
+        className="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center bg-dark bg-opacity-75"
+        style={{ zIndex: 1056 }}
+      >
+        <button className="btn btn-dark" type="button" disabled>
+          <span
+            className="spinner-border spinner-border-sm me-2"
+            role="status"
+            aria-hidden="true"
+          ></span>
+          Loading...
+        </button>
+      </div>
+    )}
 
-                    <div className="row g-3">
-                      {userLocations.map((location, index) => (
-                        <div className="col-12" key={index}>
-                          <div
-                            className="card shadow-sm border-0 rounded-3 locationCard "
-                            onClick={() => setSelectedLocation(location)}
-                            style={{ background: "#FFE4E1" }}
-                          >
-                            <div className="card-body d-flex justify-content-between align-items-center">
-                              <div>
-                                <h6 className="fw-bold mb-1 text-light">
-                                  <i className="fa-solid fa-location-dot me-2 text-danger"></i>
-                                  {location.name}
-                                </h6>
-                                <p
-                                  className="mb-0 text-muted"
-                                  style={{ fontSize: "14px" }}
+    {/*Location Selection Modal */}
+    <div
+      className="modal fade show d-block"
+      tabIndex="-1"
+      style={{ backgroundColor: "rgba(0,0,0,0.4)" }}
+    >
+      <div className="modal-dialog modal-lg modal-dialog-centered">
+        <div className="modal-content shadow-lg border-0 rounded-4">
+          <div className="modal-header border-0 pb-0">
+            <h5 className="modal-title fw-semibold text-primary">
+              Choose Address
+            </h5>
+            <button
+              type="button"
+              className="btn-close"
+              onClick={() => setChooseLocationModal(false)}
+            ></button>
+          </div>
+
+          <div
+            className="modal-body"
+            style={{ maxHeight: "550px", overflowY: "auto" }}
+          >
+            {userLocations.length > 0 ? (
+              <>
+              
+
+       
+
+                {/* Header */}
+                <div className="text-center mb-3">
+                  <h4 className="fw-bold text-dark">Manage Your Addresses</h4>
+                  <p className="text-muted small">
+                    Choose or update your preferred address below.
+                    <br />
+                    You can also add a new one anytime.
+                  </p>
+                </div>
+
+                {/* Add Address Button */}
+                <button
+                  className="btn btn-success w-100 mb-3 rounded-3"
+                  onClick={() => setSaveLocationsModal(true)}
+                >
+                  <i className="fa-solid fa-map-location-dot me-2"></i>
+                  Add Address
+                </button>
+
+                {/* Address Cards */}
+                <div className="row g-3">
+                  {userLocations.map((location, index) => (
+                    <div className="col-12" key={index}>
+                   <div
+  className={`card shadow-sm rounded-3 locationCard hover-card ${
+    location.isDefault ? "border border-success" : "border-0"
+  }`}
+
+  style={{
+    backgroundColor: location.isDefault ? "#d9f7e6ff" : "#fff", // light green for default
+    borderLeft: location.isDefault
+      ? "4px solid #28a745" // green border if default
+      : "4px solid #6719ed", // purple border otherwise
+    transition: "all 0.2s ease-in-out",
+    cursor: "pointer"  }}
+>
+                        <div className="card-body d-flex justify-content-between align-items-center py-3 px-4">
+                          <div>
+                            <h6 className="fw-semibold mb-1 text-dark">
+                              <i className="fa-solid fa-location-dot me-2 text-primary"></i>
+                              {location.name}
+                              {location.isDefault && (
+                                <span className="badge bg-primary ms-2">
+                                  Default
+                                </span>
+                              )}
+                            </h6>
+                            <p className="mb-0 text-secondary small">
+                              {location.area}
+                            </p>
+                          </div>
+
+                          <div className="dropdown">
+                            <button
+                              className="btn btn-light btn-sm border-0"
+                              type="button"
+                              id={`dropdownMenuButton-${index}`}
+                              data-bs-toggle="dropdown"
+                              aria-expanded="false"
+                            >
+                              <i className="fa-solid fa-ellipsis-vertical text-secondary"></i>
+                            </button>
+                            <ul
+                              className="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3"
+                              aria-labelledby={`dropdownMenuButton-${index}`}
+                            >
+                              <li>
+                                <button
+                                  className="dropdown-item small"
+                                  onClick={() => {handleSetDefault(location._id); setSelectedLocation(location)}}
                                 >
-                                  {location.area}
-                                </p>
-                              </div>
-                              <button
-                                className="btn btn-outline-danger btn-sm"
-                                onClick={() => deleteUserLocation(location)}
-                              >
-                                {loading ? (
-                                  <>
-                                    <div
-                                      className="spinner-border spinner-border-sm text-light ms-2"
-                                      role="status"
-                                    ></div>
-                                  </>
-                                ) : (
-                                  <>
-                                    <i className="fa-solid fa-trash"></i>
-                                  </>
-                                )}
-                              </button>
-                            </div>
+                                  <i className="fa-solid fa-check text-success me-2"></i>
+                                  Set as Default
+                                </button>
+                              </li>
+                              <li>
+                                <button
+                                  className="dropdown-item small text-danger"
+                                  onClick={() => deleteUserLocation(location)}
+                                >
+                                  <i className="fa-solid fa-trash me-2"></i>
+                                  Delete
+                                </button>
+                              </li>
+                            </ul>
                           </div>
                         </div>
-                      ))}
+                      </div>
                     </div>
-                  </>
-                ) : (
-                  <div
-                    className="d-flex flex-column justify-content-center align-items-center text-center"
-                    style={{ height: "65vh", marginTop: "-65px" }}
-                  >
-                    <img
-                      src={location}
-                      alt="No Data"
-                      className="mb-3"
-                      style={{ width: "180px", height: "auto" }}
-                    />
-                    <h4 className="fw-bold text-warning mb-2">
-                      Sorry, No Address Saved!
-                    </h4>
-                    <p
-                      className="text-muted"
-                      style={{ maxWidth: "380px", fontSize: "15px" }}
-                    >
-                      Sorry, you currently have not saved any address. Please
-                      click the
-                      <strong> "Add Address" </strong> button below to save your
-                      address once for easy access next time.
-                    </p>
+                  ))}
+                </div>
 
-                    <button
-                      className="btn btn-success"
-                      onClick={() => setSaveLocationsModal(true)}
-                    >
-                      <i class="fa-solid fa-map-location-dot me-2"></i>
-                      Add Address
-                    </button>
-                  </div>
-                )}
-                <div></div>
-              </div>
-              <div className="modal-footer">
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  onClick={() => setChooseLocationModal(false)}
+                {/* Hover Style */}
+                <style>
+                  {`
+                  .hover-card:hover {
+                    transform: translateY(-3px);
+                    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+                  }
+                `}
+                </style>
+              </>
+            ) : (
+              <div
+                className="d-flex flex-column justify-content-center align-items-center text-center"
+                style={{ height: "65vh" }}
+              >
+                <img
+                  src={location}
+                  alt="No Data"
+                  className="mb-3"
+                  style={{ width: "180px", height: "auto" }}
+                />
+                <h4 className="fw-bold text-warning mb-2">
+                  No Address Found!
+                </h4>
+                <p
+                  className="text-muted small"
+                  style={{ maxWidth: "380px" }}
                 >
-                  Save
+                  You don’t have any saved addresses yet.  
+                  Click below to add your first one.
+                </p>
+
+                <button
+                  className="btn btn-success rounded-3"
+                  onClick={() => setSaveLocationsModal(true)}
+                >
+                  <i className="fa-solid fa-map-location-dot me-2"></i>
+                  Add Address
                 </button>
               </div>
-            </div>
+            )}
+          </div>
+
+          <div className="modal-footer border-0">
+            <button
+              type="button"
+              className="btn btn-secondary rounded-3"
+              onClick={() => setChooseLocationModal(false)}
+            >
+              Close
+            </button>
           </div>
         </div>
-      )}
+      </div>
+    </div>
+  </>
+)}
+
       {saveLocationsModal && (
         <div
           className="modal fade show d-block"
@@ -1086,10 +1176,7 @@ function UserDashboard({
                         shop?.owner?._id,
                         "rejected"
                       );
-                       const totalOrders = findRatio(
-                        shop?.owner?._id,
-                        "total"
-                      );
+                      const totalOrders = findRatio(shop?.owner?._id, "total");
 
                       return (
                         <div className="col-12 col-md-6 col-lg-4" key={index}>
@@ -1162,94 +1249,96 @@ function UserDashboard({
                                     ))}
 
                                   {/* Ratios */}
-                                 
-                                  {
-                                    shop.isBlocked ? (
-                                   ""
-                                    ):(
-                                       <div className="d-flex justify-content-between small mt-1">
-                                    <span className="fw-bold">
-                                      COR:{" "}
-                                      <span className="text-success fw-semibold">
-                                        {acceptedRatio || 0}%
+
+                                  {shop.isBlocked ? (
+                                    ""
+                                  ) : (
+                                    <div className="d-flex justify-content-between small mt-1">
+                                      <span className="fw-bold">
+                                        COR:{" "}
+                                        <span className="text-success fw-semibold">
+                                          {acceptedRatio || 0}%
+                                        </span>
                                       </span>
-                                    </span>
-                                    <span className="fw-bold">
-                                      ROR:{" "}
-                                      <span className="text-danger fw-semibold">
-                                        {rejectedRatio || 0}%
+                                      <span className="fw-bold">
+                                        ROR:{" "}
+                                        <span className="text-danger fw-semibold">
+                                          {rejectedRatio || 0}%
+                                        </span>
                                       </span>
-                                    </span>
-                                     <span className="fw-bold">
-                                      TO:{" "}
-                                      <span className="text-primary fw-semibold">
-                                        {totalOrders || 0}
+                                      <span className="fw-bold">
+                                        TO:{" "}
+                                        <span className="text-primary fw-semibold">
+                                          {totalOrders || 0}
+                                        </span>
                                       </span>
-                                    </span>
-                                  </div>
-                                    )
-                                  }
+                                    </div>
+                                  )}
                                 </div>
                               </div>
 
                               {/* Action Buttons */}
-                            {
-                              shop.isBlocked ? (
+                              {shop.isBlocked ? (
                                 <>
-                                        <span className="text-danger ">
-                                  This shop is temporarily blocked due to order cancellations.
-                                </span>
-                                <button className="btn btn-danger w-100 mt-1 " disabled= {true}> <i class="fa-solid fa-ban me-1"></i>Blocked</button>
-                           
+                                  <span className="text-danger ">
+                                    This shop is temporarily blocked due to
+                                    order cancellations.
+                                  </span>
+                                  <button
+                                    className="btn btn-danger w-100 mt-1 "
+                                    disabled={true}
+                                  >
+                                    {" "}
+                                    <i class="fa-solid fa-ban me-1"></i>Blocked
+                                  </button>
                                 </>
-                              ):(
-                                  <div className="d-flex justify-content-around mt-2">
-                                <button
-                                  className={`btn btn-sm px-2  ${
-                                    shop.isLive ? "btn-primary" : "btn-danger"
-                                  }`}
-                                  onClick={() => addToCart(shop, "main")}
-                                  disabled={addCartLoading === shop._id}
-                                >
-                                  {addCartLoading === shop._id ? (
-                                    <>
-                                      Wait...
-                                      <div
-                                        className="spinner-border spinner-border-sm text-light ms-2"
-                                        role="status"
-                                      ></div>
-                                    </>
-                                  ) : (
-                                    <>
-                                      <i class="fa-solid fa-cart-plus me-2"></i>
-                                      Add to Cart
-                                    </>
-                                  )}
-                                </button>
+                              ) : (
+                                <div className="d-flex justify-content-around mt-2">
+                                  <button
+                                    className={`btn btn-sm px-2  ${
+                                      shop.isLive ? "btn-primary" : "btn-danger"
+                                    }`}
+                                    onClick={() => addToCart(shop, "main")}
+                                    disabled={addCartLoading === shop._id}
+                                  >
+                                    {addCartLoading === shop._id ? (
+                                      <>
+                                        Wait...
+                                        <div
+                                          className="spinner-border spinner-border-sm text-light ms-2"
+                                          role="status"
+                                        ></div>
+                                      </>
+                                    ) : (
+                                      <>
+                                        <i class="fa-solid fa-cart-plus me-2"></i>
+                                        Add to Cart
+                                      </>
+                                    )}
+                                  </button>
 
-                                <button
-                                  className="btn btn-sm btn-outline-primary px-2   "
-                                  onClick={() => getShopWithShopkeppers(shop)}
-                                  disabled={detailLoading === shop._id}
-                                >
-                                  {detailLoading === shop._id ? (
-                                    <>
-                                      Loading...
-                                      <div
-                                        className="spinner-border spinner-border-sm text-primary ms-2"
-                                        role="status"
-                                      ></div>
-                                    </>
-                                  ) : (
-                                    <>
-                                      <i class="fa-solid fa-circle-info me-2"></i>
-                                      Shop Details
-                                    </>
-                                  )}
-                                </button>
-                              </div>
-                              )
-                            }
+                                  <button
+                                    className="btn btn-sm btn-outline-primary px-2   "
+                                    onClick={() => getShopWithShopkeppers(shop)}
+                                    disabled={detailLoading === shop._id}
+                                  >
+                                    {detailLoading === shop._id ? (
+                                      <>
+                                        Loading...
+                                        <div
+                                          className="spinner-border spinner-border-sm text-primary ms-2"
+                                          role="status"
+                                        ></div>
+                                      </>
+                                    ) : (
+                                      <>
+                                        <i class="fa-solid fa-circle-info me-2"></i>
+                                        Shop Details
+                                      </>
+                                    )}
+                                  </button>
+                                </div>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -1360,41 +1449,43 @@ function UserDashboard({
                     </p>
                   )}
                 </div>
-               <div className="d-flex flex-wrap align-items-center justify-content-between bg-light p-3 rounded-4 shadow-sm border mb-3">
-  {/* COR */}
-  <div className="d-flex align-items-center me-3 mb-2">
-    <i className="fa-solid fa-circle-check text-success me-2"></i>
-    <span className="text-secondary small fw-semibold">
-      Complete Order Ratio (COR):{" "}
-      <span className="text-success fw-bold">
-        {completeOrderRatioSelectedShop ? completeOrderRatioSelectedShop : 0}%
-      </span>
-    </span>
-  </div>
+                <div className="d-flex flex-wrap align-items-center justify-content-between bg-light p-3 rounded-4 shadow-sm border mb-3">
+                  {/* COR */}
+                  <div className="d-flex align-items-center me-3 mb-2">
+                    <i className="fa-solid fa-circle-check text-success me-2"></i>
+                    <span className="text-secondary small fw-semibold">
+                      Complete Order Ratio (COR):{" "}
+                      <span className="text-success fw-bold">
+                        {completeOrderRatioSelectedShop
+                          ? completeOrderRatioSelectedShop
+                          : 0}
+                        %
+                      </span>
+                    </span>
+                  </div>
 
-  {/* ROR */}
-  <div className="d-flex align-items-center me-3 mb-2">
-    <i className="fa-solid fa-circle-xmark text-danger me-2"></i>
-    <span className="text-secondary small fw-semibold">
-      Rejected Order Ratio (ROR):{" "}
-      <span className="text-danger fw-bold">
-        {rejectedRatio ? rejectedRatio : 0}%
-      </span>
-    </span>
-  </div>
+                  {/* ROR */}
+                  <div className="d-flex align-items-center me-3 mb-2">
+                    <i className="fa-solid fa-circle-xmark text-danger me-2"></i>
+                    <span className="text-secondary small fw-semibold">
+                      Rejected Order Ratio (ROR):{" "}
+                      <span className="text-danger fw-bold">
+                        {rejectedRatio ? rejectedRatio : 0}%
+                      </span>
+                    </span>
+                  </div>
 
-  {/* TO */}
-  <div className="d-flex align-items-center mb-2">
-    <i className="fa-solid fa-box text-primary me-2"></i>
-    <span className="text-secondary small fw-semibold">
-      Total Orders (TO):{" "}
-      <span className="text-primary fw-bold">
-        {totalRequests ? totalRequests : 0}
-      </span>
-    </span>
-  </div>
-</div>
-
+                  {/* TO */}
+                  <div className="d-flex align-items-center mb-2">
+                    <i className="fa-solid fa-box text-primary me-2"></i>
+                    <span className="text-secondary small fw-semibold">
+                      Total Orders (TO):{" "}
+                      <span className="text-primary fw-bold">
+                        {totalRequests ? totalRequests : 0}
+                      </span>
+                    </span>
+                  </div>
+                </div>
 
                 <div className="d-flex justify-content-center gap-2 mt-1">
                   {/* Call Button */}
