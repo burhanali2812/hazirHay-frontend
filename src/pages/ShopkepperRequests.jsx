@@ -194,13 +194,19 @@ function ShopkepperRequests({ refreshFlag, setRefreshFlag }) {
   }, [selectedRequest]);
 
   const sendNotificationToUser = async (order, type) => {
-    const finalType = type === "accept" ? "accept" : "fail";
-    let finalMessage;
-    if (type === "accept") {
-      finalMessage = `Your order (${order?.orderId}) ${order?.subCategory} - ${order?.category} has been accepted under checkoutID `;
-    } else {
-      finalMessage = `Your order (${order?.orderId}) ${order?.subCategory} - ${order?.category} has been rejected due to "${declineReason}" under checkoutID`;
-    }
+    const finalType = type === "accept" ? "accept" : type === "inProgress" ? "inProgress" : "fail";
+let finalMessage;
+
+if (type === "accept") {
+  finalMessage = `Your order (${order?.orderId}) ${order?.subCategory} - ${order?.category} has been accepted under checkoutID `;
+} 
+else if (type === "inProgress") {
+  finalMessage = `Your order (${order?.orderId}) ${order?.subCategory} - ${order?.category} is now in progress. The shopkeeper has started the journey and is on the way to deliver your order under checkoutID `;
+} 
+else {
+  finalMessage = `Your order (${order?.orderId}) ${order?.subCategory} - ${order?.category} has been rejected due to "${declineReason}" under checkoutID `;
+}
+
 
     const payload = {
       type: finalType,
@@ -497,6 +503,7 @@ function ShopkepperRequests({ refreshFlag, setRefreshFlag }) {
       if (res.data.success) {
         await updateShopkepper();
         await handleDeleteRejectedOrders("none");
+        sendNotificationToUser("inProgress")
         alert(res.data.message);
         localStorage.setItem("currentCheckout", JSON.stringify(acceptedOrdersForJourney));
         navigate("/admin/user/orderWithJourney");

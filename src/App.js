@@ -24,6 +24,7 @@ import ContactUs from "./pages/ContactUs";
 import OrderWithJourney from "./components/OrderWithJourney";
 import MyShop from "./pages/MyShop";
 import Blocked from "./pages/Blocked";
+import WorkerSignup from "./pages/WorkerSignup";
 
 function App() {
   const [topText, setTopText] = useState("");
@@ -333,6 +334,12 @@ const deleteNotification = async (id) => {
                 setUpdateAppjs={setUpdateAppjs}
               
               />
+            }
+          />
+             <Route
+            path="shopKepper/worker/signup"
+            element={
+              <WorkerSignup/>
             }
           />
           <Route

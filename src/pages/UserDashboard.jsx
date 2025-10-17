@@ -386,35 +386,34 @@ function UserDashboard({
     applyFilters();
   }, [filters, availableServices]);
 
-const getUserLocations = async () => {
-  try {
-    const response = await axios.get(
-      `https://hazir-hay-backend.vercel.app/users/getUserById/${user._id}`,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-        params: { t: Date.now() }, // to avoid cache
-      }
-    );
+  const getUserLocations = async () => {
+    try {
+      const response = await axios.get(
+        `https://hazir-hay-backend.vercel.app/users/getUserById/${user._id}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          params: { t: Date.now() }, // to avoid cache
+        }
+      );
 
-    if (response.data.success) {
-      const locations = response.data.data.location || [];
-      setUserLocations(locations);
+      if (response.data.success) {
+        const locations = response.data.data.location || [];
+        setUserLocations(locations);
 
-      const defaultLocation = locations.find((loc) => loc.isDefault);
-      if (defaultLocation) {
-        console.log("Default Location:", defaultLocation.area);
-        setSelectedLocation(defaultLocation)
+        const defaultLocation = locations.find((loc) => loc.isDefault);
+        if (defaultLocation) {
+          console.log("Default Location:", defaultLocation.area);
+          setSelectedLocation(defaultLocation);
+        }
+      } else {
+        console.error("Failed to fetch user locations");
+        setUserLocations([]);
       }
-    } else {
-      console.error("Failed to fetch user locations");
+    } catch (error) {
+      console.error("Error fetching user locations:", error.message);
       setUserLocations([]);
     }
-  } catch (error) {
-    console.error("Error fetching user locations:", error.message);
-    setUserLocations([]);
-  }
-};
-
+  };
 
   useEffect(() => {
     setUpdateAppjs(true);
@@ -429,6 +428,59 @@ const getUserLocations = async () => {
       areaName: location.area,
     });
   };
+
+  const chooseCurrentLocation = async () => {
+    setLoadingDelandSet(true);
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        async (pos) => {
+          const lat = pos.coords.latitude;
+          const lng = pos.coords.longitude;
+
+          // Get area name using reverse geocode API
+          const areaName = await fetchAreaName(lat, lng);
+
+          const location = {
+            area: areaName,
+            name: "Current Location",
+            coordinates: [lat, lng],
+          };
+          setSelectedLocation(location);
+          setLoadingDelandSet(false);
+          setChooseLocationModal(false);
+        },
+        (error) => {
+          console.error("Error getting location:", error);
+          alert("Unable to get your location. Please allow location access.");
+        }
+      );
+    } else {
+      alert("Geolocation is not supported by your browser.");
+    }
+  };
+
+  // ✅ Helper function to reverse-geocode lat/lng to area name
+  const fetchAreaName = async (lat, lon) => {
+    try {
+      const res = await axios.get(
+        "https://hazir-hay-backend.vercel.app/admin/reverse-geocode",
+        { params: { lat, lon } }
+      );
+
+      return (
+        res.data?.display_name ||
+        res.data?.address?.city ||
+        res.data?.address?.town ||
+        res.data?.address?.village ||
+        res.data?.address?.suburb ||
+        "Unknown Area"
+      );
+    } catch (error) {
+      console.error("Error fetching area name:", error);
+      return "Unknown Area";
+    }
+  };
+
   const handleSaveLocation = async () => {
     setLoading(true);
     if (locationName === "") {
@@ -650,34 +702,33 @@ const getUserLocations = async () => {
   );
   console.log("totalRequests", totalRequests);
 
-
   const handleSetDefault = async (locationId) => {
-    setLoadingDelandSet(true)
-  try {
-    const token = localStorage.getItem("token");
+    setLoadingDelandSet(true);
+    try {
+      const token = localStorage.getItem("token");
 
-    const res = await axios.put(
-      `https://hazir-hay-backend.vercel.app/users/setDefaultLocation/${locationId}`,
-      {}, // no body needed, only headers
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+      const res = await axios.put(
+        `https://hazir-hay-backend.vercel.app/users/setDefaultLocation/${locationId}`,
+        {}, // no body needed, only headers
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (res.data.success) {
+        setLoadingDelandSet(false);
+        setUserLocations(res.data.locations);
+      } else {
+        setLoadingDelandSet(false);
+        console.log(res.data.message);
       }
-    );
-
-    if (res.data.success) {
-       setLoadingDelandSet(false)
-      setUserLocations(res.data.locations);
-    } else {
-      setLoadingDelandSet(false)
-      console.log(res.data.message);
+    } catch (error) {
+      setLoadingDelandSet(false);
+      console.error("Error setting default location:", error);
     }
-  } catch (error) {
-    setLoadingDelandSet(false)
-    console.error("Error setting default location:", error);
-  }
-};
+  };
 
   return (
     <div>
@@ -803,203 +854,242 @@ const getUserLocations = async () => {
         </button>
       </div>
 
-  {chooseLocationModal && (
-  <>
-   
-    {loadingDelandSet && (
-      <div
-        className="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center bg-dark bg-opacity-75"
-        style={{ zIndex: 1056 }}
-      >
-        <button className="btn btn-dark" type="button" disabled>
-          <span
-            className="spinner-border spinner-border-sm me-2"
-            role="status"
-            aria-hidden="true"
-          ></span>
-          Loading...
-        </button>
-      </div>
-    )}
+      {chooseLocationModal && (
+        <>
+          {loadingDelandSet && (
+            <div
+              className="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center bg-dark bg-opacity-75"
+              style={{ zIndex: 1056 }}
+            >
+              <button className="btn btn-dark" type="button" disabled>
+                <span
+                  className="spinner-border spinner-border-sm me-2"
+                  role="status"
+                  aria-hidden="true"
+                ></span>
+                Loading...
+              </button>
+            </div>
+          )}
 
-    {/*Location Selection Modal */}
-    <div
-      className="modal fade show d-block"
-      tabIndex="-1"
-      style={{ backgroundColor: "rgba(0,0,0,0.4)" }}
-    >
-      <div className="modal-dialog modal-lg modal-dialog-centered">
-        <div className="modal-content shadow-lg border-0 rounded-4">
-          <div className="modal-header border-0 pb-0">
-            <h5 className="modal-title fw-semibold text-primary">
-              Choose Address
-            </h5>
-            <button
-              type="button"
-              className="btn-close"
-              onClick={() => setChooseLocationModal(false)}
-            ></button>
-          </div>
-
+          {/*Location Selection Modal */}
           <div
-            className="modal-body"
-            style={{ maxHeight: "550px", overflowY: "auto" }}
+            className="modal fade show d-block"
+            tabIndex="-1"
+            style={{ backgroundColor: "rgba(0,0,0,0.4)" }}
           >
-            {userLocations.length > 0 ? (
-              <>
-              
-
-       
-
-                {/* Header */}
-                <div className="text-center mb-3">
-                  <h4 className="fw-bold text-dark">Manage Your Addresses</h4>
-                  <p className="text-muted small">
-                    Choose or update your preferred address below.
-                    <br />
-                    You can also add a new one anytime.
-                  </p>
+            <div className="modal-dialog modal-lg modal-dialog-centered">
+              <div className="modal-content shadow-lg border-0 rounded-4">
+                <div className="modal-header border-0 pb-0">
+                  <h5 className="modal-title fw-semibold text-primary">
+                    Choose Address
+                  </h5>
+                  <button
+                    type="button"
+                    className="btn-close"
+                    onClick={() => setChooseLocationModal(false)}
+                  ></button>
                 </div>
 
-                {/* Add Address Button */}
-                <button
-                  className="btn btn-success w-100 mb-3 rounded-3"
-                  onClick={() => setSaveLocationsModal(true)}
+                <div
+                  className="modal-body"
+                  style={{ maxHeight: "550px", overflowY: "auto" }}
                 >
-                  <i className="fa-solid fa-map-location-dot me-2"></i>
-                  Add Address
-                </button>
-
-                {/* Address Cards */}
-                <div className="row g-3">
-                  {userLocations.map((location, index) => (
-                    <div className="col-12" key={index}>
-                   <div
-  className={`card shadow-sm rounded-3 locationCard hover-card ${
-    location.isDefault ? "border border-success" : "border-0"
-  }`}
-
-  style={{
-    backgroundColor: location.isDefault ? "#d9f7e6ff" : "#fff", // light green for default
-    borderLeft: location.isDefault
-      ? "4px solid #28a745" // green border if default
-      : "4px solid #6719ed", // purple border otherwise
-    transition: "all 0.2s ease-in-out",
-    cursor: "pointer"  }}
->
-                        <div className="card-body d-flex justify-content-between align-items-center py-3 px-4">
-                          <div>
-                            <h6 className="fw-semibold mb-1 text-dark">
-                              <i className="fa-solid fa-location-dot me-2 text-primary"></i>
-                              {location.name}
-                              {location.isDefault && (
-                                <span className="badge bg-primary ms-2">
-                                  Default
-                                </span>
-                              )}
-                            </h6>
-                            <p className="mb-0 text-secondary small">
-                              {location.area}
-                            </p>
-                          </div>
-
-                          <div className="dropdown">
-                            <button
-                              className="btn btn-light btn-sm border-0"
-                              type="button"
-                              id={`dropdownMenuButton-${index}`}
-                              data-bs-toggle="dropdown"
-                              aria-expanded="false"
-                            >
-                              <i className="fa-solid fa-ellipsis-vertical text-secondary"></i>
-                            </button>
-                            <ul
-                              className="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3"
-                              aria-labelledby={`dropdownMenuButton-${index}`}
-                            >
-                              <li>
-                                <button
-                                  className="dropdown-item small"
-                                  onClick={() => {handleSetDefault(location._id); setSelectedLocation(location)}}
-                                >
-                                  <i className="fa-solid fa-check text-success me-2"></i>
-                                  Set as Default
-                                </button>
-                              </li>
-                              <li>
-                                <button
-                                  className="dropdown-item small text-danger"
-                                  onClick={() => deleteUserLocation(location)}
-                                >
-                                  <i className="fa-solid fa-trash me-2"></i>
-                                  Delete
-                                </button>
-                              </li>
-                            </ul>
-                          </div>
-                        </div>
+                  {userLocations.length > 0 ? (
+                    <>
+                      {/* Header */}
+                      <div className="text-center mb-3">
+                        <h4 className="fw-bold text-dark">
+                          Manage Your Addresses
+                        </h4>
+                        <p className="text-muted small">
+                          Choose or update your preferred address below.
+                          <br />
+                          You can also add a new one anytime.
+                        </p>
                       </div>
-                    </div>
-                  ))}
-                </div>
 
-                {/* Hover Style */}
-                <style>
-                  {`
+                      {/* Add Address Button */}
+                      <button
+                        className="btn btn-success w-100 mb-1 rounded-3"
+                        onClick={() => setSaveLocationsModal(true)}
+                      >
+                        <i className="fa-solid fa-map-location-dot me-2"></i>
+                        Choose on map
+                      </button>
+                      <div className="d-flex align-items-center my-3">
+                        <hr className="flex-grow-1" />
+                        <span className="mx-2 text-muted fw-semibold">OR</span>
+                        <hr className="flex-grow-1" />
+                      </div>
+
+                      <div
+                        className="card shadow-sm border-0 p-4 rounded-3"
+                        style={{ backgroundColor: "#f8f9fa" }}
+                        onClick={chooseCurrentLocation}
+                      >
+                        <div className="d-flex align-items-center mb-2">
+                          <div
+                            className="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3"
+                            style={{ width: "36px", height: "35px" }}
+                          >
+                            <i className="fa-solid fa-location-crosshairs"></i>
+                          </div>
+                          <h6 className="mb-0 fw-semibold text-dark">
+                            Choose Current Location
+                          </h6>
+                        </div>
+                        <p className="text-muted mb-0 small">
+                          Select your live location to get the nearest service
+                          options quickly and accurately.
+                        </p>
+                      </div>
+
+                      <div className="d-flex align-items-center my-3">
+                        <hr className="flex-grow-1" />
+                        <span className="mx-2 text-muted fw-semibold">OR</span>
+                        <hr className="flex-grow-1" />
+                      </div>
+
+                      {/* Address Cards */}
+                      <div className="row g-3">
+                        {userLocations.map((location, index) => (
+                          <div className="col-12" key={index}>
+                            <div
+                              className={`card shadow-sm rounded-3 locationCard hover-card ${
+                                location.isDefault
+                                  ? "border border-success"
+                                  : "border-0"
+                              }`}
+                              style={{
+                                backgroundColor: location.isDefault
+                                  ? "#d9f7e6ff"
+                                  : "#fbfafaff", // light green for default
+                                borderLeft: location.isDefault
+                                  ? "4px solid #28a745" // green border if default
+                                  : "4px solid #6719ed", // purple border otherwise
+                                transition: "all 0.2s ease-in-out",
+                                cursor: "pointer",
+                              }}
+                            >
+                              <div className="card-body d-flex justify-content-between align-items-center py-3 px-2">
+                                <div>
+                                  <h6 className="fw-semibold mb-1 text-dark">
+                                    <i className="fa-solid fa-location-dot me-2 text-primary"></i>
+                                    {location.name}
+                                    {location.isDefault && (
+                                      <span className="badge bg-primary ms-2">
+                                        Default
+                                      </span>
+                                    )}
+                                  </h6>
+                                  <p className="mb-0 text-secondary small">
+                                    {location.area}
+                                  </p>
+                                </div>
+
+                                <div className="dropdown">
+                                  <button
+                                    className="btn btn-light btn-sm border-0"
+                                    type="button"
+                                    id={`dropdownMenuButton-${index}`}
+                                    data-bs-toggle="dropdown"
+                                    aria-expanded="false"
+                                  >
+                                    <i className="fa-solid fa-ellipsis-vertical text-secondary"></i>
+                                  </button>
+                                  <ul
+                                    className="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3"
+                                    aria-labelledby={`dropdownMenuButton-${index}`}
+                                  >
+                                    <li>
+                                      <button
+                                        className="dropdown-item small"
+                                        onClick={() => {
+                                          handleSetDefault(location._id);
+                                          setSelectedLocation(location);
+                                        }}
+                                      >
+                                        <i className="fa-solid fa-check text-success me-2"></i>
+                                        Set as Default
+                                      </button>
+                                    </li>
+                                    <li>
+                                      <button
+                                        className="dropdown-item small text-danger"
+                                        onClick={() =>
+                                          deleteUserLocation(location)
+                                        }
+                                      >
+                                        <i className="fa-solid fa-trash me-2"></i>
+                                        Delete
+                                      </button>
+                                    </li>
+                                  </ul>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Hover Style */}
+                      <style>
+                        {`
                   .hover-card:hover {
                     transform: translateY(-3px);
                     box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
                   }
                 `}
-                </style>
-              </>
-            ) : (
-              <div
-                className="d-flex flex-column justify-content-center align-items-center text-center"
-                style={{ height: "65vh" }}
-              >
-                <img
-                  src={location}
-                  alt="No Data"
-                  className="mb-3"
-                  style={{ width: "180px", height: "auto" }}
-                />
-                <h4 className="fw-bold text-warning mb-2">
-                  No Address Found!
-                </h4>
-                <p
-                  className="text-muted small"
-                  style={{ maxWidth: "380px" }}
-                >
-                  You don’t have any saved addresses yet.  
-                  Click below to add your first one.
-                </p>
+                      </style>
+                    </>
+                  ) : (
+                    <div
+                      className="d-flex flex-column justify-content-center align-items-center text-center"
+                      style={{ height: "65vh" }}
+                    >
+                      <img
+                        src={location}
+                        alt="No Data"
+                        className="mb-3"
+                        style={{ width: "180px", height: "auto" }}
+                      />
+                      <h4 className="fw-bold text-warning mb-2">
+                        No Address Found!
+                      </h4>
+                      <p
+                        className="text-muted small"
+                        style={{ maxWidth: "380px" }}
+                      >
+                        You don’t have any saved addresses yet. Click below to
+                        add your first one.
+                      </p>
 
-                <button
-                  className="btn btn-success rounded-3"
-                  onClick={() => setSaveLocationsModal(true)}
-                >
-                  <i className="fa-solid fa-map-location-dot me-2"></i>
-                  Add Address
-                </button>
+                      <button
+                        className="btn btn-success rounded-3"
+                        onClick={() => setSaveLocationsModal(true)}
+                      >
+                        <i className="fa-solid fa-map-location-dot me-2"></i>
+                        Add Address
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                <div className="modal-footer border-0">
+                  <button
+                    type="button"
+                    className="btn btn-secondary rounded-3"
+                    onClick={() => setChooseLocationModal(false)}
+                  >
+                    Close
+                  </button>
+                </div>
               </div>
-            )}
+            </div>
           </div>
-
-          <div className="modal-footer border-0">
-            <button
-              type="button"
-              className="btn btn-secondary rounded-3"
-              onClick={() => setChooseLocationModal(false)}
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </>
-)}
+        </>
+      )}
 
       {saveLocationsModal && (
         <div

@@ -70,7 +70,7 @@ function AdminFooter({ topText, setUpdate, setShopKepperStatus , unSeenNotificat
         key: "shop",
         icon: "fa-solid fa-shop",
         label: "Shop",
-        path: "/admin/shopKepper/myShop",
+        path: "/admin/shopKepper/worker/signup",
       },
       {
         key: "setting",

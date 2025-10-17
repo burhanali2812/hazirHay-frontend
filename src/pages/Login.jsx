@@ -229,6 +229,18 @@ function Login() {
                   Provider
                 </button>
               </li>
+               <li>
+                <button
+                  className="dropdown-item"
+                  onClick={() => {
+                    setRoleText("Service Provider");
+                    setRole("shopKepper");
+                  }}
+                >
+                  <i className="fa-solid fa-person-biking me-2"></i>Worker
+                </button>
+              </li>
+             
               <li>
                 <button
                   className="dropdown-item"
