@@ -8,7 +8,7 @@ import noData from "../images/noData.png";
 import { FaWifi } from "react-icons/fa";
 import { MdWifiOff } from "react-icons/md";
 import { useCheckBlockedStatus } from "../components/useCheckBlockedStatus";
-function ShopkepperRequests({ refreshFlag, setRefreshFlag }) {
+function ShopkepperRequests({ refreshFlag, setRefreshFlag, shopKepperWorkers }) {
   const user = JSON.parse(sessionStorage.getItem("user"));
   const [requests, setRequests] = useState([]);
   const [shopKepperCords, setShopKepperCords] = useState([]);
@@ -23,6 +23,8 @@ function ShopkepperRequests({ refreshFlag, setRefreshFlag }) {
   const [isOnline, setIsOnline] = useState(false);
   const [requestDeleteLoading, setRequestDeleteLoading] = useState(false);
   const [declineReason, setDeclineReason] = useState("");
+  const [selectedWorkers, setSelectedWorkers] = useState({});
+
   const navigate = useNavigate();
   const [totalPrice, setTotalPrice] = useState({
     actualPrice: 0,
@@ -48,6 +50,14 @@ function ShopkepperRequests({ refreshFlag, setRefreshFlag }) {
     setDeclineOrder(order);
     setDEclinedModal(true);
   };
+  const handleSelectWorker = (orderId, worker) => {
+  setSelectedWorkers((prev) => ({
+    ...prev,
+    [orderId]: worker, // store worker for this specific order
+  }));
+  console.log("selectedWorkers", selectedWorkers);
+  
+};
 
   useEffect(() => {
     function getShopkeeperLocation() {
@@ -266,6 +276,11 @@ else {
           }));
         }
         if (type !== "accept" && order) {
+            setSelectedWorkers((prev) => {
+    const updated = { ...prev };
+    delete updated[orderId];
+    return updated;
+  });
           sendNotificationToUser(declineOrder, "reject");
           setTotalPrice((prev) => ({
             ...prev,
@@ -965,7 +980,8 @@ else {
                               selectedRequest.orders.map((order, index) => (
                                 <div
                                   key={index}
-                                  className="card shadow-sm border-0 mb-3"
+                                  className="card shadow-lg border-0 mb-4"
+                                
                                 >
                                   <div className="card-body">
                                     {/* Order Header */}
@@ -1049,6 +1065,88 @@ else {
                                         )}
                                       </button>
                                     </div>
+                                {order.status === "accepted" && (
+  <div className="dropdown mt-2">
+    {/* Dropdown Button */}
+    <button
+      className="btn btn-primary w-100 fw-semibold shadow-sm d-flex justify-content-between align-items-center btn-sm rounded-pill"
+      type="button"
+      id={`dropdownMenuButton-${index}`}
+      data-bs-toggle="dropdown"
+      aria-expanded="false"
+
+    >
+      <span>
+        <i className="fa-solid fa-user-check me-2"></i>
+        Assign to{" "}
+        {selectedWorkers[order._id]
+          ? `: ${selectedWorkers[order._id].name}`
+          : ""}
+      </span>
+      <i className="fa-solid fa-caret-down"></i>
+    </button>
+
+    {/* Dropdown Menu */}
+    <ul
+      className="dropdown-menu w-100 shadow-sm  mt-1 rounded-2 overflow-hidden"
+      aria-labelledby={`dropdownMenuButton-${index}`}
+      style={{
+        maxHeight: "220px",
+        overflowY: "auto",
+      }}
+    >
+      {shopKepperWorkers && shopKepperWorkers.length > 0 ? (
+        shopKepperWorkers.map((worker, ind) => (
+          <li key={ind}>
+    <button
+      className="dropdown-item d-flex align-items-center py-2"
+      style={{
+        transition: "all 0.9s ease-in-out",
+      }}
+      onClick={()=>handleSelectWorker(order._id, worker)}
+    >
+      <img
+        src={worker?.profilePicture || "/default-profile.png"}
+        alt="pf"
+        className="me-3"
+        style={{
+          width: "42px",
+          height: "42px",
+          borderRadius: "50%",
+          objectFit: "cover",
+          border: "1px solid #e0e0e0",
+        }}
+      />
+
+      {/* Name + Badge Column */}
+      <div className="d-flex flex-column align-items-start">
+        <span className="fw-semibold text-dark">{worker?.name}</span>
+        <span
+          className={`badge mt-1 bg-${worker.isBusy ? "warning" : "primary"} text-white`}
+          style={{
+            fontSize: "0.7rem",
+            borderRadius: "8px",
+            padding: "3px 8px",
+          }}
+        >
+          {worker?.isBusy ? "Busy" : "Availble"}
+        </span>
+      </div>
+    </button>
+  </li>
+        ))
+      ) : (
+        <li>
+          <div className="dropdown-item text-muted text-center py-3 small">
+            <i className="fa-regular fa-face-frown me-1"></i> No workers
+            available
+          </div>
+        </li>
+      )}
+    </ul>
+  </div>
+)}
+
                                   </div>
                                 </div>
                               ))
@@ -1127,15 +1225,17 @@ else {
                                   </span>
                                 </h5>
 
-                                <button
-                                  className="btn btn-success btn-sm rounded-pill w-100 mt-3"
-                                  disabled={acceptedOrders.length === 0 || loading}
-                                  onClick={ProgressOrder
-                                  }
-                                >
-                                  <i class="fa-solid fa-flag-checkered me-1"></i>
-                                  Start Journey ({acceptedOrders.length} Orders)
-                                </button>
+                               <button
+  className="btn btn-primary btn-sm rounded-pill w-100 mt-3"
+  disabled={acceptedOrders.length === 0 || loading}
+  onClick={ProgressOrder}
+>
+  <i className="fa-solid fa-share-from-square me-1"></i>
+  Assign (
+  {Object.keys(selectedWorkers).length}{" "}
+  {acceptedOrders.length === 1 ? "Order" : "Orders"})
+</button>
+
                               </div>
                             </div>
                           </div>

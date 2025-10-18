@@ -85,27 +85,14 @@ const handleSubmit = async (e) => {
    return (
 <div
   className="d-flex justify-content-center align-items-center vh-100"
-  style={{
-    background: "linear-gradient(135deg, #f3f4f7, #dee4ef)",
-    fontFamily: "'Poppins', sans-serif",
-    marginBottom : "60px"
-  }}
+
 >
   <div
-    className="card shadow-lg border-0  p-4"
-    style={{
-      maxWidth: "420px",
-      width: "100%",
-      backgroundColor: "#fff",
-    }}
+    className="p-4"
+
   >
     {/* Header */}
-    <div className="text-center mb-4">
-      <img
-        src={worker}
-        alt="Worker Illustration"
-        style={{ width: "220px", height: "auto" }}
-      />
+    <div className="text-center mb-2">
       <h4 className="fw-bold text-dark mt-3">Create Your Worker Account</h4>
       <p className="text-muted small">
         Enter your details to start your journey with us.

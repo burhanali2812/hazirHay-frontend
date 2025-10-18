@@ -46,6 +46,7 @@ function App() {
   const [coordinates, setCoordinates] = useState([]);
   const [notification, setNotification] = useState([]);
   const [unSeenNotification, setUnSeenNotification] = useState([]);
+    const [shopKepperWorkers, setShopKepperWorkers] = useState([]);
     const [shopKepperStatus2, setShopKepperStatus2] = useState(false);
     const [isBlocked, setIsBlocked] = useState(false);
   
@@ -115,6 +116,19 @@ function App() {
       setTotalShopKepper([]);
     }
   };
+  const getShopKepperWorkers = async()=>{
+    try {
+      const res = await axios.get("https://hazir-hay-backend.vercel.app/worker/getWorkersByShop", {
+        headers: { Authorization: `Bearer ${token}` },
+        params: { t: Date.now() }, 
+      });
+      if(res.data.success){
+        setShopKepperWorkers(res.data.workers);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }
     const getUserStatus = async()=>{
     try {
       const res = await axios.get(`https://hazir-hay-backend.vercel.app/shopKeppers/getBusyStatus/${user?._id}`, {
@@ -140,6 +154,7 @@ function App() {
 
   useEffect(() => {
     if (role === "shopKepper") {
+      getShopKepperWorkers();
       getUserStatus();
     }
   }, [role]);
@@ -349,6 +364,7 @@ const deleteNotification = async (id) => {
                 shopKepperStatus={shopKepperStatus}
                 refreshFlag={refreshFlag}
                 setRefreshFlag = {setRefreshFlag}
+                shopKepperWorkers={shopKepperWorkers}
               />
             }
           />
