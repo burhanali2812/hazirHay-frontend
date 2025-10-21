@@ -8,7 +8,11 @@ import noData from "../images/noData.png";
 import { FaWifi } from "react-icons/fa";
 import { MdWifiOff } from "react-icons/md";
 import { useCheckBlockedStatus } from "../components/useCheckBlockedStatus";
-function ShopkepperRequests({ refreshFlag, setRefreshFlag, shopKepperWorkers }) {
+function ShopkepperRequests({
+  refreshFlag,
+  setRefreshFlag,
+  shopKepperWorkers,
+}) {
   const user = JSON.parse(sessionStorage.getItem("user"));
   const [requests, setRequests] = useState([]);
   const [shopKepperCords, setShopKepperCords] = useState([]);
@@ -51,13 +55,12 @@ function ShopkepperRequests({ refreshFlag, setRefreshFlag, shopKepperWorkers }) 
     setDEclinedModal(true);
   };
   const handleSelectWorker = (orderId, worker) => {
-  setSelectedWorkers((prev) => ({
-    ...prev,
-    [orderId]: worker, // store worker for this specific order
-  }));
-  console.log("selectedWorkers", selectedWorkers);
-  
-};
+    setSelectedWorkers((prev) => ({
+      ...prev,
+      [orderId]: worker, // store worker for this specific order
+    }));
+    console.log("selectedWorkers", selectedWorkers);
+  };
 
   useEffect(() => {
     function getShopkeeperLocation() {
@@ -204,19 +207,21 @@ function ShopkepperRequests({ refreshFlag, setRefreshFlag, shopKepperWorkers }) 
   }, [selectedRequest]);
 
   const sendNotificationToUser = async (order, type) => {
-    const finalType = type === "accept" ? "accept" : type === "inProgress" ? "inProgress" : "fail";
-let finalMessage;
+    const finalType =
+      type === "accept"
+        ? "accept"
+        : type === "inProgress"
+        ? "inProgress"
+        : "fail";
+    let finalMessage;
 
-if (type === "accept") {
-  finalMessage = `Your order (${order?.orderId}) ${order?.subCategory} - ${order?.category} has been accepted under checkoutID `;
-} 
-else if (type === "inProgress") {
-  finalMessage = `Your order (${order?.orderId}) ${order?.subCategory} - ${order?.category} is now in progress. The shopkeeper has started the journey and is on the way to deliver your order under checkoutID `;
-} 
-else {
-  finalMessage = `Your order (${order?.orderId}) ${order?.subCategory} - ${order?.category} has been rejected due to "${declineReason}" under checkoutID `;
-}
-
+    if (type === "accept") {
+      finalMessage = `Your order (${order?.orderId}) ${order?.subCategory} - ${order?.category} has been accepted under checkoutID `;
+    } else if (type === "inProgress") {
+      finalMessage = `Your order (${order?.orderId}) ${order?.subCategory} - ${order?.category} is now in progress. The shopkeeper has started the journey and is on the way to deliver your order under checkoutID `;
+    } else {
+      finalMessage = `Your order (${order?.orderId}) ${order?.subCategory} - ${order?.category} has been rejected due to "${declineReason}" under checkoutID `;
+    }
 
     const payload = {
       type: finalType,
@@ -276,11 +281,11 @@ else {
           }));
         }
         if (type !== "accept" && order) {
-            setSelectedWorkers((prev) => {
-    const updated = { ...prev };
-    delete updated[orderId];
-    return updated;
-  });
+          setSelectedWorkers((prev) => {
+            const updated = { ...prev };
+            delete updated[orderId];
+            return updated;
+          });
           sendNotificationToUser(declineOrder, "reject");
           setTotalPrice((prev) => ({
             ...prev,
@@ -340,9 +345,10 @@ else {
 
   console.log("acceptedorders...", acceptedOrderRequest);
   console.log("start jpurney......", acceptedOrdersForJourney);
-  console.log("finalRejectedOrdersFordelete.........", finalRejectedOrdersFordelete);
-
-
+  console.log(
+    "finalRejectedOrdersFordelete.........",
+    finalRejectedOrdersFordelete
+  );
 
   console.log(result);
 
@@ -413,31 +419,30 @@ else {
   };
 
   const handleDeleteRejectedOrders = async (type) => {
- 
     if (!finalRejectedOrdersFordelete?.length) {
       alert("No orders to delete");
       return;
     }
-    if(type === "yes"){
-       const result = await Swal.fire({
-      title: "Delete All Rejected Orders?",
-      text: "You won't be able to undo this action.",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#d33",
-      cancelButtonColor: "#6c757d",
-      confirmButtonText: "Yes, Delete all!",
-      background: "#f9f9f9",
-      customClass: {
-        popup: "swirl-popup",
-      },
-    });
-    if (!result.isConfirmed) {
-      return
+    if (type === "yes") {
+      const result = await Swal.fire({
+        title: "Delete All Rejected Orders?",
+        text: "You won't be able to undo this action.",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#d33",
+        cancelButtonColor: "#6c757d",
+        confirmButtonText: "Yes, Delete all!",
+        background: "#f9f9f9",
+        customClass: {
+          popup: "swirl-popup",
+        },
+      });
+      if (!result.isConfirmed) {
+        return;
+      }
     }
-    }
-   
-       setRequestDeleteLoading(true)
+
+    setRequestDeleteLoading(true);
     try {
       const res = await axios.put(
         "https://hazir-hay-backend.vercel.app/requests/markDeleteRequestByShopkeeper",
@@ -449,33 +454,30 @@ else {
       );
 
       if (res.data.success) {
-        setRequestDeleteLoading(false)
+        setRequestDeleteLoading(false);
         fetchRequests("auto");
-        if(type === "yes"){
-            Swal.fire({
-          title: "Deleted!",
-          text: "All rejected orders have been deleted permanently.",
-          icon: "success",
-          timer: 900,
-          showConfirmButton: false,
-          background: "#f9f9f9",
-          customClass: {
-            popup: "swirl-popup",
-          },
-        });
+        if (type === "yes") {
+          Swal.fire({
+            title: "Deleted!",
+            text: "All rejected orders have been deleted permanently.",
+            icon: "success",
+            timer: 900,
+            showConfirmButton: false,
+            background: "#f9f9f9",
+            customClass: {
+              popup: "swirl-popup",
+            },
+          });
         }
-
       }
     } catch (error) {
-      setRequestDeleteLoading(false)
+      setRequestDeleteLoading(false);
       console.error("Error deleting orders:", error);
       alert("Something went wrong while deleting orders.");
-      
     }
+  };
 
-  }
-
-  const grandTotalWithCharges = (Number(totalPrice?.actualPrice) + Number(fixCharges)).toFixed(0);
+  const grandTotalWithOutCharges = Number(totalPrice?.actualPrice).toFixed(0);
   const updateShopkepper = async () => {
     try {
       const response = await axios.put(
@@ -495,7 +497,6 @@ else {
       console.error("Error updating shopkeeper status:", error);
     }
   };
-
 
   const ProgressOrder = async () => {
     if (!startJourneyOrders?.length) {
@@ -518,9 +519,12 @@ else {
       if (res.data.success) {
         await updateShopkepper();
         await handleDeleteRejectedOrders("none");
-        sendNotificationToUser("inProgress")
+        sendNotificationToUser("inProgress");
         alert(res.data.message);
-        localStorage.setItem("currentCheckout", JSON.stringify(acceptedOrdersForJourney));
+        localStorage.setItem(
+          "currentCheckout",
+          JSON.stringify(acceptedOrdersForJourney)
+        );
         navigate("/admin/user/orderWithJourney");
       }
     } catch (error) {
@@ -532,10 +536,13 @@ else {
   };
   const getUserStatus = async () => {
     try {
-      const res = await axios.get(`https://hazir-hay-backend.vercel.app/shopKeppers/getBusyStatus/${user?._id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-        params: { t: Date.now() }, // avoid caching
-      });
+      const res = await axios.get(
+        `https://hazir-hay-backend.vercel.app/shopKeppers/getBusyStatus/${user?._id}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          params: { t: Date.now() }, // avoid caching
+        }
+      );
       if (res.data.success) {
         if (res.data.data) {
           navigate("/admin/user/orderWithJourney");
@@ -544,7 +551,7 @@ else {
     } catch (error) {
       console.log(error);
     }
-  }
+  };
   useEffect(() => {
     getUserStatus();
   }, []);
@@ -574,6 +581,36 @@ else {
     }
   };
 
+const handleAssignOrders = async () => {
+  const confirm = window.confirm("Do you confirm to assign orders?");
+  if (!confirm) return; 
+Object.entries(selectedWorkers)?.map(([orderId, worker]) => {
+  console.log("orderId:", orderId);
+  console.log("workerId:", worker._id);
+});
+
+
+  try {
+    const response = await axios.put(
+      "https://hazir-hay-backend.vercel.app/requests/assignMultiple",
+      { selectedWorkers }, 
+      {
+        headers: { Authorization: `Bearer ${token}` },
+        params: { t: Date.now() }, // prevents caching
+      }
+    );
+
+    if (response.data.success) {
+      alert(response.data.message); 
+      setDetailsModal(false)
+      fetchRequests("auto")
+    }
+  } catch (error) {
+    console.error("Assignment failed:", error);
+    alert("Failed to assign orders. Please try again.");
+  }
+};
+
 
   return (
     <>
@@ -585,14 +622,16 @@ else {
           onClick={toggleStatus}
         >
           <span
-            className={`bg-${isOnline ? "success" : "danger"
-              } text-white d-flex align-items-center justify-content-center px-1 py-1`}
+            className={`bg-${
+              isOnline ? "success" : "danger"
+            } text-white d-flex align-items-center justify-content-center px-1 py-1`}
           >
             {isOnline ? <FaWifi size={18} /> : <MdWifiOff size={18} />}
           </span>
           <span
-            className={`text-${isOnline ? "success" : "danger"
-              } fw-semibold px-3`}
+            className={`text-${
+              isOnline ? "success" : "danger"
+            } fw-semibold px-3`}
           >
             {isOnline ? "Online" : "Offline"}
           </span>
@@ -614,7 +653,7 @@ else {
           </button>
         </div>
       ) : (
-        <div className="container " style={{marginBottom : "65px"}}>
+        <div className="container " style={{ marginBottom: "65px" }}>
           {isOnline ? (
             <>
               {finalRequests?.length !== 0 ? (
@@ -627,7 +666,9 @@ else {
                     const serviceCharges = rate * totalDistance;
                     const totalOrdersCost = checkoutGroup.totalCost;
                     const grandTotal = totalOrdersCost + serviceCharges;
-                    const rejectedOrders = checkoutGroup?.orders?.filter((order) => order.status === "rejected")
+                    const rejectedOrders = checkoutGroup?.orders?.filter(
+                      (order) => order.status === "rejected"
+                    );
 
                     return (
                       <div className="col-lg-4 col-md-6" key={index}>
@@ -717,7 +758,7 @@ else {
                                   }
                                 >
                                   {detailsModalLoading ===
-                                    checkoutGroup.checkoutId ? (
+                                  checkoutGroup.checkoutId ? (
                                     <>
                                       <span className="spinner-border spinner-border-sm me-2"></span>
                                       Loading...
@@ -730,66 +771,70 @@ else {
                                   )}
                                 </button>
                               </div>
-                              {
-                                rejectedOrders?.length === checkoutGroup?.orders?.length && (
-                                  <div className="card border-0 shadow-sm mt-4 rounded-4 overflow-hidden">
-                                    <div className="card-body bg-light position-relative">
-                                      <div className="d-flex align-items-center mb-3">
-                                        <div>
-                                          <h5 className="card-title mb-0 fw-bold text-danger">
-                                            All Orders Rejected
-                                          </h5>
-                                          <small className="text-muted">
-                                            You’ve rejected all the orders in this request. Would you like to
-                                            <span className="fw-semibold text-dark"> permanently delete this request</span>
-                                            so it no longer appears in your list?
-                                          </small>
-                                        </div>
-                                      </div>
-
-                                      <div className="d-flex justify-content-end">
-                                        <button
-                                          type="button"
-                                          className="btn btn-danger btn-sm px-4 py-2 d-flex align-items-center gap-2 fw-semibold shadow-sm rounded-pill"
-                                          onClick={()=>handleDeleteRejectedOrders("yes")}
-                                          disabled={requestDeleteLoading}
-                                        >
-                                          {
-                                            requestDeleteLoading ? (
-                                              <>
-                                                Deleting...
-                                                <div
-                                                  className="spinner-border spinner-border-sm text-light ms-2"
-                                                  role="status"
-                                                ></div>
-                                              </>
-                                            ) : (
-                                              <>
-                                                <i className="fas fa-trash-alt"></i>
-                                                Delete Request
-                                              </>
-                                            )
-                                          }
-
-                                        </button>
+                              {rejectedOrders?.length ===
+                                checkoutGroup?.orders?.length && (
+                                <div className="card border-0 shadow-sm mt-4 rounded-4 overflow-hidden">
+                                  <div className="card-body bg-light position-relative">
+                                    <div className="d-flex align-items-center mb-3">
+                                      <div>
+                                        <h5 className="card-title mb-0 fw-bold text-danger">
+                                          All Orders Rejected
+                                        </h5>
+                                        <small className="text-muted">
+                                          You’ve rejected all the orders in this
+                                          request. Would you like to
+                                          <span className="fw-semibold text-dark">
+                                            {" "}
+                                            permanently delete this request
+                                          </span>
+                                          so it no longer appears in your list?
+                                        </small>
                                       </div>
                                     </div>
-                                  </div>
-                                )
-                              }
 
+                                    <div className="d-flex justify-content-end">
+                                      <button
+                                        type="button"
+                                        className="btn btn-danger btn-sm px-4 py-2 d-flex align-items-center gap-2 fw-semibold shadow-sm rounded-pill"
+                                        onClick={() =>
+                                          handleDeleteRejectedOrders("yes")
+                                        }
+                                        disabled={requestDeleteLoading}
+                                      >
+                                        {requestDeleteLoading ? (
+                                          <>
+                                            Deleting...
+                                            <div
+                                              className="spinner-border spinner-border-sm text-light ms-2"
+                                              role="status"
+                                            ></div>
+                                          </>
+                                        ) : (
+                                          <>
+                                            <i className="fas fa-trash-alt"></i>
+                                            Delete Request
+                                          </>
+                                        )}
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
 
                               {acceptedOrderRequest && (
                                 <button
-                                  disabled={loading}
-                                  className="w-100 btn mt-2 btn-primary btn-sm rounded-pill"
-                                  onClick={ProgressOrder
-
+                                  disabled={
+                                    Object.keys(selectedWorkers)?.length === 0
                                   }
+                                  className="w-100 btn mt-2 btn-primary btn-sm rounded-pill"
+                                  onClick={handleAssignOrders}
                                 >
-                                  <i class="fa-solid fa-flag-checkered me-1"></i>
-                                  Start Journey ({startJourneyOrders?.length}{" "}
-                                  orders accepted)
+                                <i className="fa-solid fa-share-from-square me-1"></i>
+                                  Assign ({Object.keys(selectedWorkers)?.length}{" "}
+                                  {acceptedOrders?.length === 1
+                                    ? "Order"
+                                    : "Orders"}
+                                  )
                                 </button>
                               )}
                             </div>
@@ -981,7 +1026,6 @@ else {
                                 <div
                                   key={index}
                                   className="card shadow-lg border-0 mb-4"
-                                
                                 >
                                   <div className="card-body">
                                     {/* Order Header */}
@@ -990,11 +1034,14 @@ else {
                                         <i className="fa-solid fa-box me-2 text-primary"></i>
                                         Order #{order.orderId}
                                       </h6>
-                                      {
-                                        order.status === "rejected" && (
-                                          <i class="fa-solid fa-trash text-danger" onClick={() => markOrderDeleteById(order)}></i>
-                                        )
-                                      }
+                                      {order.status === "rejected" && (
+                                        <i
+                                          class="fa-solid fa-trash text-danger"
+                                          onClick={() =>
+                                            markOrderDeleteById(order)
+                                          }
+                                        ></i>
+                                      )}
                                       <span
                                         className="badge bg-primary text-light mt-1 border "
                                         style={{
@@ -1020,10 +1067,11 @@ else {
                                     {/* Action Buttons */}
                                     <div className="d-flex justify-content-between flex-wrap gap-2">
                                       <button
-                                        className={`btn ${order.status === "accepted"
-                                          ? "btn-secondary"
-                                          : "btn-outline-success"
-                                          } btn-sm rounded-pill px-3`}
+                                        className={`btn ${
+                                          order.status === "accepted"
+                                            ? "btn-secondary"
+                                            : "btn-outline-success"
+                                        } btn-sm rounded-pill px-3`}
                                         onClick={() =>
                                           updateRequest(order._id, "accept")
                                         }
@@ -1042,10 +1090,11 @@ else {
                                         )}
                                       </button>
                                       <button
-                                        className={`btn ${order.status === "rejected"
-                                          ? "btn-secondary"
-                                          : "btn-outline-danger"
-                                          } btn-sm rounded-pill px-3`}
+                                        className={`btn ${
+                                          order.status === "rejected"
+                                            ? "btn-secondary"
+                                            : "btn-outline-danger"
+                                        } btn-sm rounded-pill px-3`}
                                         onClick={() =>
                                           // updateRequest(order._id, "decline")
                                           handleDeclineRequest(order)
@@ -1065,88 +1114,125 @@ else {
                                         )}
                                       </button>
                                     </div>
-                                {order.status === "accepted" && (
-  <div className="dropdown mt-2">
-    {/* Dropdown Button */}
-    <button
-      className="btn btn-primary w-100 fw-semibold shadow-sm d-flex justify-content-between align-items-center btn-sm rounded-pill"
-      type="button"
-      id={`dropdownMenuButton-${index}`}
-      data-bs-toggle="dropdown"
-      aria-expanded="false"
+                                    {order.status === "accepted" && (
+                                      <div className="dropdown mt-2">
+                                        {/* Dropdown Button */}
+                                        <button
+                                          className="btn btn-primary w-100 fw-semibold shadow-sm d-flex justify-content-between align-items-center btn-sm rounded-pill"
+                                          type="button"
+                                          id={`dropdownMenuButton-${index}`}
+                                          data-bs-toggle="dropdown"
+                                          aria-expanded="false"
+                                        >
+                                          <span>
+                                            <i className="fa-solid fa-user-check me-2"></i>
+                                            Assign to{" "}
+                                            {selectedWorkers[order._id]
+                                              ? `: ${
+                                                  selectedWorkers[order._id]
+                                                    .name
+                                                }`
+                                              : ""}
+                                          </span>
+                                          <i className="fa-solid fa-caret-down"></i>
+                                        </button>
 
-    >
-      <span>
-        <i className="fa-solid fa-user-check me-2"></i>
-        Assign to{" "}
-        {selectedWorkers[order._id]
-          ? `: ${selectedWorkers[order._id].name}`
-          : ""}
-      </span>
-      <i className="fa-solid fa-caret-down"></i>
-    </button>
+                                        {/* Dropdown Menu */}
+                                        <ul
+                                          className="dropdown-menu w-100 shadow-sm  mt-1 rounded-2 overflow-hidden"
+                                          aria-labelledby={`dropdownMenuButton-${index}`}
+                                          style={{
+                                            maxHeight: "220px",
+                                            overflowY: "auto",
+                                          }}
+                                        >
+                                          {shopKepperWorkers &&
+                                          shopKepperWorkers?.length > 0 ? (
+                                            shopKepperWorkers.map(
+                                              (worker, ind) => (
+                                                <li key={ind}>
+                                                  <button
+                                                    className="dropdown-item d-flex align-items-center py-2"
+                                                    style={{
+                                                      transition:
+                                                        "all 0.9s ease-in-out",
+                                                    }}
+                                                    onClick={() =>
+                                                      handleSelectWorker(
+                                                        order._id,
+                                                        worker
+                                                      )
+                                                    }
+                                                  >
+                                                    <img
+                                                      src={
+                                                        worker?.profilePicture ||
+                                                        "/default-profile.png"
+                                                      }
+                                                      alt="pf"
+                                                      className="me-3"
+                                                      style={{
+                                                        width: "42px",
+                                                        height: "42px",
+                                                        borderRadius: "50%",
+                                                        objectFit: "cover",
+                                                        border:
+                                                          "1px solid #e0e0e0",
+                                                      }}
+                                                    />
 
-    {/* Dropdown Menu */}
-    <ul
-      className="dropdown-menu w-100 shadow-sm  mt-1 rounded-2 overflow-hidden"
-      aria-labelledby={`dropdownMenuButton-${index}`}
-      style={{
-        maxHeight: "220px",
-        overflowY: "auto",
-      }}
-    >
-      {shopKepperWorkers && shopKepperWorkers.length > 0 ? (
-        shopKepperWorkers.map((worker, ind) => (
-          <li key={ind}>
-    <button
-      className="dropdown-item d-flex align-items-center py-2"
-      style={{
-        transition: "all 0.9s ease-in-out",
-      }}
-      onClick={()=>handleSelectWorker(order._id, worker)}
-    >
-      <img
-        src={worker?.profilePicture || "/default-profile.png"}
-        alt="pf"
-        className="me-3"
-        style={{
-          width: "42px",
-          height: "42px",
-          borderRadius: "50%",
-          objectFit: "cover",
-          border: "1px solid #e0e0e0",
-        }}
-      />
-
-      {/* Name + Badge Column */}
-      <div className="d-flex flex-column align-items-start">
-        <span className="fw-semibold text-dark">{worker?.name}</span>
-        <span
-          className={`badge mt-1 bg-${worker.isBusy ? "warning" : "primary"} text-white`}
-          style={{
-            fontSize: "0.7rem",
-            borderRadius: "8px",
-            padding: "3px 8px",
-          }}
-        >
-          {worker?.isBusy ? "Busy" : "Availble"}
-        </span>
-      </div>
-    </button>
-  </li>
-        ))
-      ) : (
-        <li>
-          <div className="dropdown-item text-muted text-center py-3 small">
-            <i className="fa-regular fa-face-frown me-1"></i> No workers
-            available
-          </div>
-        </li>
-      )}
-    </ul>
-  </div>
-)}
-
+                                                    {/* Name + Badge Column */}
+                                                    <div className="d-flex flex-column align-items-start">
+                                                      <span className="fw-semibold text-dark">
+                                                        {worker?.name}
+                                                      </span>
+                                                      <span
+                                                        className={`badge mt-1 bg-${
+                                                          worker.isBusy
+                                                            ? "warning"
+                                                            : "primary"
+                                                        } text-white`}
+                                                        style={{
+                                                          fontSize: "0.7rem",
+                                                          borderRadius: "8px",
+                                                          padding: "3px 8px",
+                                                        }}
+                                                      >
+                                                        {worker?.isBusy
+                                                          ? "Busy"
+                                                          : "Availble"}
+                                                      </span>
+                                                    </div>
+                                                  </button>
+                                                </li>
+                                              )
+                                            )
+                                          ) : (
+                                            <li>
+                                              <div className="dropdown-item text-muted text-center py-3 small">
+                                                <i className="fa-regular fa-face-frown me-1"></i>{" "}
+                                                No workers available
+                                              </div>
+                                            </li>
+                                          )}
+                                          <hr />
+                                          <li className="container">
+                                            <button
+                                              className="btn btn-primary w-100 btn-sm rounded-pill"
+                                              onClick={() =>
+                                                handleSelectWorker(
+                                                  order._id,
+                                                  user
+                                                )
+                                              }
+                                            >
+                                              <i class="fa-solid fa-user-tie me-1"></i>{" "}
+                                              Myself
+                                            </button>
+                                          </li>
+                                        </ul>
+                                      </div>
+                                    )}
                                   </div>
                                 </div>
                               ))
@@ -1156,86 +1242,30 @@ else {
                               </p>
                             )}
                             <div className="card shadow-sm border-0 mt-3">
-                              {/* Title */}
-                              <h5 className="text-center fw-bold text-primary mt-3 mb-3">
-                                <i className="fa-solid fa-file-invoice-dollar me-2"></i>{" "}
-                                Billing Details
-                              </h5>
-
-                              {/* Billing Info */}
-                              <ul className="list-group list-group-flush mb-3">
-                                <li className="list-group-item d-flex justify-content-between align-items-center">
-                                  <span>
-                                    <i className="fa-solid fa-road me-2 text-secondary"></i>{" "}
-                                    Total Distance
-                                  </span>
-                                  <span className="fw-semibold">
-                                    {fixDistance} km
-                                  </span>
-                                </li>
-
-                                <li className="list-group-item d-flex justify-content-between align-items-center">
-                                  <span>
-                                    <i className="fa-solid fa-route me-2 text-secondary"></i>{" "}
-                                    Live Distance
-                                  </span>
-                                  <span className="fw-semibold">
-                                    {routeInfo?.distance} km
-                                  </span>
-                                </li>
-
-                                <li className="list-group-item d-flex justify-content-between align-items-center">
-                                  <span>
-                                    <i className="fa-solid fa-coins me-2 text-secondary"></i>{" "}
-                                    Service Charges
-                                  </span>
-                                  <span className="fw-semibold">
-                                    {fixCharges}/-
-                                  </span>
-                                </li>
-
-                                <li className="list-group-item d-flex justify-content-between align-items-center">
-                                  <span>
-                                    <i className="fa-solid fa-gift me-2 text-success"></i>{" "}
-                                    Bonus
-                                  </span>
-                                  <span className="fw-semibold text-success">
-                                    {(
-                                      fixCharges -
-                                      fixRate * routeInfo?.distance
-                                    ).toFixed(1)}
-                                    /-
-                                  </span>
-                                </li>
-                              </ul>
-
                               {/* Total */}
                               <div className="card-footer bg-light text-center py-3">
                                 <h5 className="fw-bold text-dark mb-0">
                                   Total Price{" "}
-                                  <span
-                                    className="text-muted small"
-                                    style={{ fontSize: "11px" }}
-                                  >
-                                    (Incl. service charges)
-                                  </span>
                                   <span className="text-success ms-2">
-                                    {grandTotalWithCharges}
+                                    Rs. {grandTotalWithOutCharges}
                                     /-
                                   </span>
                                 </h5>
 
-                               <button
-  className="btn btn-primary btn-sm rounded-pill w-100 mt-3"
-  disabled={acceptedOrders.length === 0 || loading}
-  onClick={ProgressOrder}
->
-  <i className="fa-solid fa-share-from-square me-1"></i>
-  Assign (
-  {Object.keys(selectedWorkers).length}{" "}
-  {acceptedOrders.length === 1 ? "Order" : "Orders"})
-</button>
-
+                                <button
+                                  className="btn btn-primary btn-sm rounded-pill w-100 mt-3"
+                                  onClick={handleAssignOrders}
+                                  disabled={
+                                    Object.keys(selectedWorkers)?.length === 0
+                                  }
+                                >
+                                  <i className="fa-solid fa-share-from-square me-1"></i>
+                                  Assign ({Object.keys(selectedWorkers)?.length}{" "}
+                                  {acceptedOrders?.length === 1
+                                    ? "Order"
+                                    : "Orders"}
+                                  )
+                                </button>
                               </div>
                             </div>
                           </div>
