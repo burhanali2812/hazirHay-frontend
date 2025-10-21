@@ -544,7 +544,9 @@ function ShopkepperRequests({
         }
       );
       if (res.data.success) {
-        if (res.data.data) {
+        if (res.data.data === true) {
+          console.log("res.data.data", res.data.data);
+          
           navigate("/admin/user/orderWithJourney");
         }
       }

@@ -459,7 +459,7 @@ function UserDashboard({
     }
   };
 
-  // ✅ Helper function to reverse-geocode lat/lng to area name
+  
   const fetchAreaName = async (lat, lon) => {
     try {
       const res = await axios.get(
@@ -684,7 +684,7 @@ function UserDashboard({
     }
 
     fetchDistances();
-  }, [finalServices, selectedArea]); // <- dependency array
+  }, [finalServices, selectedArea]); 
 
   const completeOrderRatioSelectedShop = findRatio(
     selectedShopWithShopkepper?.shop?.owner,

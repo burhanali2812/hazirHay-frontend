@@ -20,26 +20,29 @@ function Login() {
   const handleLogin = async () => {
     try {
       setLoading(true);
+       if (role === "") {
+        toast.warning("Choose a role");
+        setLoading(false);
+        return;
+      }
       if (email.trim() === "") {
         toast.warning("Email field cannot be empty!");
         setLoading(false);
         return;
       }
-      if (!/\S+@\S+\.\S+/.test(email)) {
+    if(role !== "worker"){
+        if (!/\S+@\S+\.\S+/.test(email)) {
         toast.warning("Valid Email is required!");
         setLoading(false);
         return;
       }
+    }
       if (password.trim() === "") {
         toast.warning("Password cannot be empty!");
         setLoading(false);
         return;
       }
-      if (role === "") {
-        toast.warning("Choose a role");
-        setLoading(false);
-        return;
-      }
+     
 
       // Payload
       const loginPayload = {
@@ -55,18 +58,18 @@ function Login() {
         loginPayload
       );
       if (response.status === 200) {
-                Swal.fire({
-                  title: "Successful!",
-                  text: response.data.message || "Login successful!",
-                  icon: "success",
-                  timer: 900,
-                  showConfirmButton: false,
-                  background: "#f9f9f9",
-                  customClass: {
-                    popup: "swirl-popup",
-                  },
-                });
-            
+        Swal.fire({
+          title: "Successful!",
+          text: response.data.message || "Login successful!",
+          icon: "success",
+          timer: 900,
+          showConfirmButton: false,
+          background: "#f9f9f9",
+          customClass: {
+            popup: "swirl-popup",
+          },
+        });
+
         localStorage.setItem("token", response.data.token);
         console.log("role", role);
         sessionStorage.setItem("user", JSON.stringify(response.data.user));
@@ -74,7 +77,11 @@ function Login() {
         sessionStorage.setItem("role", role);
 
         if (role === "shopKepper") {
-          const notBlocked = await checkBlockedStatus(response.data.token, navigate, response.data.user.name);
+          const notBlocked = await checkBlockedStatus(
+            response.data.token,
+            navigate,
+            response.data.user.name
+          );
           if (!notBlocked) return;
           setTimeout(() => {
             navigate("/admin/shopKepper/dashboard");
@@ -88,31 +95,33 @@ function Login() {
           setTimeout(() => {
             navigate("/admin/dashboard");
           }, 1500);
+        } else if (role === "worker") {
+          setTimeout(() => {
+            navigate("/worker/dashboard");
+          }, 1500);
         }
       }
     } catch (error) {
       if (error.response) {
-      
-         Swal.fire({
-                title: "Error!",
-                text: error.response.data.message || "Login failed!",
-                icon: "error",
-                background: "#f9f9f9",
-                customClass: {
-                  popup: "swirl-popup",
-                },
-              });
+        Swal.fire({
+          title: "Error!",
+          text: error.response.data.message || "Login failed!",
+          icon: "error",
+          background: "#f9f9f9",
+          customClass: {
+            popup: "swirl-popup",
+          },
+        });
       } else {
-        
-         Swal.fire({
-                title: "Error!",
-                text: "Slow or no internet! Please try again.",
-                icon: "error",
-                background: "#f9f9f9",
-                customClass: {
-                  popup: "swirl-popup",
-                },
-              });
+        Swal.fire({
+          title: "Error!",
+          text: "Slow or no internet! Please try again.",
+          icon: "error",
+          background: "#f9f9f9",
+          customClass: {
+            popup: "swirl-popup",
+          },
+        });
       }
     } finally {
       setLoading(false);
@@ -229,18 +238,18 @@ function Login() {
                   Provider
                 </button>
               </li>
-               <li>
+              <li>
                 <button
                   className="dropdown-item"
                   onClick={() => {
-                    setRoleText("Service Provider");
-                    setRole("shopKepper");
+                    setRoleText("Worker");
+                    setRole("worker");
                   }}
                 >
                   <i className="fa-solid fa-person-biking me-2"></i>Worker
                 </button>
               </li>
-             
+
               <li>
                 <button
                   className="dropdown-item"

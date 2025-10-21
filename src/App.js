@@ -25,6 +25,7 @@ import OrderWithJourney from "./components/OrderWithJourney";
 import MyShop from "./pages/MyShop";
 import Blocked from "./pages/Blocked";
 import WorkerSignup from "./pages/WorkerSignup";
+import WorkerDashboard from "./pages/WorkerDashboard";
 
 function App() {
   const [topText, setTopText] = useState("");
@@ -291,6 +292,13 @@ const deleteNotification = async (id) => {
               <Blocked/>
             }
           />
+           <Route
+            path="worker/dashboard"
+            element={
+              <WorkerDashboard
+              />
+            }
+          />
         <Route
           path="/admin/*"
           element={
@@ -351,6 +359,7 @@ const deleteNotification = async (id) => {
               />
             }
           />
+             
              <Route
             path="shopKepper/worker/signup"
             element={
