@@ -96,8 +96,8 @@ function WorkerDashboard() {
 
       const route = res.data.routes[0];
       return {
-        distance: (route.distance / 1000).toFixed(2), // km
-        duration: (route.duration / 60).toFixed(0), // min
+        distance: (route.distance / 1000).toFixed(2), 
+        duration: (route.duration / 60).toFixed(0), 
       };
     } catch (error) {
       console.error("Error in getDistance:", error.message);
@@ -159,7 +159,7 @@ function WorkerDashboard() {
         className="w-100 bg-white shadow-sm d-flex align-items-center justify-content-between px-2"
         style={{ height: "65px", borderRadius: "0px" }}
       >
-        {/* Left: Live Location Field */}
+    
         <div
           className="d-flex align-items-center bg-light border-1  rounded-pill px-3 py-2 "
           style={{
@@ -185,7 +185,7 @@ function WorkerDashboard() {
           </span>
         </div>
 
-        {/* Right: Icons */}
+
         <div className="d-flex align-items-center gap-2">
           <i
             className="fas fa-home  text-muted"
@@ -211,7 +211,7 @@ function WorkerDashboard() {
       <section className="container py-3">
         {/* Profile Greeting Section */}
       <div
-  className="bg-white shadow-sm rounded-4 p-3 mb-2"
+  className="bg-light shadow-lg rounded-4 p-3 mb-4"
   style={{ transition: "0.3s" }}
 >
   <div className="d-flex align-items-center mb-2">
@@ -228,14 +228,14 @@ function WorkerDashboard() {
       title="Profile"
     />
     <div>
-      <h5 className="fw-semibold text-dark mb-1">
+      <h6 className="fw-semibold text-dark mb-1">
         Hello, <span className="text-primary">{user?.name || "Worker"}</span>
-      </h5>
+      </h6>
       <p className="text-muted small mb-0">Have a productive day ahead!</p>
     </div>
   </div>
 
-  {/* Search Bar Below */}
+  
   <div className="mt-3">
     <div className="input-group rounded-pill bg-light" style={{ maxWidth: "400px" }}>
       <input
@@ -268,7 +268,7 @@ function WorkerDashboard() {
                   cursor: "pointer",
                 }}
               >
-                {/* Top Row: Order ID & Date */}
+      
                 <div className="d-flex justify-content-between align-items-center mb-2">
                   <h6 className="fw-semibold text-primary mb-0">
                     {order?.orderId}
@@ -276,7 +276,6 @@ function WorkerDashboard() {
                   <small className="text-muted">{assignedDate}</small>
                 </div>
 
-                {/* Middle Row: Profile + Name + Call Icon */}
                 <div className="d-flex align-items-center mb-2">
                   <img
                     src={order?.userId?.profilePicture}
@@ -298,7 +297,7 @@ function WorkerDashboard() {
                         title="Call Customer"
                         style={{
                           textDecoration: "none",
-                          color: "#0d6efd", // Bootstrap primary color
+                          color: "#0d6efd",
                           fontSize: "15px",
                         }}
                       >
@@ -344,7 +343,7 @@ function WorkerDashboard() {
                   </div>
                 </div>
 
-                {/* Bottom Row: Price & Next Icon */}
+           
                 <div className="d-flex justify-content-between align-items-center ">
                   <h6 className="fw-semibold text-success mb-0">
                     Rs {order?.cost?.toLocaleString()}
