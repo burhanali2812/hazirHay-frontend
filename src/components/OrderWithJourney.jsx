@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import UserShopRoute from "./UserShopRoute";
 import axios from "axios";
 import * as htmlToImage from "html-to-image";
-import { useNavigate } from "react-router-dom";
+import { useNavigate , useLocation} from "react-router-dom";
 import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import successAudio from "../sounds/success.mp3";
 import Swal from "sweetalert2";
@@ -15,22 +15,26 @@ function OrderWithJourney({ setStausUpdate }) {
   const [orderCompleteModal, setOrderCompleteModal] = useState(false);
   const [shareLoading, setShareLoading] = useState(false);
     const [cancelLoading, setCalcelLoading] = useState(false);
-  const selectedTrackShopData = JSON.parse(localStorage.getItem("currentCheckout"));
-  console.log("selectedShop", selectedTrackShopData);
+        const [isContentShow, setIsContentShow] = useState(true);
+ const selectedTrackShopData = JSON.parse(localStorage.getItem("currentCheckout"));
+
   const token = localStorage.getItem("token");
   const navigate = useNavigate();
   const ref = useRef();
-  useCheckBlockedStatus(token); // Custom hook to check if shopkeeper is blocked
+  useCheckBlockedStatus(token); 
+  //const selectedTrackShopData = location.state.orders;
+  console.log("Selectedhggg", selectedTrackShopData)
 
-  const position = selectedTrackShopData?.orders[0]?.location?.[0]?.coordinates;
+const position = selectedTrackShopData?.[0]?.orders?.[0]?.location?.[0]?.coordinates;
+
   const sendNotificationToUser = async (type) => {
     if (!selectedTrackShopData) return;
     if (!user) return;
     const payload = {
       type: "complete",
       message: `Your order has been completed successfully of Rs. ${selectedTrackShopData?.totalCost}/- . Thank you for choosing our service! cheeckoutId: `,
-      checkoutId: selectedTrackShopData?.orders[0]?.checkoutId,
-      userId: type === "shop" ? user._id : selectedTrackShopData?.orders[0]?.userId,
+      checkoutId: selectedTrackShopData?.[0]?.orders[0]?.checkoutId,
+      userId: type === "shop" ? user._id : selectedTrackShopData?.[0]?.orders[0]?.userId,
     };
 
     try {
@@ -195,7 +199,7 @@ function OrderWithJourney({ setStausUpdate }) {
     };
     try {
       const res = await axios.put(
-        `https://hazir-hay-backend.vercel.app/shops/updateLiveLocation/${selectedTrackShopData?.orders[0]?.shopId}`,
+        `https://hazir-hay-backend.vercel.app/shops/updateLiveLocation/${selectedTrackShopData?.[0]?.orders[0]?.shopId}`,
         payload,
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -248,15 +252,19 @@ function OrderWithJourney({ setStausUpdate }) {
       });
     }
   }, [orderCompleteModal]);
+     const totalCost = selectedTrackShopData?.[0]?.orders?.reduce(
+              (sum, req) => sum + (req.cost || 0),
+              0
+            );
 
   const distance =
-    selectedTrackShopData?.orders[0]?.serviceCharges?.distance || 0;
-  const rate = selectedTrackShopData?.orders[0]?.serviceCharges?.rate || 0;
+    selectedTrackShopData?.[0]?.orders[0]?.serviceCharges?.distance || 0;
+  const rate = selectedTrackShopData?.[0]?.orders[0]?.serviceCharges?.rate || 0;
   const serviceCharges = Number(distance * rate).toFixed(2);
-  const grandTotal = (Number(selectedTrackShopData?.totalCost) + Number(serviceCharges)).toFixed(0);
+  const grandTotal = (Number(totalCost) + Number(serviceCharges)).toFixed(0);
 
   const handleShare = async () => {
-    console.log("Button clicked ✅");
+ 
     setShareLoading(true);
 
     if (!ref.current) {
@@ -295,18 +303,25 @@ function OrderWithJourney({ setStausUpdate }) {
       console.error("Sharing failed", error);
     }
   };
-
+  const handleIscontentToggle =()=>{
+    setIsContentShow(!isContentShow)
+  }
+         
   return (
-    <div style={{ marginBottom: "65px" }} className="bg-white container">
+    <>
+    <div className="bg-white w-100 align-content-center" style={{height: "10px"}}>
+    
+    </div>
+      <div  className="bg-white container">
       <div>
         <div
           style={{
-            height: "400px",
+            height: isContentShow ? "500px" : "auto",
             width: "100%",
             borderRadius: "5px",
             overflow: "hidden",
           }}
-          className="shadow-sm"
+          className="shadow-sm "
         >
           {shopKepperCords && position && (
             <UserShopRoute
@@ -317,31 +332,60 @@ function OrderWithJourney({ setStausUpdate }) {
             />
           )}
         </div>
+<button
+  className="btn btn-sm w-100 mt-3 fw-semibold d-flex align-items-center justify-content-center gap-2 py-2 rounded-pill shadow-sm text-white"
+  style={{
+    backgroundColor: isContentShow ? "#dc3545" : "#0d6efd", 
+    border: "none",
+    transition: "all 0.25s ease",
+    boxShadow: "0 4px 8px rgba(0, 0, 0, 0.15)",
+  }}
+  onMouseEnter={(e) => {
+    e.currentTarget.style.filter = "brightness(1.1)";
+    e.currentTarget.style.transform = "translateY(-2px)";
+  }}
+  onMouseLeave={(e) => {
+    e.currentTarget.style.filter = "brightness(1)";
+    e.currentTarget.style.transform = "translateY(0)";
+  }}
+  onClick={handleIscontentToggle}
+>
+  <i className={`fa-solid fa-${isContentShow ? "map" : "list"} fs-6`}></i>
+  {isContentShow ? "View Map Only" : "Show Details with Map"}
+  <i
+    className={`fa-solid fa-angle-${isContentShow ? "up" : "down"} ms-1`}
+  ></i>
+</button>
 
-        <div
+
+      {
+        isContentShow && (
+          
+            <div
           className="card border-0 shadow-sm mt-3"
           style={{
             borderRadius: "20px",
             padding: "20px",
-            backgroundColor: "#f9fbfd",
+                  backgroundColor: "#f9fbfd",
+      transition: "opacity 0.6s ease-in-out",
           }}
         >
           {selectedTrackShopData && (
             <>
               <h3 className="fw-bold text-center text-primary mb-3">
-                {selectedTrackShopData?.orders[0]?.userId?.name}
+                {selectedTrackShopData?.[0]?.orders[0]?.userId?.name}
               </h3>
 
               <div className="d-flex justify-content-center gap-2 flex-wrap mb-3">
                 <a
-                  href={`tel:${selectedTrackShopData?.orders[0]?.userId?.phone}`}
+                  href={`tel:${selectedTrackShopData?.[0]?.orders[0]?.userId?.phone}`}
                   className="btn btn-outline-info btn-sm text-dark rounded-pill px-3"
                 >
                   <i className="fa-solid fa-phone-volume me-1"></i> Call Now
                 </a>
 
                 <a
-                  href={`https://wa.me/${`+92${selectedTrackShopData?.orders[0]?.userId?.phone?.slice(
+                  href={`https://wa.me/${`+92${selectedTrackShopData?.[0]?.orders[0]?.userId?.phone?.slice(
                     1
                   )}`}`}
                   target="_blank"
@@ -374,8 +418,8 @@ function OrderWithJourney({ setStausUpdate }) {
                   Order Details
                 </h5>
 
-                {selectedTrackShopData.orders.map((order, index) =>
-                  order?.status === "accepted" ? (
+                {selectedTrackShopData?.[0]?.orders.map((order, index) =>
+                  order?.status === "assigned" ? (
                     <div key={index} className="mt-4">
                       <h5 className="text-center fw-bold text-light mb-3 bg-primary rounded-2 p-2">
                         Order {index + 1}
@@ -468,7 +512,7 @@ function OrderWithJourney({ setStausUpdate }) {
                   className="fw-bold text-success"
                   style={{ fontSize: "15px" }}
                 >
-                  Rs. {selectedTrackShopData?.totalCost}/-
+                  Rs. {totalCost}/-
                 </span>
               </li>
               <li className="list-group-item d-flex justify-content-between align-items-center">
@@ -538,6 +582,8 @@ function OrderWithJourney({ setStausUpdate }) {
             )}
           </button>
         </div>
+        )
+      }
       </div>
       {orderCompleteModal && (
         <div
@@ -673,6 +719,8 @@ function OrderWithJourney({ setStausUpdate }) {
         </div>
       )}
     </div>
+    </>
+  
   );
 }
 

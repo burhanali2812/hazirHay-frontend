@@ -202,7 +202,8 @@ function AdminFooter({ topText, setUpdate, setShopKepperStatus , unSeenNotificat
 
 
       {/* Bottom Navigation */}
-      <div
+     {role === "worker" ? (""):(
+       <div
         className="card fixed-bottom "
         style={{
           background: "white",
@@ -259,6 +260,7 @@ function AdminFooter({ topText, setUpdate, setShopKepperStatus , unSeenNotificat
 
         </div>
       </div>
+     )}
 
       {/* Content */}
       <div >

@@ -8,6 +8,8 @@ function WorkerDashboard() {
   const navigate = useNavigate();
   const [assignedOrders, setAssignOrders] = useState([]);
   const [currentLocation, setCurrentLocation] = useState(null);
+  const [ordersModal, setOrdersModal] = useState(false);
+  const [selectedReqUser, setSelectedReqUser] = useState(null);
 
   const handleLogout = () => {
     localStorage.clear();
@@ -96,8 +98,8 @@ function WorkerDashboard() {
 
       const route = res.data.routes[0];
       return {
-        distance: (route.distance / 1000).toFixed(2), 
-        duration: (route.duration / 60).toFixed(0), 
+        distance: (route.distance / 1000).toFixed(2),
+        duration: (route.duration / 60).toFixed(0),
       };
     } catch (error) {
       console.error("Error in getDistance:", error.message);
@@ -153,13 +155,52 @@ function WorkerDashboard() {
 
     fetchAllDistances();
   }, [assignedOrders, currentLocation]);
+
+  const groupRequests = assignedOrders.reduce((acc, req) => {
+    const userId = req.userId?._id || req.userId;
+    if (!acc[userId]) {
+      acc[userId] = {
+        user: req.userId,
+        orders: [],
+      };
+    }
+    acc[userId].orders.push(req);
+    return acc;
+  }, {});
+  const groupedRequestsArray = Object.values(groupRequests);
+  console.log("groupedRequestsArray", groupedRequestsArray);
+  console.log("groupRequests", groupRequests);
+
+
+  const handleStart = ()=>{
+      localStorage.setItem(
+          "currentCheckout",
+          JSON.stringify(groupedRequestsArray)
+        );
+    navigate("/admin/user/orderWithJourney")
+  }
+
+  const openOrdersModal = (selectedUserId)=>{
+    console.log("selectedUserId" , selectedUserId);
+    
+      const selectedGroup = groupedRequestsArray?.find(
+  (group) => group.user._id === selectedUserId
+);
+setSelectedReqUser(selectedGroup)
+
+  setOrdersModal(true)
+
+
+
+
+  }
+
   return (
     <div>
       <header
         className="w-100 bg-white shadow-sm d-flex align-items-center justify-content-between px-2"
         style={{ height: "65px", borderRadius: "0px" }}
       >
-    
         <div
           className="d-flex align-items-center bg-light border-1  rounded-pill px-3 py-2 "
           style={{
@@ -185,7 +226,6 @@ function WorkerDashboard() {
           </span>
         </div>
 
-
         <div className="d-flex align-items-center gap-2">
           <i
             className="fas fa-home  text-muted"
@@ -210,163 +250,274 @@ function WorkerDashboard() {
 
       <section className="container py-3">
         {/* Profile Greeting Section */}
-      <div
-  className="bg-light shadow-lg rounded-4 p-3 mb-4"
-  style={{ transition: "0.3s" }}
->
-  <div className="d-flex align-items-center mb-2">
-    <img
-      src={user?.profilePicture}
-      alt="Profile"
-      className="rounded-circle border border-2 shadow-sm me-3"
-      style={{
-        width: "55px",
-        height: "55px",
-        objectFit: "cover",
-        cursor: "pointer",
-      }}
-      title="Profile"
-    />
-    <div>
-      <h6 className="fw-semibold text-dark mb-1">
-        Hello, <span className="text-primary">{user?.name || "Worker"}</span>
-      </h6>
-      <p className="text-muted small mb-0">Have a productive day ahead!</p>
-    </div>
-  </div>
+        <div
+          className="bg-light shadow-lg rounded-4 p-3 mb-4"
+          style={{ transition: "0.3s" }}
+        >
+          <div className="d-flex align-items-center mb-2">
+            <img
+              src={user?.profilePicture}
+              alt="Profile"
+              className="rounded-circle border border-2 shadow-sm me-3"
+              style={{
+                width: "55px",
+                height: "55px",
+                objectFit: "cover",
+                cursor: "pointer",
+              }}
+              title="Profile"
+            />
+            <div>
+              <h6 className="fw-semibold text-dark mb-1">
+                Hello,{" "}
+                <span className="text-primary">{user?.name || "Worker"}</span>
+              </h6>
+              <p className="text-muted small mb-0">
+                Have a productive day ahead!
+              </p>
+            </div>
+          </div>
 
-  
-  <div className="mt-3">
-    <div className="input-group rounded-pill bg-light" style={{ maxWidth: "400px" }}>
-      <input
-        type="text"
-        className="form-control border-0 rounded-pill ps-3 bg-light py-2"
-        placeholder="ORD-XYZ-ABC | USERNAME"
-        style={{ fontSize: "14px" }}
-      />
-      <span className="input-group-text bg-transparent border-0 pe-3">
-        <i className="fas fa-search text-muted"></i>
-      </span>
-    </div>
-  </div>
-</div>
+          <div className="mt-3">
+            <div
+              className="input-group rounded-pill bg-light"
+              style={{ maxWidth: "400px" }}
+            >
+              <input
+                type="text"
+                className="form-control border-0 rounded-pill ps-3 bg-light py-2"
+                placeholder="ORD-XYZ-ABC | USERNAME"
+                style={{ fontSize: "14px" }}
+              />
+              <span className="input-group-text bg-transparent border-0 pe-3">
+                <i className="fas fa-search text-muted"></i>
+              </span>
+            </div>
+          </div>
+        </div>
 
-
-        {assignedOrders.length > 0 ? (
-          assignedOrders.map((order, ind) => {
-            const assignedDate = new Date(
-              order?.orderAssignment?.assignedAt
-            ).toLocaleString();
+        {groupedRequestsArray?.length > 0 ? (
+          groupedRequestsArray?.map((group, ind) => {
+            const user = group.user;
+            const firstOrder = group.orders[0];
+            const area =
+              firstOrder?.location?.[0]?.area?.split(",")[0] || "Unknown Area";
+            const totalOrders = group?.orders?.length;
+            const totalCost = group?.orders?.reduce(
+              (sum, req) => sum + (req.cost || 0),
+              0
+            );
 
             return (
               <div
                 key={ind}
-                className="card mb-3 border-0 shadow-sm rounded-4"
+                className="card mb-4 border-0 shadow-sm rounded-4 p-3 order-card"
                 style={{
-                  padding: "14px 18px",
                   transition: "0.3s",
                   cursor: "pointer",
+                  background: "linear-gradient(145deg, #ffffff, #f9f9f9)",
                 }}
               >
-      
-                <div className="d-flex justify-content-between align-items-center mb-2">
-                  <h6 className="fw-semibold text-primary mb-0">
-                    {order?.orderId}
-                  </h6>
-                  <small className="text-muted">{assignedDate}</small>
+                {/* Header */}
+                <div className="d-flex align-items-center justify-content-between mb-3">
+                  <div className="d-flex align-items-center">
+                    <img
+                      src={user?.profilePicture}
+                      alt="Profile"
+                      className="rounded-circle border border-2 shadow-sm me-3"
+                      style={{
+                        width: "65px",
+                        height: "65px",
+                        objectFit: "cover",
+                      }}
+                    />
+                    <div>
+                      <h6 className="fw-bold mb-1 text-dark">
+                        <i className="fa-solid fa-user text-primary me-2"></i>
+                        {user?.name}
+                      </h6>
+                      <p className="text-muted small mb-0">
+                        <i className="fa-solid fa-phone text-success me-2"></i>
+                        {user?.phone}
+                      </p>
+                    </div>
+                  </div>
+
+                  <a
+                    href={`tel:${user?.phone}`}
+                    className="btn btn-sm btn-primary rounded-pill shadow-sm px-3"
+                    title="Call Customer"
+                  >
+                    <i className="fa-solid fa-phone me-2"></i> Call
+                  </a>
                 </div>
 
-                <div className="d-flex align-items-center mb-2">
-                  <img
-                    src={order?.userId?.profilePicture}
-                    alt="Profile"
-                    className="rounded-circle border border-2 me-3"
-                    style={{
-                      width: "60px",
-                      height: "60px",
-                      objectFit: "cover",
-                    }}
-                  />
-                  <div className="flex-grow-1">
-                    <div className="d-flex justify-content-between align-items-center">
-                      <h6 className="fw-semibold mb-1 text-dark">
-                        {order?.userId?.name}
-                      </h6>
-                      <a
-                        href={`tel:${order?.userId?.phone}`}
-                        title="Call Customer"
-                        style={{
-                          textDecoration: "none",
-                          color: "#0d6efd",
-                          fontSize: "15px",
-                        }}
-                      >
-                        <i className="fas fa-phone"></i>
-                      </a>
-                    </div>
+                <hr className="my-2" />
 
-                    <p
-                      className="text-muted small mb-0 d-flex align-items-center"
-                      style={{
-                        whiteSpace: "nowrap",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                      }}
-                      title={order?.location?.[0]?.area}
-                    >
-                      <i className="fas fa-map-marker-alt text-danger me-2"></i>
-                      {order?.location?.[0]?.area?.split(",")[0] ||
-                        "Unknown Area"}
-                    </p>
-                    <p
-                      className="text-muted small mb-0 d-flex align-items-center"
-                      style={{ gap: "6px" }}
-                    >
-                      <i
-                        className={`fa-solid ${
-                          distances[order._id]?.distance
-                            ? "fa-route text-primary"
-                            : "fa-spinner fa-spin text-secondary"
-                        }`}
-                      ></i>
+                {/* Location, Distance & Cost */}
+                <div className="small text-secondary">
+                  <div className="d-flex align-items-center mb-2">
+                    <i className="fa-solid fa-location-dot text-danger me-2"></i>
+                    <span className="fw-semibold">{area}</span>
+                  </div>
 
-                      {distances[order._id]?.distance ? (
+                  <div className="d-flex align-items-center justify-content-between flex-wrap">
+                    <div>
+                      {distances[firstOrder._id]?.distance ? (
                         <>
-                          {distances[order._id].distance} km |{" "}
-                          <i className="fa-regular fa-clock text-primary"></i>{" "}
-                          {distances[order._id].duration} min
+                          <i className="fa-solid fa-route text-info me-2"></i>
+                          {distances[firstOrder._id].distance} km
+                          <span className="mx-2">|</span>
+                          <i className="fa-regular fa-clock text-primary me-2"></i>
+                          {distances[firstOrder._id].duration} min
                         </>
                       ) : (
-                        "Calculating..."
+                        <>
+                          <i className="fa-solid fa-spinner fa-spin text-secondary me-2"></i>
+                          Calculating distance…
+                        </>
                       )}
-                    </p>
+                    </div>
+
+                    <div className="fw-bold text-dark">
+                      Total Cost:
+                      <span className="text-success">
+                        Rs. {totalCost.toLocaleString()}
+                      </span>
+                    </div>
                   </div>
                 </div>
 
-           
-                <div className="d-flex justify-content-between align-items-center ">
-                  <h6 className="fw-semibold text-success mb-0">
-                    Rs {order?.cost?.toLocaleString()}
-                  </h6>
-                  <button
-                    className="btn btn-light rounded-circle shadow-sm d-flex align-items-center justify-content-center"
-                    title="View Details"
-                    style={{
-                      width: "35px",
-                      height: "35px",
-                      padding: 0,
-                    }}
-                  >
-                    <i className="fa-solid fa-angle-right"></i>
-                  </button>
+                {/* Footer */}
+                <div
+                  className="d-flex align-items-center mt-3 justify-content-between"
+                  style={{ gap: "10px" }}
+                >
+                  {/* Orders Button - 70% width */}
+                  <div style={{ flex: "0 0 70%" }}>
+                    <button
+                      className="btn btn-sm btn-outline-success w-100 shadow-sm rounded-pill d-flex justify-content-between align-items-center px-3"
+                      type="button"
+                      onClick={() => openOrdersModal(user._id)}
+                      title="View all assigned orders"
+                    >
+                      <span className="d-flex align-items-center">
+                        <i className="fa-solid fa-box me-2"></i>
+                        {totalOrders} Order{totalOrders > 1 ? "s" : ""}
+                      </span>
+                      <i className="fa-solid fa-angle-right"></i>
+                    </button>
+                  </div>
+
+                  {/* Start Button - 30% width */}
+                  <div style={{ flex: "0 0 30%" }}>
+                    <button
+                      className="btn btn-primary btn-sm rounded-pill shadow-sm fw-semibold w-100 d-flex justify-content-center align-items-center"
+                      title="Start this delivery"
+                      onClick={handleStart}
+                    >
+                      <i className="fa-solid fa-play me-2"></i>
+                      Start
+                    </button>
+                  </div>
                 </div>
               </div>
             );
           })
         ) : (
-          <h5 className="text-muted">No orders assigned</h5>
+          <h5 className="text-muted text-center mt-4">No orders assigned</h5>
         )}
       </section>
+      {ordersModal && (
+        <div
+          className="modal fade show d-block animate__animated animate__fadeIn"
+          tabIndex="-1"
+          style={{
+            backgroundColor: "rgba(0, 0, 0, 0.6)",
+            backdropFilter: "blur(0px)",
+          }}
+        >
+          <div className="modal-dialog modal-sm modal-dialog-centered">
+            <div
+              className="modal-content shadow"
+              style={{ borderRadius: "10px" }}
+            >
+              {/* Header */}
+              <div
+                className="modal-header text-light py-2 px-3"
+                style={{ backgroundColor: "#1e1e2f" }}
+              >
+                <h6 className="modal-title m-0">Order List</h6>
+                <button
+                  type="button"
+                  className="btn-close btn-close-white"
+                  aria-label="Close"
+                  onClick={() => setOrdersModal(false)}
+                ></button>
+              </div>
+
+              {/* Body */}
+              <div className="modal-body text-center">
+                <div className="p-2">
+                 {selectedReqUser ? (
+  <div className="mb-3">
+    {/* User Header */}
+    <h6 className="fw-bold text-dark mb-2 d-flex align-items-center justify-content-center">
+      <img
+        src={selectedReqUser.user?.profilePicture}
+        alt="User"
+        className="rounded-circle me-2"
+        style={{
+          width: "35px",
+          height: "35px",
+          objectFit: "cover",
+        }}
+      />
+      {selectedReqUser.user?.name || "Unknown User"}
+    </h6>
+
+    {/* Orders List */}
+    {selectedReqUser.orders?.length > 0 ? (
+      selectedReqUser.orders.map((req, idx) => (
+        <div key={idx} className="p-2 rounded hover-bg-light border mb-2">
+          <div className="d-flex flex-column text-start">
+            <span className="fw-semibold text-dark">
+              <i className="fa-solid fa-barcode me-2 text-primary"></i>
+              {req.orderId || req._id}
+            </span>
+            <span className="text-muted ms-4 text-wrap">
+              {req.subCategory || "N/A"} ({req.category || "N/A"})
+            </span>
+
+            <div className="d-flex align-items-center justify-content-between ms-4 mt-1">
+              <span className="text-success fw-semibold">
+                Rs. {req.cost || 0}
+              </span>
+              <button
+                className="btn btn-sm btn-danger d-flex align-items-center gap-2 px-2 rounded-pill"
+                title="Remove assignment"
+              >
+                <i className="fa-solid fa-xmark"></i>
+                Remove
+              </button>
+            </div>
+          </div>
+        </div>
+      ))
+    ) : (
+      <h6 className="text-muted">No orders found</h6>
+    )}
+  </div>
+) : (
+  <h6 className="text-muted">No user selected</h6>
+)}
+
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
