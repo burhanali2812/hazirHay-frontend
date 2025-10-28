@@ -59,7 +59,7 @@ const position = selectedTrackShopData?.[0]?.orders?.[0]?.location?.[0]?.coordin
     try {
       const response = await axios.put(
         `https://hazir-hay-backend.vercel.app/shopKeppers/updateBusy/${user._id}`,
-        { isBusy: false }, // no body, so pass empty object
+        { isBusy: false },
         {
           headers: { Authorization: `Bearer ${token}` },
           params: { t: Date.now() },
@@ -306,11 +306,16 @@ const position = selectedTrackShopData?.[0]?.orders?.[0]?.location?.[0]?.coordin
   const handleIscontentToggle =()=>{
     setIsContentShow(!isContentShow)
   }
+
+  const handleBack = ()=>{
+    localStorage.removeItem("currentCheckout")
+    navigate("/worker/dashboard")
+  }
          
   return (
     <>
     <div className="bg-white w-100 align-content-center" style={{height: "50px"}}>
-    <div className="ms-2 fw-bold" onClick={()=> navigate("/worker/dashboard")}>
+    <div className="ms-2 fw-bold" onClick={handleBack}>
       <i class="fa-solid fa-angle-left"></i> Back
     </div>
     </div>

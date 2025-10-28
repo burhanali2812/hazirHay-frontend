@@ -171,12 +171,42 @@ function WorkerDashboard({ setUpdateAppjs }) {
   const groupedRequestsArray = Object.values(groupRequests);
   console.log("groupedRequestsArray", groupedRequestsArray);
   console.log("groupRequests", groupRequests);
+    const ProgressOrder = async (startJourneyOrders) => {
 
-  const handleStart = () => {
+    if (!startJourneyOrders?.length) {
+      alert("No orders to progress");
+      return;
+    }
+    try {
+      const res = await axios.put(
+        "https://hazir-hay-backend.vercel.app/requests/progressRequest",
+        { requests: startJourneyOrders },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          params: { t: Date.now() }, 
+        }
+      );
+
+      if (res.data.success) {
+        alert(res.data.message);
+      }
+    } catch (error) {
+      console.error("Error completing orders:", error);
+      alert("Something went wrong while progressing orders.");
+    } finally {
+
+    }
+  };
+  const handleStart = (startJourneyOrders ,isStart) => {
+   
     localStorage.setItem(
       "currentCheckout",
       JSON.stringify(groupedRequestsArray)
     );
+    if (!isStart) {
+    ProgressOrder(startJourneyOrders);
+  }
+     
     navigate("/admin/user/orderWithJourney");
   };
 
@@ -228,6 +258,7 @@ function WorkerDashboard({ setUpdateAppjs }) {
       alert("Something went wrong while unassigning the order.");
     }
   };
+
 
   return (
     <div>
@@ -341,6 +372,8 @@ function WorkerDashboard({ setUpdateAppjs }) {
               (sum, req) => sum + (req.cost || 0),
               0
             );
+       const isStart = group?.orders?.some((order) => order.status === "inProgress");
+
 
             return (
               <div
@@ -428,7 +461,7 @@ function WorkerDashboard({ setUpdateAppjs }) {
                   style={{ gap: "10px" }}
                 >
                   {/* Orders Button - 70% width */}
-                  <div style={{ flex: "0 0 70%" }}>
+                  <div style={{ flex: `0 0 ${isStart ? "60%" : "70%"}` }}>
                     <button
                       className="btn btn-sm btn-outline-success w-100 shadow-sm rounded-pill d-flex justify-content-between align-items-center px-3"
                       type="button"
@@ -443,15 +476,17 @@ function WorkerDashboard({ setUpdateAppjs }) {
                     </button>
                   </div>
 
-                  {/* Start Button - 30% width */}
-                  <div style={{ flex: "0 0 30%" }}>
+                
+                  <div style={{ flex: `0 0 ${isStart ? "40%" : "30%"}` }}>
                     <button
-                      className="btn btn-primary btn-sm rounded-pill shadow-sm fw-semibold w-100 d-flex justify-content-center align-items-center"
+                      className={`btn btn-${isStart ? "warning": "primary"} btn-sm rounded-pill shadow-sm fw-semibold w-100 d-flex justify-content-center align-items-center`}
                       title="Start this delivery"
-                      onClick={handleStart}
+                      onClick={()=>handleStart(group.orders, isStart)}
                     >
-                      <i className="fa-solid fa-play me-2"></i>
-                      Start
+                      <i
+      className={`fa-solid ${isStart ? "fa-motorcycle" : "fa-play"} me-2`}
+    ></i>
+                      {isStart ? "En-route...": "Start"}
                     </button>
                   </div>
                 </div>
