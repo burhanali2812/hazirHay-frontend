@@ -309,8 +309,10 @@ const position = selectedTrackShopData?.[0]?.orders?.[0]?.location?.[0]?.coordin
          
   return (
     <>
-    <div className="bg-white w-100 align-content-center" style={{height: "10px"}}>
-    
+    <div className="bg-white w-100 align-content-center" style={{height: "50px"}}>
+    <div className="ms-2 fw-bold" onClick={()=> navigate("/worker/dashboard")}>
+      <i class="fa-solid fa-angle-left"></i> Back
+    </div>
     </div>
       <div  className="bg-white container">
       <div>

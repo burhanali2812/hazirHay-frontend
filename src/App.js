@@ -296,6 +296,7 @@ const deleteNotification = async (id) => {
             path="worker/dashboard"
             element={
               <WorkerDashboard
+              setUpdateAppjs = {setUpdateAppjs}
               />
             }
           />

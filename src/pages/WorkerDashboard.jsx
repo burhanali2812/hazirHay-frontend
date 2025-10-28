@@ -1,7 +1,7 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-function WorkerDashboard() {
+function WorkerDashboard({ setUpdateAppjs }) {
   const user = JSON.parse(sessionStorage.getItem("user"));
   const token = localStorage.getItem("token");
   const [distances, setDistances] = useState({});
@@ -10,6 +10,7 @@ function WorkerDashboard() {
   const [currentLocation, setCurrentLocation] = useState(null);
   const [ordersModal, setOrdersModal] = useState(false);
   const [selectedReqUser, setSelectedReqUser] = useState(null);
+  const [unAssgnedLoading, setUnAssignedLoading] = useState(null);
 
   const handleLogout = () => {
     localStorage.clear();
@@ -171,29 +172,62 @@ function WorkerDashboard() {
   console.log("groupedRequestsArray", groupedRequestsArray);
   console.log("groupRequests", groupRequests);
 
+  const handleStart = () => {
+    localStorage.setItem(
+      "currentCheckout",
+      JSON.stringify(groupedRequestsArray)
+    );
+    navigate("/admin/user/orderWithJourney");
+  };
 
-  const handleStart = ()=>{
-      localStorage.setItem(
-          "currentCheckout",
-          JSON.stringify(groupedRequestsArray)
+  const openOrdersModal = (selectedUserId) => {
+    console.log("selectedUserId", selectedUserId);
+
+    const selectedGroup = groupedRequestsArray?.find(
+      (group) => group.user._id === selectedUserId
+    );
+    setSelectedReqUser(selectedGroup);
+
+    setOrdersModal(true);
+  };
+
+  const handleUnAssignedOrders = async (orderId) => {
+    setUnAssignedLoading(orderId);
+    try {
+      const res = await axios.put(
+        `https://hazir-hay-backend.vercel.app/requests/unAssignOrder/${orderId}`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (res.data.success) {
+        setUnAssignedLoading(null);
+        setUpdateAppjs(true);
+        alert(res.data.message);
+        setSelectedReqUser((prev) => {
+          if (!prev) return prev;
+          const updatedOrders = prev.orders.filter(
+            (order) => order._id !== orderId
+          );
+          return { ...prev, orders: updatedOrders };
+        });
+        setAssignOrders((prev) =>
+          prev.filter((order) => order._id !== orderId)
         );
-    navigate("/admin/user/orderWithJourney")
-  }
-
-  const openOrdersModal = (selectedUserId)=>{
-    console.log("selectedUserId" , selectedUserId);
-    
-      const selectedGroup = groupedRequestsArray?.find(
-  (group) => group.user._id === selectedUserId
-);
-setSelectedReqUser(selectedGroup)
-
-  setOrdersModal(true)
-
-
-
-
-  }
+      } else {
+        setUnAssignedLoading(null);
+        alert("Failed to unassign order.");
+      }
+    } catch (error) {
+      setUnAssignedLoading(null);
+      console.error("Error unassigning order:", error);
+      alert("Something went wrong while unassigning the order.");
+    }
+  };
 
   return (
     <div>
@@ -459,59 +493,78 @@ setSelectedReqUser(selectedGroup)
               {/* Body */}
               <div className="modal-body text-center">
                 <div className="p-2">
-                 {selectedReqUser ? (
-  <div className="mb-3">
-    {/* User Header */}
-    <h6 className="fw-bold text-dark mb-2 d-flex align-items-center justify-content-center">
-      <img
-        src={selectedReqUser.user?.profilePicture}
-        alt="User"
-        className="rounded-circle me-2"
-        style={{
-          width: "35px",
-          height: "35px",
-          objectFit: "cover",
-        }}
-      />
-      {selectedReqUser.user?.name || "Unknown User"}
-    </h6>
+                  {selectedReqUser ? (
+                    <div className="mb-3">
+                      {/* User Header */}
+                      <h6 className="fw-bold text-dark mb-2 d-flex align-items-center justify-content-center">
+                        <img
+                          src={selectedReqUser.user?.profilePicture}
+                          alt="User"
+                          className="rounded-circle me-2"
+                          style={{
+                            width: "35px",
+                            height: "35px",
+                            objectFit: "cover",
+                          }}
+                        />
+                        {selectedReqUser.user?.name || "Unknown User"}
+                      </h6>
 
-    {/* Orders List */}
-    {selectedReqUser.orders?.length > 0 ? (
-      selectedReqUser.orders.map((req, idx) => (
-        <div key={idx} className="p-2 rounded hover-bg-light border mb-2">
-          <div className="d-flex flex-column text-start">
-            <span className="fw-semibold text-dark">
-              <i className="fa-solid fa-barcode me-2 text-primary"></i>
-              {req.orderId || req._id}
-            </span>
-            <span className="text-muted ms-4 text-wrap">
-              {req.subCategory || "N/A"} ({req.category || "N/A"})
-            </span>
+                      {/* Orders List */}
+                      {selectedReqUser.orders?.length > 0 ? (
+                        selectedReqUser.orders.map((req, idx) => (
+                          <div
+                            key={idx}
+                            className="p-2 rounded hover-bg-light border mb-2"
+                          >
+                            <div className="d-flex flex-column text-start">
+                              <span className="fw-semibold text-dark">
+                                <i className="fa-solid fa-barcode me-2 text-primary"></i>
+                                {req.orderId || req._id}
+                              </span>
+                              <span className="text-muted ms-4 text-wrap">
+                                {req.subCategory || "N/A"} (
+                                {req.category || "N/A"})
+                              </span>
 
-            <div className="d-flex align-items-center justify-content-between ms-4 mt-1">
-              <span className="text-success fw-semibold">
-                Rs. {req.cost || 0}
-              </span>
-              <button
-                className="btn btn-sm btn-danger d-flex align-items-center gap-2 px-2 rounded-pill"
-                title="Remove assignment"
-              >
-                <i className="fa-solid fa-xmark"></i>
-                Remove
-              </button>
-            </div>
-          </div>
-        </div>
-      ))
-    ) : (
-      <h6 className="text-muted">No orders found</h6>
-    )}
-  </div>
-) : (
-  <h6 className="text-muted">No user selected</h6>
-)}
-
+                              <div className="d-flex align-items-center justify-content-between ms-4 mt-1">
+                                <span className="text-success fw-semibold">
+                                  Rs. {req.cost || 0}
+                                </span>
+                                <button
+                                  className="btn btn-sm btn-danger d-flex align-items-center gap-2 px-2 rounded-pill"
+                                  title="Remove assignment"
+                                  onClick={() =>
+                                    handleUnAssignedOrders(req._id)
+                                  }
+                                  disabled={unAssgnedLoading === req._id}
+                                >
+                                  {unAssgnedLoading === req._id ? (
+                                    <>
+                                     Removing...
+                <div
+                  className="spinner-border spinner-border-sm text-light ms-2"
+                  role="status"
+                ></div>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <i className="fa-solid fa-xmark"></i>
+                                      Remove
+                                    </>
+                                  )}
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <h6 className="text-muted">No orders found</h6>
+                      )}
+                    </div>
+                  ) : (
+                    <h6 className="text-muted">No user selected</h6>
+                  )}
                 </div>
               </div>
             </div>
