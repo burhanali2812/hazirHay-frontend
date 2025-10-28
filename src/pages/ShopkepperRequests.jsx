@@ -445,7 +445,7 @@ function ShopkepperRequests({
     setRequestDeleteLoading(true);
     try {
       const res = await axios.put(
-        "https://hazir-hay-backend.vercel.app/requests/markDeleteRequestByShopkeeper",
+        `https://hazir-hay-backend.vercel.app/requests/markDeleteRequestByShopkeeper/${user._id}`,
         { requests: finalRejectedOrdersFordelete, type: "delete" },
         {
           headers: { Authorization: `Bearer ${token}` },

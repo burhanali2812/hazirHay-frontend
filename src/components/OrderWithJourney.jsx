@@ -25,7 +25,7 @@ function OrderWithJourney({ setStausUpdate }) {
   //const selectedTrackShopData = location.state.orders;
   console.log("Selectedhggg", selectedTrackShopData)
 
-const position = selectedTrackShopData?.[0]?.orders?.[0]?.location?.[0]?.coordinates;
+const position = selectedTrackShopData?.[0]?.location?.[0]?.coordinates;
 
   const sendNotificationToUser = async (type) => {
     if (!selectedTrackShopData) return;
@@ -78,7 +78,7 @@ const position = selectedTrackShopData?.[0]?.orders?.[0]?.location?.[0]?.coordin
   const completedOrder = async () => {
     setLoading(true);
     const requests =
-      selectedTrackShopData?.orders?.map((order) => ({ _id: order._id })) || [];
+      selectedTrackShopData?.map((order) => ({ _id: order._id })) || [];
 
     if (requests.length === 0) {
       setLoading(false);
@@ -91,17 +91,12 @@ const position = selectedTrackShopData?.[0]?.orders?.[0]?.location?.[0]?.coordin
         { requests },
         {
           headers: { Authorization: `Bearer ${token}` },
-          params: { t: Date.now() }, // avoid caching
+          params: { t: Date.now() }, 
         }
       );
 
       if (res.data.success) {
-        setLoading(false);
-        updateShopkepper();
-        sendNotificationToUser("shop");
-        sendNotificationToUser("user");
         alert(res.data.message);
-        // navigate("/admin/shopKepper/requests");
         setOrderCompleteModal(true);
       }
     } catch (error) {
@@ -111,7 +106,7 @@ const position = selectedTrackShopData?.[0]?.orders?.[0]?.location?.[0]?.coordin
   };
   const cancelOrder = async () => {
        const requests =
-      selectedTrackShopData?.orders?.map((order) => ({ _id: order._id })) || [];
+      selectedTrackShopData?.map((order) => ({ _id: order._id })) || [];
 
       const requestSize = requests.length;
       const title = requestSize > 1 ? `Cancel all ${requestSize} orders?` : "Cancel this order?";
@@ -138,7 +133,7 @@ const position = selectedTrackShopData?.[0]?.orders?.[0]?.location?.[0]?.coordin
     setCalcelLoading(true)
     try {
       const res = await axios.put(
-        "https://hazir-hay-backend.vercel.app/requests/markDeleteRequestByShopkeeper",
+        `https://hazir-hay-backend.vercel.app/requests/markDeleteRequestByShopkeeper/${selectedTrackShopData?.[0]?.shopOwnerId}`,
         { requests , type: "cancel"},
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -162,7 +157,7 @@ const position = selectedTrackShopData?.[0]?.orders?.[0]?.location?.[0]?.coordin
             popup: "swirl-popup",
           },
         });
-        navigate("/admin/shopKepper/requests");
+        navigate("/worker/dashboard");
         }
         else {
             setCalcelLoading(false)
@@ -178,7 +173,7 @@ const position = selectedTrackShopData?.[0]?.orders?.[0]?.location?.[0]?.coordin
             popup: "swirl-popup",
           },
         });
-        navigate("/admin/shopKepper/requests");
+        navigate("/worker/dashboard");
         }
       
       }
@@ -199,7 +194,7 @@ const position = selectedTrackShopData?.[0]?.orders?.[0]?.location?.[0]?.coordin
     };
     try {
       const res = await axios.put(
-        `https://hazir-hay-backend.vercel.app/shops/updateLiveLocation/${selectedTrackShopData?.[0]?.orders[0]?.shopId}`,
+        `https://hazir-hay-backend.vercel.app/shops/updateLiveLocation/${selectedTrackShopData?.[0]?.shopId}`,
         payload,
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -252,14 +247,14 @@ const position = selectedTrackShopData?.[0]?.orders?.[0]?.location?.[0]?.coordin
       });
     }
   }, [orderCompleteModal]);
-     const totalCost = selectedTrackShopData?.[0]?.orders?.reduce(
+     const totalCost = selectedTrackShopData?.reduce(
               (sum, req) => sum + (req.cost || 0),
               0
             );
 
   const distance =
-    selectedTrackShopData?.[0]?.orders[0]?.serviceCharges?.distance || 0;
-  const rate = selectedTrackShopData?.[0]?.orders[0]?.serviceCharges?.rate || 0;
+    selectedTrackShopData?.[0]?.serviceCharges?.distance || 0;
+  const rate = selectedTrackShopData?.[0]?.serviceCharges?.rate || 0;
   const serviceCharges = Number(distance * rate).toFixed(2);
   const grandTotal = (Number(totalCost) + Number(serviceCharges)).toFixed(0);
 
@@ -314,11 +309,25 @@ const position = selectedTrackShopData?.[0]?.orders?.[0]?.location?.[0]?.coordin
          
   return (
     <>
-    <div className="bg-white w-100 align-content-center" style={{height: "50px"}}>
-    <div className="ms-2 fw-bold" onClick={handleBack}>
-      <i class="fa-solid fa-angle-left"></i> Back
-    </div>
-    </div>
+<div
+  className="bg-white w-100 d-flex align-items-center shadow-sm"
+  style={{
+    height: "50px",
+    position: "fixed",
+    top: 0,
+    left: 0,
+    zIndex: 1000,
+  }}
+>
+  <div
+    className="ms-3 fw-bold text-primary"
+    style={{ cursor: "pointer" }}
+    onClick={handleBack}
+  >
+    <i className="fa-solid fa-angle-left me-1"></i> Back
+  </div>
+</div>
+
       <div  className="bg-white container">
       <div>
         <div
@@ -380,19 +389,19 @@ const position = selectedTrackShopData?.[0]?.orders?.[0]?.location?.[0]?.coordin
           {selectedTrackShopData && (
             <>
               <h3 className="fw-bold text-center text-primary mb-3">
-                {selectedTrackShopData?.[0]?.orders[0]?.userId?.name}
+                {selectedTrackShopData?.[0]?.userId?.name}
               </h3>
 
               <div className="d-flex justify-content-center gap-2 flex-wrap mb-3">
                 <a
-                  href={`tel:${selectedTrackShopData?.[0]?.orders[0]?.userId?.phone}`}
+                  href={`tel:${selectedTrackShopData?.[0]?.userId?.phone}`}
                   className="btn btn-outline-info btn-sm text-dark rounded-pill px-3"
                 >
                   <i className="fa-solid fa-phone-volume me-1"></i> Call Now
                 </a>
 
                 <a
-                  href={`https://wa.me/${`+92${selectedTrackShopData?.[0]?.orders[0]?.userId?.phone?.slice(
+                  href={`https://wa.me/${`+92${selectedTrackShopData?.[0]?.userId?.phone?.slice(
                     1
                   )}`}`}
                   target="_blank"
@@ -425,8 +434,8 @@ const position = selectedTrackShopData?.[0]?.orders?.[0]?.location?.[0]?.coordin
                   Order Details
                 </h5>
 
-                {selectedTrackShopData?.[0]?.orders.map((order, index) =>
-                  order?.status === "assigned" ? (
+                {selectedTrackShopData?.map((order, index) =>
+                  order?.status === "inProgress" || order?.status === "assigned" ? (
                     <div key={index} className="mt-4">
                       <h5 className="text-center fw-bold text-light mb-3 bg-primary rounded-2 p-2">
                         Order {index + 1}
@@ -619,8 +628,7 @@ const position = selectedTrackShopData?.[0]?.orders?.[0]?.location?.[0]?.coordin
                 <h5 className="fw-bold text-dark mb-3">Order Details</h5>
 
                 <ul className="list-group list-group-flush">
-                  {selectedTrackShopData?.orders
-                    ?.filter((order) => order?.status === "accepted")
+                  {selectedTrackShopData?.filter((order) => order?.status === "inProgress" || order?.status === "completed")
                     ?.map((order, index) => (
                       <li
                         key={index}
@@ -656,7 +664,7 @@ const position = selectedTrackShopData?.[0]?.orders?.[0]?.location?.[0]?.coordin
                         className="fw-bold text-success"
                         style={{ fontSize: "15px" }}
                       >
-                        Rs. {selectedTrackShopData?.totalCost}/-
+                        Rs. {totalCost}/-
                       </span>
                     </li>
                     <li className="list-group-item d-flex justify-content-between align-items-center">
@@ -686,7 +694,6 @@ const position = selectedTrackShopData?.[0]?.orders?.[0]?.location?.[0]?.coordin
                   </ul>
                 </div>
 
-                {/* Buttons */}
                 <div className="d-flex justify-content-end gap-3 mt-4">
                   <button
                     className="btn btn-outline-primary btn-sm text-center "
@@ -714,7 +721,7 @@ const position = selectedTrackShopData?.[0]?.orders?.[0]?.location?.[0]?.coordin
                     className="btn btn-success btn-sm"
                     onClick={() => {
                       setOrderCompleteModal(false);
-                      navigate("/admin/shopKepper/requests");
+                      navigate("/worker/dashboard");
                     }}
                   >
                     <i className="fa-solid fa-plus me-2"></i> More Request

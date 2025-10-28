@@ -198,13 +198,15 @@ function WorkerDashboard({ setUpdateAppjs }) {
     }
   };
   const handleStart = (startJourneyOrders ,isStart) => {
-   
-    localStorage.setItem(
+    
+          localStorage.setItem(
       "currentCheckout",
-      JSON.stringify(groupedRequestsArray)
+      JSON.stringify(startJourneyOrders)
     );
+ 
     if (!isStart) {
     ProgressOrder(startJourneyOrders);
+
   }
      
     navigate("/admin/user/orderWithJourney");

@@ -64,13 +64,13 @@ function Blocked() {
       {/* Buttons */}
       <div className="d-flex gap-3">
         <button
-          className="btn btn-outline-primary rounded-pill px-4 py-1"
+          className="btn btn-outline-primary btn-sm rounded-pill px-4 py-1"
           onClick={requestAdmin}
         >
           <i className="fa-solid fa-envelope me-2"></i> Request Admin
         </button>
         <button
-          className="btn btn-danger rounded-pill px-4 py-1"
+          className="btn btn-danger btn-sm rounded-pill px-4 py-1"
           onClick={logOut}
         >
           <i className="fa-solid fa-right-from-bracket me-2"></i> Logout
