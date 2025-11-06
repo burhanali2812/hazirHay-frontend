@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import imageCompression from "browser-image-compression";
 import axios from "axios";
 import worker from "../images/worker.png"
-function WorkerSignup() {
+function WorkerSignup({setUpdateAppjs}) {
  const [profilePicture, setProfilePicture] = useState(null);
    const [name, setName] = useState("");
    const [phone, setPhone] = useState("");
@@ -55,6 +55,7 @@ const handleSubmit = async (e) => {
 
  
     if (res.data.success) {
+      setUpdateAppjs(true)
       alert(res.data.message || "Worker created successfully!");
       setName("")
       setPhone("")

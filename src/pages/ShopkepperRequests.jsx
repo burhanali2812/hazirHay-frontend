@@ -603,7 +603,8 @@ Object.entries(selectedWorkers)?.map(([orderId, worker]) => {
     );
 
     if (response.data.success) {
-      alert(response.data.message); 
+      alert(response.data.message);
+       setSelectedWorkers({})
       setDetailsModal(false)
       fetchRequests("auto")
     }
@@ -1141,11 +1142,12 @@ Object.entries(selectedWorkers)?.map(([orderId, worker]) => {
 
                                         {/* Dropdown Menu */}
                                         <ul
-                                          className="dropdown-menu w-100 shadow-sm  mt-1 rounded-2 overflow-hidden"
+                                          className="dropdown-menu w-100 shadow-sm  mt-1 rounded-2"
                                           aria-labelledby={`dropdownMenuButton-${index}`}
                                           style={{
-                                            maxHeight: "220px",
+                                            maxHeight: "200px",
                                             overflowY: "auto",
+                                             overflowX: "hidden",
                                           }}
                                         >
                                           {shopKepperWorkers &&

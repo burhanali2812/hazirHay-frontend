@@ -194,7 +194,7 @@ const position = selectedTrackShopData?.[0]?.location?.[0]?.coordinates;
     };
     try {
       const res = await axios.put(
-        `https://hazir-hay-backend.vercel.app/shops/updateLiveLocation/${selectedTrackShopData?.[0]?.shopId}`,
+        `https://hazir-hay-backend.vercel.app/worker/updateLiveLocation/${user._id}`,
         payload,
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -235,7 +235,7 @@ const position = selectedTrackShopData?.[0]?.location?.[0]?.coordinates;
           }
         }
       );
-    }, 3000);
+    }, 5000);
 
     return () => clearInterval(interval);
   }, []);

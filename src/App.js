@@ -254,7 +254,11 @@ const deleteNotification = async (id) => {
       getAllShopKepper();
       getCartData();
       getNotifications();
+       if (role === "shopKepper") {
+      getShopKepperWorkers();
+    }
       setUpdateAppjs(false);
+
     }
   }, [UpdateAppjs]);
 
@@ -368,7 +372,7 @@ const deleteNotification = async (id) => {
              <Route
             path="shopKepper/worker/signup"
             element={
-              <WorkerSignup/>
+              <WorkerSignup setUpdateAppjs={setUpdateAppjs}/>
             }
           />
           <Route

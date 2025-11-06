@@ -46,7 +46,7 @@ useEffect(() => {
     const fetchAndSelect = async () => {
       setLoading(true);
       const data = await fetchUserCart(); 
-      // data is ready here!
+   
 
       const selectTrackData = data.find(
         (request) =>
@@ -54,7 +54,6 @@ useEffect(() => {
           request.checkoutId === checkOutIdFromNoti
       );
       setLoading(true)
-      const data2 = await fetchShopData(selectTrackData);
 
       console.log("selectTrack...", selectTrackData);
       setSelectedTrackShopData(selectTrackData);
@@ -69,10 +68,9 @@ useEffect(() => {
 
 
   const getLiveUpdateLocation = async () => {
-    const id = localStorage.getItem("shopid");
     try {
       const res = await axios.get(
-        `https://hazir-hay-backend.vercel.app/shops/getLiveLocation/${id}`,
+        `https://hazir-hay-backend.vercel.app/worker/getLiveLocation/${selectedTrackShopData?.orderAssignment?.workerId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
           params: { t: Date.now() },
@@ -88,10 +86,10 @@ useEffect(() => {
   };
 
   useEffect(() => {
-    if(selectedTrackShopData !== null && trackingDetailsModal){
+    if(selectedTrackShopData !== null && trackingDetailsModal && selectedTrackShopData?.status === "inProgress"){
          const interval = setInterval(() => {
       getLiveUpdateLocation();
-    }, 3000);
+    }, 5000);
 
     return () => clearInterval(interval);
     }
@@ -248,7 +246,7 @@ fetchUserCart();
   }
 
   const handleGotoTrackingPage = async (data) => {
-    console.log("data", data);
+    console.log("data checking", data);
     setLoading(true);
     await fetchShopData(data);
 
