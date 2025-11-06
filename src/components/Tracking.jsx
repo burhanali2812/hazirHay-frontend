@@ -13,7 +13,7 @@ import L from "leaflet";
 import "leaflet-routing-machine";
 import UserShopRoute from "./UserShopRoute";
 
-function Tracking({ setUpdateAppjs }) {
+function Tracking({ setUpdateAppjs, setKey }) {
   const token = localStorage.getItem("token");
   const [requestsData, setRequestsData] = useState([]);
   const [searchQuery, setSearchQuery] = useState([]);
@@ -34,8 +34,12 @@ function Tracking({ setUpdateAppjs }) {
   console.log("selectedTrackShopData", selectedTrackShopData);
   console.log("ID", selectedTrackShopData?.shopId);
   localStorage.setItem("shopid", selectedTrackShopData?.shopId);
-      const orderIdFromNoti = location.state.orderId || null;
-    const checkOutIdFromNoti = location.state.checkOutId || null;
+      const orderIdFromNoti = location.state?.orderId || null;
+    const checkOutIdFromNoti = location.state?.checkOutId || null;
+
+    useEffect(()=>{
+      setKey("tracking")
+    },[])
 
 useEffect(() => {
   if (orderIdFromNoti && checkOutIdFromNoti) {

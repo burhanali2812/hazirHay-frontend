@@ -3,19 +3,21 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, Outlet } from "react-router-dom";
 import "./adminFooter.css";
 
-function AdminFooter({ topText, setUpdate, setShopKepperStatus , unSeenNotification, onUpdate, cartData, shopKepperStatus2}) {
+function AdminFooter({
+  topText,
+  setUpdate,
+  setShopKepperStatus,
+  unSeenNotification,
+  onUpdate,
+  cartData,
+  shopKepperStatus2,
+  pageKey,
+}) {
   const navigate = useNavigate();
-  const [active, setActive] = useState(localStorage.getItem("key") || "home");
 
   const [showOffcanvas, setShowOffcanvas] = useState(false);
   const currentUser = JSON.parse(sessionStorage.getItem("user"));
   const role = sessionStorage.getItem("role");
-  const user = JSON.parse(sessionStorage.getItem("user"));
-  const token = localStorage.getItem("token");
-
-
-
- 
 
 
 
@@ -58,7 +60,9 @@ function AdminFooter({ topText, setUpdate, setShopKepperStatus , unSeenNotificat
         key: "requests",
         icon: "fas fa-envelope-open-text",
         label: "Requests",
-        path: shopKepperStatus2 ? "/admin/user/orderWithJourney" : "/admin/shopKepper/requests",
+        path: shopKepperStatus2
+          ? "/admin/user/orderWithJourney"
+          : "/admin/shopKepper/requests",
       },
       {
         key: "notification",
@@ -66,7 +70,7 @@ function AdminFooter({ topText, setUpdate, setShopKepperStatus , unSeenNotificat
         label: "Notifica...",
         path: "/admin/user/notification",
       },
-       {
+      {
         key: "shop",
         icon: "fa-solid fa-shop",
         label: "Shop",
@@ -177,9 +181,9 @@ function AdminFooter({ topText, setUpdate, setShopKepperStatus , unSeenNotificat
   const currentSidebar = sideBar[role] || sideBar.user;
 
   // Handle navigation or action
-  const handleClick = (key, actionOrPath) => {
-    localStorage.setItem("key", key);
-    setActive(key);
+  const handleClick = (actionOrPath) => {
+    console.log("key fro footer", pageKey? pageKey : "loading....");
+    
 
     if (typeof actionOrPath === "string") {
       navigate(actionOrPath);
@@ -190,80 +194,80 @@ function AdminFooter({ topText, setUpdate, setShopKepperStatus , unSeenNotificat
 
   const logOut = () => {
     if (!window.confirm("Are you sure you want to log out?")) return;
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    localStorage.removeItem("key");
-    localStorage.removeItem("shopKepperStatus");
+localStorage.clear();
+    sessionStorage.clear();
     navigate("/login");
   };
 
   return (
     <>
-
-
       {/* Bottom Navigation */}
-     {role === "worker" ? (""):(
-       <div
-        className="card fixed-bottom "
-        style={{
-          background: "white",
-          //borderTop: "2px solid black", // Top border
-          boxShadow: "none",
-        }}
-      >
-        <div className="card-body d-flex justify-content-between p-2">
-         {currentMenu.map((item) => (
-  <span
-    key={item.key}
-    className={`nav-item position-relative ${active === item.key ? "active" : ""}`}
-    onClick={() =>
-      handleClick(item.key, item.path ? item.path : item.action)
-    }
-    style={{ cursor: "pointer" }}
-  >
- {item.key === "notification" ? (
-  <>
-    <div className="position-relative d-inline-block" onClick={onUpdate}>
-      <i className={item.icon}></i>
-      {unSeenNotification?.length !== 0 && (
-        <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-          {unSeenNotification?.length}
-          <span className="visually-hidden">unread messages</span>
-        </span>
-      )}
-    </div>
-    <small className="d-block" onClick={onUpdate}>
-      {item.label}
-    </small>
-  </>
-) : item.key === "cart" ? (
-  <>
-    <div className="position-relative d-inline-block">
-      <i className={item.icon}></i>
-      <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-        {cartData?.items?.length || 0}
-        <span className="visually-hidden">unread messages</span>
-      </span>
-    </div>
-    <small className="d-block">{item.label}</small>
-  </>
-) : (
-  <>
-    <i className={item.icon}></i>
-    <small className="d-block">{item.label}</small>
-  </>
-)}
-
-    
-  </span>
-))}
-
+      {role === "worker" ? (
+        ""
+      ) : (
+        <div
+          className="card fixed-bottom "
+          style={{
+            background: "white",
+            //borderTop: "2px solid black", // Top border
+            boxShadow: "none",
+          }}
+        >
+          <div className="card-body d-flex justify-content-between p-2">
+            {currentMenu.map((item) => (
+              <span
+                key={item.key}
+                className={`nav-item position-relative ${
+                  pageKey === item.key ? "active" : ""
+                }`}
+                onClick={() => handleClick(item.path ? item.path : item.action)}
+                style={{ cursor: "pointer" }}
+              >
+                {item.key === "notification" ? (
+                  <>
+                    <div
+                      className="position-relative d-inline-block"
+                      onClick={onUpdate}
+                    >
+                      <i className={item.icon}></i>
+                      {unSeenNotification?.length !== 0 && (
+                        <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                          {unSeenNotification?.length}
+                          <span className="visually-hidden">
+                            unread messages
+                          </span>
+                        </span>
+                      )}
+                    </div>
+                    <small className="d-block" onClick={onUpdate}>
+                      {item.label}
+                    </small>
+                  </>
+                ) : item.key === "cart" ? (
+                  <>
+                    <div className="position-relative d-inline-block">
+                      <i className={item.icon}></i>
+                      <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                        {cartData?.items?.length || 0}
+                        <span className="visually-hidden">unread messages</span>
+                      </span>
+                    </div>
+                    <small className="d-block">{item.label}</small>
+                  </>
+                ) : (
+                  <>
+                    <i className={item.icon}></i>
+                    <small className="d-block">{item.label}</small>
+                  </>
+                )}
+              </span>
+            ))}
+          </div>
         </div>
-      </div>
-     )}
+      )}
 
       {/* Content */}
-      <div >
+      <div>
         <Outlet />
       </div>
 

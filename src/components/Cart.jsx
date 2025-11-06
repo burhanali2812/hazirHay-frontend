@@ -7,7 +7,7 @@ import stamp from "../images/stamp.png";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 
-function Cart({ cartData, setUpdateAppjs, areaName, setCartData, setRefreshFlag }) {
+function Cart({ cartData, setUpdateAppjs, areaName, setCartData, setRefreshFlag ,setKey}) {
   // safely get items
 
   const navigate = useNavigate();
@@ -40,6 +40,10 @@ function Cart({ cartData, setUpdateAppjs, areaName, setCartData, setRefreshFlag 
       fallbackCopy(text);
     }
   };
+
+  useEffect(()=>{
+setKey("cart")
+  },[])
 
   const fallbackCopy = (text) => {
     const textarea = document.createElement("textarea");
@@ -259,6 +263,7 @@ const handleNext = async () => {
     setDistanceLoading(false);
   }
 };
+
 
 
 
@@ -498,20 +503,18 @@ const handleNext = async () => {
   return (
     <div>
       <div
-        className="modal fade show d-block"
-        tabIndex="-1"
-        style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+        className="container"
       >
-        <div className="modal-dialog modal-fullscreen modal-dialog-centered">
-          <div className="modal-content">
-            <div className="modal-header d-flex justify-content-between">
-              <div className="d-flex mt-2">
+        <div >
+          <div >
+            <div >
+              <div className="d-flex mt-4 ">
                 <i
                   class="fa-solid fa-circle-chevron-left mt-1"
                   style={{ fontSize: "18px" }}
                   onClick={() => navigate("/admin/user/dashboard")}
                 ></i>
-                <h5 className="ms-2  fw-bold">My Cart</h5>
+                <h5 className="ms-2  fw-bold">Back</h5>
               </div>
               {groupedCart.length === 0 ? (
                 ""

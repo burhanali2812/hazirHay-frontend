@@ -44,6 +44,7 @@ function App() {
     const role = sessionStorage.getItem("role");
 
   const [areaName, setAreaName] = useState("");
+  const [key, setKey] = useState("home");
   const [coordinates, setCoordinates] = useState([]);
   const [notification, setNotification] = useState([]);
   const [unSeenNotification, setUnSeenNotification] = useState([]);
@@ -268,6 +269,8 @@ const deleteNotification = async (id) => {
 
     fetchShopKepper();
   }, [update]);
+  console.log("key from app.jss", key);
+  
 
 
 
@@ -310,6 +313,7 @@ const deleteNotification = async (id) => {
               unSeenNotification={unSeenNotification} onUpdate = {updateNotification}
               cartData={cartData}
               shopKepperStatus2 = {shopKepperStatus2}
+              pageKey={key}
             />
           }
         >
@@ -395,6 +399,7 @@ const deleteNotification = async (id) => {
                 setAreaName={setAreaName}
                 coordinates={coordinates}
                 setCoordinates={setCoordinates}
+                setKey={setKey}
               />
             }
           />
@@ -409,15 +414,17 @@ const deleteNotification = async (id) => {
                 areaName={areaName}
                 coordinates={coordinates}
                 setCartData={setCartData}
+                setKey={setKey}
               />
             }
           />
           <Route
             path="user/tracking"
-            element={<Tracking setUpdateAppjs={setUpdateAppjs} />}
+            element={<Tracking setUpdateAppjs={setUpdateAppjs} setKey={setKey}/>}
+            
           />
           <Route path="user/findShops" element={<FindShops />} />
-          <Route path="user/notification" element={<Notification notification={notification} onDelete={deleteNotification} setNotification={setNotification} setUnSeenNotification={setUnSeenNotification}/>} />
+          <Route path="user/notification" element={<Notification notification={notification} onDelete={deleteNotification} setNotification={setNotification} setUnSeenNotification={setUnSeenNotification} setKey={setKey}/>} />
           <Route path="user/contact" element={<ContactUs />} />
           <Route path="user/orderWithJourney" element={<OrderWithJourney  setStausUpdate = {setStausUpdate}/>} />
          

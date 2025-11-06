@@ -16,6 +16,7 @@ function UserDashboard({
   areaName,
   setAreaName,
   setCoordinates,
+  setKey
 }) {
   const token = localStorage.getItem("token");
   const [shopAddressModal, setShopAddressModal] = useState(false);
@@ -80,6 +81,9 @@ function UserDashboard({
       setPage((prev) => prev - 1);
     }
   };
+  useEffect(()=>{
+    setKey("home")
+  },[])
 
   const handleOpenFilter = (e, filterType) => {
     e.preventDefault();

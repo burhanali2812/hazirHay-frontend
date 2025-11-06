@@ -1,11 +1,11 @@
-import React, { useState } from "react";
+import React, { useState , useEffect} from "react";
 import Swal from "sweetalert2";
 import notify from "../images/notify.png";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { IoNavigateCircleSharp } from "react-icons/io5";
 
-function Notification({ notification, onDelete , setNotification, setUnSeenNotification}) {
+function Notification({ notification, onDelete , setNotification, setUnSeenNotification, setKey}) {
   const [expandedIds, setExpandedIds] = useState({});
     const role = sessionStorage.getItem("role");
 const user = JSON.parse(sessionStorage.getItem("user"));
@@ -16,6 +16,10 @@ const navigate = useNavigate();
       [id]: !prev[id],
     }));
   };
+  useEffect(() => {
+  setKey("notification");
+}, []);
+
 
   const iconsList = {
     complete: {
