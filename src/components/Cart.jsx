@@ -501,14 +501,21 @@ const handleNext = async () => {
   };
 
   return (
-    <div>
+    <div style={{paddingBottom : "120px", paddingTop : "70px"}}>
       <div
-        className="container"
+        
       >
         <div >
           <div >
-            <div >
-              <div className="d-flex mt-4 ">
+            <div className="d-flex  justify-content-between align-items-center mb-4 bg-white py-3 px-2 " style={{
+                position: "fixed",
+    top: 0,
+    left: 0,
+    width: "100%",
+    zIndex: 1050
+
+            }}>
+              <div className="d-flex ">
                 <i
                   class="fa-solid fa-circle-chevron-left mt-1"
                   style={{ fontSize: "18px" }}
@@ -529,7 +536,8 @@ const handleNext = async () => {
               )}
             </div>
             <div className="modal-body" style={{ height: "auto" }}>
-              {groupedCart.length > 0 ? (
+            <div className="container">
+                {groupedCart.length > 0 ? (
                 groupedCart.map((shop, index) => (
                   <div
                     key={index}
@@ -615,50 +623,49 @@ const handleNext = async () => {
                   </p>
                 </div>
               )}
+
             </div>
-            <div
-              className={`modal-footer ${
-                groupedCart.length === 0
-                  ? ""
-                  : "d-flex justify-content-between align-items-center bg-light"
-              }`}
-            >
-              {groupedCart.length === 0 ? (
-                ""
-              ) : (
-                <div>
-                  <p className="mb-1 fs-5 fw-semibold text-primary">
-                    Total:{" "}
-                    <span className="text-success">Rs. {grandTotal}/-</span>
-                  </p>
-                  <p className="mb-0 text-muted">
-                    Total Items:{" "}
-                    <b className="text-dark">{cartData?.items?.length}</b>
-                  </p>
-                </div>
-              )}
-              {groupedCart.length === 0 ? (
-                ""
-              ) : (
-                <button
-                  type="button"
-                  className="btn btn-success px-4 rounded-pill shadow-sm"
-                  disabled={distanceLoading}
-                  onClick={handleNext}
-                >
-                  {distanceLoading ? (
-                    <>
-                      <span className="spinner-border spinner-border-sm me-2"></span>
-                      Loading...
-                    </>
-                  ) : (
-                    <>
-                      Next <i className="fa-solid fa-angles-right ms-"></i>
-                    </>
-                  )}
-                </button>
-              )}
             </div>
+          {groupedCart.length > 0 && (
+  <div
+    className=" bg-white d-flex justify-content-between align-items-center px-3 py-2"
+    style={{
+      position: "fixed",
+      bottom: "55px", // <---- place above bottom nav
+      left: 0,
+      width: "100%",
+      zIndex: 9999,
+    }}
+  >
+    <div>
+      <p className="mb-1 fs-6 fw-semibold text-primary">
+        Total: <span className="text-success">Rs. {grandTotal}/-</span>
+      </p>
+      <p className="mb-0 text-muted">
+        Total Items: <b className="text-dark">{cartData?.items?.length}</b>
+      </p>
+    </div>
+
+    <button
+      type="button"
+      className="btn btn-success px-4 rounded-pill shadow-sm"
+      disabled={distanceLoading}
+      onClick={handleNext}
+    >
+      {distanceLoading ? (
+        <>
+          <span className="spinner-border spinner-border-sm me-2"></span>
+          Loading...
+        </>
+      ) : (
+        <>
+          Next <i className="fa-solid fa-angles-right ms-1"></i>
+        </>
+      )}
+    </button>
+  </div>
+)}
+
           </div>
         </div>
       </div>
