@@ -512,7 +512,7 @@ const handleNext = async () => {
     top: 0,
     left: 0,
     width: "100%",
-    zIndex: 1050
+    zIndex: 1020
 
             }}>
               <div className="d-flex ">
@@ -631,10 +631,10 @@ const handleNext = async () => {
     className=" bg-white d-flex justify-content-between align-items-center px-3 py-2"
     style={{
       position: "fixed",
-      bottom: "55px", // <---- place above bottom nav
+      bottom: "55px", 
       left: 0,
       width: "100%",
-      zIndex: 9999,
+      zIndex: 1020,
     }}
   >
     <div>

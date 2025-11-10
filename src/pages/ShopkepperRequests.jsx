@@ -12,6 +12,7 @@ function ShopkepperRequests({
   refreshFlag,
   setRefreshFlag,
   shopKepperWorkers,
+  setKey,
 }) {
   const user = JSON.parse(sessionStorage.getItem("user"));
   const [requests, setRequests] = useState([]);
@@ -49,6 +50,10 @@ function ShopkepperRequests({
     "Unsafe working conditions",
     "Incorrect or incomplete address",
   ];
+
+  useEffect(()=>{
+    setKey("requests")
+  },[])
 
   const handleDeclineRequest = (order) => {
     setDeclineOrder(order);

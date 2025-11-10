@@ -332,6 +332,7 @@ const deleteNotification = async (id) => {
                 totalLiveShopkepper={totalLiveShopkepper}
                 setUpdate={setUpdate}
                 setUpdateAppjs={setUpdateAppjs}
+                 setKey={setKey}
               />
             }
           />
@@ -342,6 +343,7 @@ const deleteNotification = async (id) => {
                 setTopText={setTopText}
                 setUpdate={setUpdate}
                 shopWithShopkepper={shopWithShopkepper}
+                 setKey={setKey}
               />
             }
           />
@@ -364,6 +366,7 @@ const deleteNotification = async (id) => {
               <ShopKepperDashboard
                
                 setUpdateAppjs={setUpdateAppjs}
+                 setKey={setKey}
               
               />
             }
@@ -383,13 +386,14 @@ const deleteNotification = async (id) => {
                 refreshFlag={refreshFlag}
                 setRefreshFlag = {setRefreshFlag}
                 shopKepperWorkers={shopKepperWorkers}
+                 setKey={setKey}
               />
             }
           />
            <Route
             path="shopKepper/myShop"
             element={
-              <MyShop/>
+              <MyShop  setKey={setKey}/>
             }
           />
          

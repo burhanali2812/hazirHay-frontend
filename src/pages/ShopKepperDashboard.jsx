@@ -1,7 +1,7 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { useCheckBlockedStatus } from "../components/useCheckBlockedStatus";
-function ShopKepperDashboard({  setUpdateAppjs, }) {
+function ShopKepperDashboard({  setUpdateAppjs, setKey }) {
   const user = JSON.parse(sessionStorage.getItem("user"));
   const token = localStorage.getItem("token");
   const [orders, setOrders] = useState([]);
@@ -22,10 +22,11 @@ function ShopKepperDashboard({  setUpdateAppjs, }) {
     const [filterLoading, setFilterLoading] = useState(false);
       const role = sessionStorage.getItem("role");
 
-      useCheckBlockedStatus(token); // Custom hook to check if shopkeeper is blocked
+      useCheckBlockedStatus(token); 
 
   useEffect(() => {
     setUpdateAppjs(true);
+    setKey("home");
   }, []);
 useEffect(() => {
   if (!orders) return;
