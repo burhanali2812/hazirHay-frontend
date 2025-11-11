@@ -9,6 +9,8 @@ function ShopKepperDashboard({  setUpdateAppjs, setKey }) {
   const [rejectedOrders, setRejectedOrders] = useState([]);
   const [completedOrders, setCompletedOrders] = useState([]);
   const [inProgressOrder, setInprogressOrder] = useState([]);
+   const [assignedOrders, setAssignedOrders] = useState([]);
+
   const [totalOrdersEarnings, setTotalOrdersEarnings] = useState(0);
   const [filterModal, setFilterModal] = useState(false);
   const [TotalOrderscount, setTotalOrdersCount] = useState(0);
@@ -16,6 +18,7 @@ function ShopKepperDashboard({  setUpdateAppjs, setKey }) {
   const [inProgressOrdercount, setinProgressOrderCount] = useState(0);
   const [completedOrderscount, setcompletedOrdersCount] = useState(0);
   const [rejectedOrderscount, setrejectedOrdersCount] = useState(0);
+    const [assignedOrderscount, setAssignedOrdersCount] = useState(0);
     const [startDate, setStartDate] = useState("");
       const [shop, setShop] = useState(null);
   const [endDate, setEndDate] = useState("");
@@ -50,9 +53,10 @@ useEffect(() => {
   animateCount(setpendingOrdersCount, pendingOrders?.length || 0);
   animateCount(setinProgressOrderCount, inProgressOrder?.length || 0);
   animateCount(setrejectedOrdersCount, rejectedOrders?.length || 0);
+   animateCount(setAssignedOrdersCount, assignedOrders?.length || 0);
 
   return () => intervals.forEach((i) => clearInterval(i));
-}, [orders, completedOrders, pendingOrders, inProgressOrder, rejectedOrders]);
+}, [orders, completedOrders, pendingOrders, inProgressOrder, rejectedOrders, assignedOrders]);
 
 
 
@@ -109,6 +113,7 @@ const getShopkeeperOrders = async (type) => {
       );
       setCompletedOrders(orders.filter((o) => o.status === "completed"));
       setInprogressOrder(orders.filter((o) => o.status === "inProgress"));
+      setAssignedOrders(orders.filter((o) => o.status === "assigned"));
 
       if (type === "filter") {
         setFilterLoading(false);
@@ -348,34 +353,49 @@ const handleApplyFilter = () => {
 
   {/* Four Small Cards */}
   {[
-    {
-      title: "Pending",
-      count: pendingOrderscount,
-      color: "warning",
-      icon: "fa-hourglass-half",
-      bg: "rgba(255,193,7,0.1)",
-    },
-    {
-      title: "In Progress",
-      count: inProgressOrdercount,
-      color: "info",
-      icon: "fa-spinner",
-      bg: "rgba(13,202,240,0.1)",
-    },
-    {
-      title: "Completed",
-      count: completedOrderscount,
-      color: "success",
-      icon: "fa-check-circle",
-      bg: "rgba(25,135,84,0.1)",
-    },
-    {
-      title: "Rejected",
-      count: rejectedOrderscount,
-      color: "danger",
-      icon: "fa-xmark-circle",
-      bg: "rgba(220,53,69,0.1)",
-    },
+  {
+  title: "Pending",
+  count: pendingOrderscount,
+  color: "warning",
+  icon: "fa-hourglass-half",
+  bg: "rgba(255,193,7,0.1)",
+},
+{
+  title: "In Progress",
+  count: inProgressOrdercount,
+  color: "info",
+  icon: "fa-spinner",
+  bg: "rgba(13,202,240,0.1)",
+},
+{
+  title: "Completed",
+  count: completedOrderscount,
+  color: "success",
+  icon: "fa-check-circle",
+  bg: "rgba(25,135,84,0.1)",
+},
+{
+  title: "Rejected",
+  count: rejectedOrderscount,
+  color: "danger",
+  icon: "fa-xmark-circle",
+  bg: "rgba(220,53,69,0.1)",
+},
+{
+  title: "Assigned",
+  count: assignedOrderscount,
+  color: "primary",
+  icon: "fa-user-check",
+  bg: "rgba(13,110,253,0.1)",
+},
+{
+  title: "Unassigned",
+  count: rejectedOrderscount,
+  color: "secondary",
+  icon: "fa-user-clock",
+  bg: "rgba(108,117,125,0.1)",
+},
+
   ].map((card, index) => {
     // avoid divide by zero
     const percent =

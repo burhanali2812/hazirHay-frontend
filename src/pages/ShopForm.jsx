@@ -200,7 +200,7 @@ function ShopForm() {
   const handleDeleteService = async (service) => {
     const result = await Swal.fire({
       title: "Are you sure?",
-      html: `Are you sure to delete category :- <strong>${service.category}</strong> and subCategory :- <strong>${service.subCategory}</strong>`,
+      html: `Are you sure to delete category :- <strong>${service.category}</strong> and subCategory :- <strong>${service.subCategory.name}</strong>`,
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#d33",
@@ -218,11 +218,6 @@ function ShopForm() {
     setLoading(true);
     e.preventDefault();
 
-    if (!formData1.shopPicture) {
-      toast.error("Please upload a Shop picture");
-      setLoading(false);
-      return;
-    }
     if (!formData1.shopName.trim()) {
       toast.error("Shop Name cannot be empty");
       setLoading(false);
@@ -230,11 +225,6 @@ function ShopForm() {
     }
     if (!formData1.shopAddress.trim()) {
       toast.error("Shop address cannot be empty");
-      setLoading(false);
-      return;
-    }
-    if (!formData1.license.trim()) {
-      toast.error("License cannot be empty");
       setLoading(false);
       return;
     }
@@ -250,7 +240,6 @@ function ShopForm() {
       const formData = new FormData();
       formData.append("shopName", formData1.shopName);
       formData.append("shopAddress", formData1.shopAddress);
-      formData.append("license", formData1.license);
       formData.append("shopPicture", formData1.shopPicture);
       formData.append("coordinates", JSON.stringify(position));
       formData.append("area", finalAreaName);
@@ -264,15 +253,26 @@ function ShopForm() {
         }
       );
       if (response.status === 200) {
-        setSuccessAnimation(true);
+        window.scrollTo({ top: 0, behavior: "smooth" });
+
+        setTimeout(() => {
+          setSuccessAnimation(true);
+        }, 400);
         setLoading(false);
       }
     } catch (error) {
       setLoading(false);
       console.error("Error submitting shop information:", error);
-      toast.error(
-        error.response?.data?.message || "Failed to store shop information"
-      );
+      Swal.fire({
+        title: "Error!",
+        text:
+          error.response?.data?.message || "Failed to store shop information",
+        icon: "error",
+        background: "#f9f9f9",
+        customClass: {
+          popup: "swirl-popup",
+        },
+      });
     }
   };
   const handleCategoryChange = (e) => {
@@ -390,20 +390,9 @@ function ShopForm() {
             value={formData1.shopName}
             onChange={handleChange}
           />
-          <label htmlFor="nameInput"> Shop Name</label>
-        </div>
-
-        <div className="form-floating mb-3">
-          <input
-            type="number"
-            className="form-control"
-            name="license"
-            id="licenseInput"
-            placeholder="Enter your email"
-            value={formData1.license}
-            onChange={handleChange}
-          />
-          <label htmlFor="licenseInput">License Number</label>
+          <label htmlFor="nameInput">
+            Shop Name<span className="text-danger">*</span>
+          </label>
         </div>
 
         <div className="form-floating mb-3">
@@ -416,7 +405,9 @@ function ShopForm() {
             onChange={handleChange}
             style={{ height: "100px" }}
           ></textarea>
-          <label htmlFor="shopAddressInput">Shop Address</label>
+          <label htmlFor="shopAddressInput">
+            Shop Address<span className="text-danger">*</span>
+          </label>
         </div>
         <div className="form-floating mb-3">
           <textarea
@@ -429,7 +420,9 @@ function ShopForm() {
             style={{ height: "100px" }}
             disabled={true}
           ></textarea>
-          <label htmlFor="currentLocationInput">Shop Current Location</label>
+          <label htmlFor="currentLocationInput">
+            Shop Current Location<span className="text-danger">*</span>
+          </label>
         </div>
 
         <div className="d-flex align-items-center my-3">
@@ -641,55 +634,64 @@ function ShopForm() {
       )}
       {successAnimation && (
         <>
-          <div
-            className="offcanvas offcanvas-bottom show"
-            tabIndex="-1"
-            style={{
-              height: "55vh",
-              visibility: "visible",
-              backgroundColor: "#fff",
-              borderTopLeftRadius: "10px",
-              borderTopRightRadius: "10px",
-            }}
-          >
-            <div className="offcanvas-body position-relative text-center d-flex flex-column justify-content-center align-items-center ">
-              {/* Close Button */}
-              <button
-                className="btn-close position-absolute"
-                style={{ top: 10, right: 15 }}
-                onClick={() => navigate("/login")}
-              ></button>
-
-              <DotLottieReact
-                src="https://lottie.host/d78f201d-181a-450c-803f-43ab471ef7f1/ENnJonrsix.lottie"
-                loop
-                autoplay
-                style={{ width: "225px", height: "185px" }}
-              />
-
-              {/* Message */}
-              <h4 className="text-success">🎉 Account Created Successfully!</h4>
-              <p className="mt-2 " style={{ maxWidth: "600px" }}>
-                Thank you for registering with <strong>Hazir Hay</strong>! We’re
-                thrilled to have you on board —{" "}
-                <em>Anything, Anytime, Anywhere</em>, Hazir Hay!
-              </p>
-
-              <button
-                onClick={() => navigate("/login")}
-                className="btn btn-outline-success mt-1 d-flex align-items-center gap-2"
-              >
-                <i className="fas fa-sign-in-alt"></i>
-                Go to Login
-              </button>
-            </div>
-          </div>
-
           {/* Backdrop */}
           <div
-            className="offcanvas-backdrop fade show"
+            style={{
+              position: "fixed",
+              top: 0,
+              left: 0,
+              width: "100vw",
+              height: "100vh",
+              backgroundColor: "rgba(0,0,0,0.5)",
+              zIndex: 9998,
+            }}
             onClick={() => setSuccessAnimation(false)}
           />
+
+          {/* Success Modal */}
+          <div
+            style={{
+              position: "fixed",
+              bottom: 0,
+              left: 0,
+              width: "100%",
+              height: "55vh",
+              backgroundColor: "#fff",
+              borderTopLeftRadius: "14px",
+              borderTopRightRadius: "14px",
+              zIndex: 9999,
+            }}
+            className="d-flex flex-column justify-content-center align-items-center text-center p-4"
+          >
+            <button
+              className="btn-close position-absolute"
+              style={{ top: 15, right: 15 }}
+              onClick={() => navigate("/login")}
+            ></button>
+
+            <DotLottieReact
+              src="https://lottie.host/d78f201d-181a-450c-803f-43ab471ef7f1/ENnJonrsix.lottie"
+              loop
+              autoplay
+              style={{ width: "225px", height: "185px" }}
+            />
+
+            <h4 className="text-success">🎉 Account Created Successfully!</h4>
+            <p className="mt-2 " style={{ maxWidth: "600px" }}>
+              {" "}
+              Thank you for registering with <strong>Hazir Hay</strong>! We’re
+              thrilled to have you on board —{" "}
+              <em>Anything, Anytime, Anywhere</em>, Hazir Hay!{" "}
+            </p>
+
+            <button
+              onClick={() => navigate("/login")}
+              className="btn btn-outline-success mt-2 d-flex align-items-center gap-2"
+            >
+              <i className="fas fa-sign-in-alt"></i>
+              Go to Login
+            </button>
+          </div>
         </>
       )}
 
@@ -795,8 +797,6 @@ function ShopForm() {
                     setPrice("");
                     setDescription("");
                     setPriceModal(false);
-                    setSelectedCategory(null);
-                    setSelectedSubCategory(null);
                     setRecommendedPrice([]);
                   }}
                 >

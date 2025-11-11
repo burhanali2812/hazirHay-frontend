@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import offline from "../images/offline.png";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import axios from "axios";
 import UserShopRoute from "../components/UserShopRoute";
@@ -1218,10 +1218,16 @@ Object.entries(selectedWorkers)?.map(([orderId, worker]) => {
                                             )
                                           ) : (
                                             <li>
-                                              <div className="dropdown-item text-muted text-center py-3 small">
-                                                <i className="fa-regular fa-face-frown me-1"></i>{" "}
-                                                No workers available
-                                              </div>
+                                           <div className="dropdown-item text-muted text-center py-3 small">
+  <i className="fa-regular fa-face-frown me-1"></i>
+  No workers available
+  <div className="mt-1">
+    <Link to="/admin/shopKepper/worker/signup" className="fw-bold">
+      Add New Worker
+    </Link>
+  </div>
+</div>
+
                                             </li>
                                           )}
                                           <hr />

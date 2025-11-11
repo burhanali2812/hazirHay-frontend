@@ -4,6 +4,7 @@ import "animate.css";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
+import Swal from "sweetalert2";
 import imageCompression from "browser-image-compression";
 import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import successAudio from "../sounds/success.mp3";
@@ -20,7 +21,6 @@ function Signup({ onUserAdded, onShopKepperAdded }) {
     address: "",
     password: "",
     confirmPassword: "",
-    verificationDocument: null,
   });
   const [isChecked, setIsChecked] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -59,12 +59,6 @@ function Signup({ onUserAdded, onShopKepperAdded }) {
     e.preventDefault();
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const phoneRegex = /^\+?\d{10,15}$/;
-
-    if (!formData1.profilePicture) {
-      toast.error("Please upload a profile picture");
-      setLoading(false);
-      return;
-    }
     if (!formData1.name.trim()) {
       toast.error("Name cannot be empty");
       setLoading(false);
@@ -98,11 +92,6 @@ function Signup({ onUserAdded, onShopKepperAdded }) {
 
     if (formData1.cnic.trim().length !== 13 && role !== "user") {
       toast.error("Please enter a valid 13-digit CNIC without dashes");
-      setLoading(false);
-      return;
-    }
-    if (formData1.verificationDocument === null && role !== "user") {
-      toast.error("Please upload a verification document");
       setLoading(false);
       return;
     }
@@ -144,7 +133,6 @@ function Signup({ onUserAdded, onShopKepperAdded }) {
     formData.append("address", formData1.address);
     formData.append("role", finalRole);
     formData.append("profilePicture", formData1.profilePicture);
-    formData.append("verificationDocument", formData1.verificationDocument);
 
     try {
       const response = await axios.post(
@@ -169,6 +157,16 @@ function Signup({ onUserAdded, onShopKepperAdded }) {
         }
       }
     } catch (error) {
+            Swal.fire({
+              title: "Error!",
+              text:
+                error.response?.data?.message || "Signup failed",
+              icon: "error",
+              background: "#f9f9f9",
+              customClass: {
+                popup: "swirl-popup",
+              },
+            });
       console.error("Signup failed:", error.response?.data || error.message);
       toast.error("Something went wrong. Please try again.");
     } finally {
@@ -275,7 +273,7 @@ function Signup({ onUserAdded, onShopKepperAdded }) {
             onChange={handleChange}
             required
           />
-          <label htmlFor="nameInput">Name</label>
+          <label htmlFor="nameInput">Name<span className="text-danger">*</span></label>
         </div>
 
         <div className="form-floating mb-3">
@@ -289,7 +287,7 @@ function Signup({ onUserAdded, onShopKepperAdded }) {
             onChange={handleChange}
             required
           />
-          <label htmlFor="emailInput">Email</label>
+          <label htmlFor="emailInput">Email<span className="text-danger">*</span></label>
         </div>
 
         <div className="form-floating mb-3">
@@ -303,7 +301,7 @@ function Signup({ onUserAdded, onShopKepperAdded }) {
             onChange={handleChange}
             required
           />
-          <label htmlFor="contactInput">Contact</label>
+          <label htmlFor="contactInput">Contact<span className="text-danger">*</span></label>
         </div>
         {role === "service" ? (
           <div className="form-floating mb-3">
@@ -317,7 +315,7 @@ function Signup({ onUserAdded, onShopKepperAdded }) {
               onChange={handleChange}
               required
             />
-            <label htmlFor="cnicInput">CNIC# (without dashes)</label>
+            <label htmlFor="cnicInput">CNIC# (without dashes)<span className="text-danger">*</span></label>
           </div>
         ) : (
           ""
@@ -334,81 +332,10 @@ function Signup({ onUserAdded, onShopKepperAdded }) {
             style={{ height: "100px" }}
             required
           ></textarea>
-          <label htmlFor="addressInput">Address</label>
+          <label htmlFor="addressInput">Address<span className="text-danger">*</span></label>
         </div>
 
-        {role === "service" && (
-          <>
-            <p className="note-text mt-2">
-              <strong>Note:</strong> You can upload any verification document,
-              such as{" "}
-              <span className="text-primary fw-bold">
-                CNIC front side photo
-              </span>
-              , <span className="text-primary fw-bold">passport photo</span>, or{" "}
-              <span className="text-primary fw-bold">license</span>.
-            </p>
-
-            <div
-              className="d-flex justify-content-center"
-              style={{ marginTop: 10 }}
-            >
-              <div
-                style={{
-                  width: "100%",
-                  height: "180px",
-                  borderRadius: "3%",
-                  border: "2px solid black",
-                  marginBottom: "10px",
-                  backgroundColor: "#eafaffff",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  overflow: "hidden",
-                  fontSize: "100px",
-                  color: "white",
-                  flexDirection: "column",
-                  textAlign: "center",
-                }}
-              >
-                {formData1.verificationDocument ? (
-                  <img
-                    src={URL.createObjectURL(formData1.verificationDocument)}
-                    alt="verificationDocument"
-                    style={{
-                      width: "100%",
-                      height: "100%",
-                      objectFit: "cover",
-                    }}
-                  />
-                ) : (
-                  <>
-                    <i
-                      className="fas fa-id-card text-dark"
-                      style={{ fontSize: "4.5rem" }}
-                    ></i>
-                    <h5 className="my-2 text-dark">
-                      Upload Verification Document
-                    </h5>
-                  </>
-                )}
-              </div>
-            </div>
-
-            <div className="mb-3 input-group mt-2">
-              <span className="input-group-text bg-white">
-                <i className="fas fa-image"></i>
-              </span>
-              <input
-                type="file"
-                className="form-control "
-                name="verificationDocument"
-                accept="image/*"
-                onChange={handleChange}
-              />
-            </div>
-          </>
-        )}
+    
 
         <div className="form-floating  mb-2">
           <input
@@ -421,7 +348,7 @@ function Signup({ onUserAdded, onShopKepperAdded }) {
             onChange={handleChange}
             required
           />
-          <label htmlFor="passwordInput">Password</label>
+          <label htmlFor="passwordInput">Password<span className="text-danger">*</span></label>
         </div>
 
         <div className="form-floating mb-2">
@@ -435,7 +362,7 @@ function Signup({ onUserAdded, onShopKepperAdded }) {
             onChange={handleChange}
             required
           />
-          <label htmlFor="confirmPasswordInput">Confirm Password</label>
+          <label htmlFor="confirmPasswordInput">Confirm Password<span className="text-danger">*</span></label>
         </div>
         <div className="form-check mb-3 mx-1">
           <input
