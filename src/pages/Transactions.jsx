@@ -54,14 +54,14 @@ const Transactions = () => {
     {
       transactions?.length > 0 && (
           <div className="mb-3 d-flex justify-content-between align-items-center">
-<button className="btn btn-sm btn-primary px-4" onClick={()=>setDateModalOpen(true)}>
+<button className="btn btn-sm btn-primary px-2" onClick={()=>setDateModalOpen(true)}>
   <>
     <i className="fa-solid fa-calendar-days me-2"></i>
     {`${new Date(Date.now() - 10 * 24 * 60 * 60 * 1000)
       .toLocaleDateString("en-GB")} - ${new Date().toLocaleDateString("en-GB")}`}
   </>
 </button>
-       <button className="btn-sm btn btn-primary px-4">{<><i class="fa-solid fa-download me-2"></i>Download</>}</button>
+       <button className="btn-sm btn btn-primary px-2">{<><i class="fa-solid fa-download me-2"></i>Download</>}</button>
       </div>
       )
     }
