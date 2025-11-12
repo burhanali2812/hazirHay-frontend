@@ -5,8 +5,11 @@ const Transactions = () => {
   const [transactions, setTransactions] = useState([]);
   const [selectedTransaction, setSelectedTransaction] = useState(null);
   const [transactionModal, setTransactionModal] = useState(false);
-  const [startDate, setStartDate] = useState(null);
-  const [endDate, setEndDate] = useState(null);
+   const [filterLoading, setFilterLoading] = useState(false);
+const [startDate, setStartDate] = useState(
+  new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]
+);
+const [endDate, setEndDate] = useState(new Date().toISOString().split("T")[0]);
   const [dateModalOpen, setDateModalOpen] = useState(false);
   const user = JSON.parse(sessionStorage.getItem("user"));
   const token = localStorage.getItem("token");
@@ -22,7 +25,19 @@ const Transactions = () => {
         }
       );
       if (response.data.success) {
-        setTransactions(response.data.data);
+      let orders = response.data.data;
+         if (startDate && endDate) {
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+
+        orders = orders.filter((req) => {
+          const createdAt = new Date(req.date);
+          return createdAt >= start && createdAt <= end;
+        });
+      }
+        setTransactions(orders);
+        
         //alert("Transactions fetched successfully");
       }
     } catch (error) {
@@ -32,6 +47,13 @@ const Transactions = () => {
   useEffect(() => {
     fetchTransactions();
   }, []);
+
+  const applyFilter  = async () => {
+    setFilterLoading(true);
+    await fetchTransactions();
+    setFilterLoading(false);
+    setDateModalOpen(false);
+  }
 
   const handleOpenMOdal = (transaction) => {
     setSelectedTransaction(transaction);
@@ -46,25 +68,26 @@ const Transactions = () => {
         <i
           className="fa-solid fa-arrow-left position-absolute start-0 mt-1"
           style={{ cursor: "pointer", fontSize: "18px" }}
-          onClick={() => window.history.back()} // optional back functionality
+          onClick={() => window.history.back()} 
         ></i>
 
-        <h4 className="m-0 text-center fw-bold">Transactions</h4>
+        <h5 className="m-0 text-center fw-bold">Transactions</h5>
       </div>
-    {
-      transactions?.length > 0 && (
+
           <div className="mb-3 d-flex justify-content-between align-items-center">
-<button className="btn btn-sm btn-primary px-2" onClick={()=>setDateModalOpen(true)}>
-  <>
-    <i className="fa-solid fa-calendar-days me-2"></i>
-    {`${new Date(Date.now() - 10 * 24 * 60 * 60 * 1000)
-      .toLocaleDateString("en-GB")} - ${new Date().toLocaleDateString("en-GB")}`}
-  </>
+<button
+  className="btn btn-sm btn-primary px-2"
+  onClick={() => setDateModalOpen(true)}
+>
+  <i className="fa-solid fa-calendar-days me-2"></i>
+  {`${new Date(startDate).toLocaleDateString("en-GB")} - ${new Date(
+    endDate
+  ).toLocaleDateString("en-GB")}`}
 </button>
-       <button className="btn-sm btn btn-primary px-2">{<><i class="fa-solid fa-download me-2"></i>Download</>}</button>
+
+       <button className="btn-sm btn btn-outline-primary px-2" disabled={transactions.length === 0}>{<><i class="fa-solid fa-download me-2"></i>Download</>}</button>
       </div>
-      )
-    }
+  
 
       {transactions?.length === 0 ? (
         <p className="text-muted">No transactions found.</p>
@@ -147,7 +170,7 @@ const Transactions = () => {
           ></button>
         </div>
 
-        {/* Body */}
+    
         <div className="modal-body text-start  container">
           {selectedTransaction ? (
             <>
@@ -231,7 +254,7 @@ const Transactions = () => {
 </div>
 
 
-  {/* Divider */}
+
   <div className="my-4 text-center">
     <hr className="border-2 opacity-50" />
     <p className="text-muted small mb-0">
@@ -373,7 +396,22 @@ const Transactions = () => {
             />
           </div>
 
-          <button className="btn btn-outline-dark w-100">Apply Filter<i class="fa-solid fa-filter ms-2"></i></button>
+          <button className="btn btn-outline-dark w-100" onClick={applyFilter}>
+             {filterLoading ? (
+              <>
+                Applying...
+                <div
+                  className="spinner-border spinner-border-sm text-light ms-2"
+                  role="status"
+                ></div>
+              </>
+            ) : (
+              <>
+                Apply Filter<i class="fa-solid fa-filter ms-2"></i>
+              </>
+            )}
+            
+            </button>
         </div>
       </div>
     </div>
