@@ -1,10 +1,13 @@
 import axios from "axios";
 import React, { useState, useEffect } from "react";
-
+import "../pages/style.css";
 const Transactions = () => {
   const [transactions, setTransactions] = useState([]);
   const [selectedTransaction, setSelectedTransaction] = useState(null);
   const [transactionModal, setTransactionModal] = useState(false);
+  const [startDate, setStartDate] = useState(null);
+  const [endDate, setEndDate] = useState(null);
+  const [dateModalOpen, setDateModalOpen] = useState(false);
   const user = JSON.parse(sessionStorage.getItem("user"));
   const token = localStorage.getItem("token");
   const fetchTransactions = async () => {
@@ -48,6 +51,20 @@ const Transactions = () => {
 
         <h4 className="m-0 text-center fw-bold">Transactions</h4>
       </div>
+    {
+      transactions?.length > 0 && (
+          <div className="mb-3 d-flex justify-content-between align-items-center">
+<button className="btn btn-sm btn-primary px-4" onClick={()=>setDateModalOpen(true)}>
+  <>
+    <i className="fa-solid fa-calendar-days me-2"></i>
+    {`${new Date(Date.now() - 10 * 24 * 60 * 60 * 1000)
+      .toLocaleDateString("en-GB")} - ${new Date().toLocaleDateString("en-GB")}`}
+  </>
+</button>
+       <button className="btn-sm btn btn-primary px-4">{<><i class="fa-solid fa-download me-2"></i>Download</>}</button>
+      </div>
+      )
+    }
 
       {transactions?.length === 0 ? (
         <p className="text-muted">No transactions found.</p>
@@ -106,7 +123,7 @@ const Transactions = () => {
       )}
 {transactionModal && (
   <div
-    className="modal fade show d-block animate__animated animate__fadeIn"
+    className="modal fade show d-block "
     tabIndex="-1"
     style={{
       backgroundColor: "rgba(0, 0, 0, 0.6)",
@@ -131,88 +148,88 @@ const Transactions = () => {
         </div>
 
         {/* Body */}
-        <div className="modal-body text-start p-2">
+        <div className="modal-body text-start  container">
           {selectedTransaction ? (
             <>
               {/* Top Details */}
 <div className="container mt-3">
-  <div className="row g-3">
-    {/* Worker Card */}
-    <div className="col-md-6">
-      <div
-        className="d-flex flex-column align-items-center text-center border rounded p-3 shadow-sm h-100"
-        style={{ backgroundColor: "#f9fafb" }}
-      >
-        <div
-          className="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center mb-2"
-          style={{ width: "35px", height: "35px", fontSize: "14px" }}
-        >
-          {selectedTransaction.workerId?.name?.[0]?.toUpperCase() || "W"}
-        </div>
-        <p className="fw-bold mb-1 text-dark">
-          {selectedTransaction.workerId?.name || "Unknown"}
-        </p>
-        <span className="badge bg-primary text-light mb-2 small">Worker</span>
-
-        <div className="d-flex justify-content-center gap-3 mt-2">
-          <a
-            href={`tel:${selectedTransaction.workerId?.phone || ""}`}
-            className="text-decoration-none text-primary"
-            title="Call Worker"
-          >
-            <i className="fa-solid fa-phone"></i>
-          </a>
-          <a
-            href={`https://wa.me/${selectedTransaction.workerId?.phone || ""}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-decoration-none text-success"
-            title="WhatsApp Worker"
-          >
-            <i className="fa-brands fa-whatsapp fa-lg"></i>
-          </a>
-        </div>
-      </div>
+<div
+  className="d-flex justify-content-between align-items-start gap-2 flex-wrap"
+  style={{ backgroundColor: "#fff" }}
+>
+  {/* Worker Card */}
+  <div
+    className="d-flex flex-column align-items-center text-center  rounded p-2 shadow-sm flex-fill"
+    style={{ backgroundColor: "#f9fafb", width: "48%" }}
+  >
+    <div
+      className="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center mb-2"
+      style={{ width: "40px", height: "40px", fontSize: "16px" }}
+    >
+      {selectedTransaction.workerId?.name?.[0]?.toUpperCase() || "W"}
     </div>
+    <p className="fw-semibold mb-1 text-dark" style={{ fontSize: "14px" }}>
+      {selectedTransaction.workerId?.name || "Unknown"}
+    </p>
+    <span className="badge bg-primary text-light mb-2 small">Worker</span>
 
-    {/* Customer Card */}
-    <div className="col-md-6">
-      <div
-        className="d-flex flex-column align-items-center text-center border rounded p-3 shadow-sm "
-        style={{ backgroundColor: "#f9fafb" }}
+    <div className="d-flex justify-content-center gap-3">
+      <a
+        href={`tel:${selectedTransaction.workerId?.phone || ""}`}
+        className="text-decoration-none text-primary"
+        title="Call Worker"
       >
-        <div
-          className="rounded-circle bg-success text-white d-flex align-items-center justify-content-center mb-2"
-          style={{ width: "35px", height: "35px", fontSize: "14px" }}
-        >
-          {selectedTransaction.customerId?.name?.[0]?.toUpperCase() || "C"}
-        </div>
-        <p className="fw-bold mb-1 text-dark">
-          {selectedTransaction.customerId?.name || "Unknown"}
-        </p>
-        <span className="badge bg-success text-light mb-2 small">Customer</span>
-
-        <div className="d-flex justify-content-center gap-3 mt-2">
-          <a
-            href={`tel:${selectedTransaction.customerId?.phone || ""}`}
-            className="text-decoration-none text-primary"
-            title="Call Customer"
-          >
-            <i className="fa-solid fa-phone "></i>
-          </a>
-          <a
-            href={`https://wa.me/${selectedTransaction.customerId?.phone || ""}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-decoration-none text-success"
-            title="WhatsApp Customer"
-          >
-            <i className="fa-brands fa-whatsapp fa-lg"></i>
-          </a>
-        </div>
-      </div>
+        <i className="fa-solid fa-phone"></i>
+      </a>
+      <a
+        href={`https://wa.me/${selectedTransaction.workerId?.phone || ""}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-decoration-none text-success"
+        title="WhatsApp Worker"
+      >
+        <i className="fa-brands fa-whatsapp fa-lg"></i>
+      </a>
     </div>
   </div>
+
+  {/* Customer Card */}
+  <div
+    className="d-flex flex-column align-items-center text-center  rounded p-2 shadow-sm flex-fill"
+    style={{ backgroundColor: "#f9fafb", width: "48%" }}
+  >
+    <div
+      className="rounded-circle bg-success text-white d-flex align-items-center justify-content-center mb-2"
+      style={{ width: "40px", height: "40px", fontSize: "16px" }}
+    >
+      {selectedTransaction.customerId?.name?.[0]?.toUpperCase() || "C"}
+    </div>
+    <p className="fw-semibold mb-1 text-dark" style={{ fontSize: "14px" }}>
+      {selectedTransaction.customerId?.name || "Unknown"}
+    </p>
+    <span className="badge bg-success text-light mb-2 small">Customer</span>
+
+    <div className="d-flex justify-content-center gap-3">
+      <a
+        href={`tel:${selectedTransaction.customerId?.phone || ""}`}
+        className="text-decoration-none text-primary"
+        title="Call Customer"
+      >
+        <i className="fa-solid fa-phone"></i>
+      </a>
+      <a
+        href={`https://wa.me/${selectedTransaction.customerId?.phone || ""}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-decoration-none text-success"
+        title="WhatsApp Customer"
+      >
+        <i className="fa-brands fa-whatsapp fa-lg"></i>
+      </a>
+    </div>
+  </div>
+</div>
+
 
   {/* Divider */}
   <div className="my-4 text-center">
@@ -241,7 +258,7 @@ const Transactions = () => {
                           {req.orderId || req._id}
                         </span>
                         <span className="fw-bold text-success">
-                          Rs. {req.cost || 0}
+                          Rs. {req.cost || 0}/-
                         </span>
                       </div>
                       <p className="text-muted small mb-0 ms-4">
@@ -264,19 +281,19 @@ const Transactions = () => {
                     {selectedTransaction.orderIds?.reduce(
                       (sum, o) => sum + (o.cost || 0),
                       0
-                    )}
+                    )}/-
                   </span>
                 </div>
                 <div className="d-flex justify-content-between mb-1">
                   <span>Delivery Charges:</span>
                   <span className="fw-semibold">
-                    Rs. {selectedTransaction.deliveryCharge?.toFixed(2) || 0}
+                    Rs. {selectedTransaction.deliveryCharge?.toFixed(0) || 0}/-
                   </span>
                 </div>
                 <div className="d-flex justify-content-between fw-bold border-top pt-1">
                   <span>Subtotal:</span>
                   <span className="text-success">
-                    Rs. {selectedTransaction.totalPayable?.toFixed(2) || 0}
+                    Rs. {selectedTransaction.totalPayable?.toFixed(0) || 0}/-
                   </span>
                 </div>
               </div>
@@ -289,6 +306,81 @@ const Transactions = () => {
     </div>
   </div>
 )}
+
+{dateModalOpen && (
+  <div
+    className="modal fade show d-block"
+    tabIndex="-1"
+    style={{
+      backgroundColor: "rgba(0, 0, 0, 0.6)",
+      backdropFilter: "blur(2px)",
+    }}
+  >
+    <div
+      className="modal-dialog modal-sm"
+      style={{
+        position: "fixed",
+        bottom: "0",
+        left: "50%",
+        transform: "translateX(-50%)",
+        margin: 0,
+        width: "100%",
+        maxWidth: "400px",
+        animation: "slideUp 0.3s ease",
+      }}
+    >
+      <div
+        className="modal-content shadow-lg border-0"
+        style={{
+          borderRadius: "15px 15px 0 0",
+          overflow: "hidden",
+        }}
+      >
+        {/* Header */}
+        <div
+          className="modal-header text-light py-2 px-3"
+          style={{
+            backgroundColor: "#1e1e2f",
+          }}
+        >
+          <h6 className="modal-title m-0">Select Date Range</h6>
+          <button
+            type="button"
+            className="btn-close btn-close-white"
+            aria-label="Close"
+            onClick={() => setDateModalOpen(false)}
+          ></button>
+        </div>
+
+        {/* Body */}
+        <div className="modal-body text-start container">
+          <div className="mb-3">
+            <label className="form-label fw-semibold">Start Date</label>
+            <input
+              type="date"
+              className="form-control"
+              value={startDate || ""}
+              onChange={(e) => setStartDate(e.target.value)}
+            />
+          </div>
+          <div className="mb-3">
+            <label className="form-label fw-semibold">End Date</label>
+            <input
+              type="date"
+              className="form-control"
+              value={endDate || ""}
+              onChange={(e) => setEndDate(e.target.value)}
+            />
+          </div>
+
+          <button className="btn btn-outline-dark w-100">Apply Filter<i class="fa-solid fa-filter ms-2"></i></button>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
+
+
 
 
     </div>
