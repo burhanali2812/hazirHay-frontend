@@ -10,6 +10,7 @@ function ShopKepperDashboard({  setUpdateAppjs, setKey }) {
   const [completedOrders, setCompletedOrders] = useState([]);
   const [inProgressOrder, setInprogressOrder] = useState([]);
    const [assignedOrders, setAssignedOrders] = useState([]);
+      const [unAssignedOrders, setUnAssignedOrders] = useState([]);
 
   const [totalOrdersEarnings, setTotalOrdersEarnings] = useState(0);
   const [filterModal, setFilterModal] = useState(false);
@@ -19,6 +20,7 @@ function ShopKepperDashboard({  setUpdateAppjs, setKey }) {
   const [completedOrderscount, setcompletedOrdersCount] = useState(0);
   const [rejectedOrderscount, setrejectedOrdersCount] = useState(0);
     const [assignedOrderscount, setAssignedOrdersCount] = useState(0);
+     const [unAssignedOrderscount, setUnAssignedOrdersCount] = useState(0);
     const [startDate, setStartDate] = useState("");
       const [shop, setShop] = useState(null);
   const [endDate, setEndDate] = useState("");
@@ -54,9 +56,10 @@ useEffect(() => {
   animateCount(setinProgressOrderCount, inProgressOrder?.length || 0);
   animateCount(setrejectedOrdersCount, rejectedOrders?.length || 0);
    animateCount(setAssignedOrdersCount, assignedOrders?.length || 0);
+   animateCount(setUnAssignedOrdersCount, unAssignedOrders?.length || 0);
 
   return () => intervals.forEach((i) => clearInterval(i));
-}, [orders, completedOrders, pendingOrders, inProgressOrder, rejectedOrders, assignedOrders]);
+}, [orders, completedOrders, pendingOrders, inProgressOrder, rejectedOrders, assignedOrders, unAssignedOrders]);
 
 
 
@@ -114,6 +117,7 @@ const getShopkeeperOrders = async (type) => {
       setCompletedOrders(orders.filter((o) => o.status === "completed"));
       setInprogressOrder(orders.filter((o) => o.status === "inProgress"));
       setAssignedOrders(orders.filter((o) => o.status === "assigned"));
+      setUnAssignedOrders(orders.filter((o) => o.status === "unAssigned"));
 
       if (type === "filter") {
         setFilterLoading(false);
@@ -390,7 +394,7 @@ const handleApplyFilter = () => {
 },
 {
   title: "Unassigned",
-  count: rejectedOrderscount,
+  count: unAssignedOrderscount,
   color: "secondary",
   icon: "fa-user-clock",
   bg: "rgba(108,117,125,0.1)",

@@ -26,6 +26,7 @@ import MyShop from "./pages/MyShop";
 import Blocked from "./pages/Blocked";
 import WorkerSignup from "./pages/WorkerSignup";
 import WorkerDashboard from "./pages/WorkerDashboard";
+import Transactions from "./pages/Transactions";
 
 function App() {
   const [topText, setTopText] = useState("");
@@ -396,6 +397,13 @@ const deleteNotification = async (id) => {
               <MyShop  setKey={setKey}/>
             }
           />
+           <Route
+            path="shopKepper/transactions"
+            element={
+              <Transactions/>
+            }
+          />
+          
          
           <Route
             path="user/dashboard"

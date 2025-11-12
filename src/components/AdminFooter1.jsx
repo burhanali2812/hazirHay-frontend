@@ -418,6 +418,9 @@ localStorage.clear();
               <button className="mt-2 btn btn-primary" onClick={logOut}>
                 Logout
               </button>
+                  <button className="mt-2 btn btn-success" onClick={() => navigate('/admin/shopKepper/transactions')}>
+                Transactions
+              </button>
             </>
           )}
         </div>
