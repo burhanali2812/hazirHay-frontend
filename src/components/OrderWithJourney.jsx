@@ -16,6 +16,12 @@ function OrderWithJourney({ setStausUpdate }) {
   const [shareLoading, setShareLoading] = useState(false);
   const [cancelLoading, setCalcelLoading] = useState(false);
   const [isContentShow, setIsContentShow] = useState(true);
+    const role = sessionStorage.getItem("role");
+      useEffect(() => {
+      if (role !== "worker") {
+        navigate("/unauthorized/user", { replace: true });
+      }
+    }, [role]);
   const selectedTrackShopData = JSON.parse(
     localStorage.getItem("currentCheckout")
   );

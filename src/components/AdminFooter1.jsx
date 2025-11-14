@@ -175,6 +175,57 @@ function AdminFooter({
         path: "/admin/user/tracking",
       },
     ],
+ 
+       shopKepper: [
+      {
+        key: "dashboard",
+        icon: "fa-solid fa-gauge",
+        label: "Dashboard",
+        path: "/admin/shopKepper/dashboard",
+      },
+      {
+        key: "workers",
+        icon: "fa-solid fa-users-line",
+        label: "Workers",
+        path: "/admin/shopKepper/workersList",
+      },
+      {
+        key: "shop",
+        icon: "fa-solid fa-shop",
+        label: "My Shop",
+        path: "/admin/shopKepper/myShop",
+      },
+      {
+        key: "transactions",
+        icon: "fa-solid fa-receipt",
+        label: "Transaction History",
+        path: "/admin/shopKepper/transactions",
+      },
+      {
+        key: "contact",
+        icon: "fa-solid fa-address-book",
+        label: "Contact Us",
+        path: "/admin/user/contact",
+      },
+      {
+        key: "about",
+        icon: "fa-solid fa-clipboard-user",
+        label: "About Us",
+        path: "/admin/user/tracking",
+      },
+      {
+        key: "faq",
+        icon: "fa-solid fa-file-circle-question",
+        label: "FAQs",
+        path: "/admin/user/tracking",
+      },
+      {
+        key: "setting",
+        icon: "fa-solid fa-user-gear",
+        label: "Profile Setting",
+        path: "/admin/user/tracking",
+      },
+    ],
   };
 
   const currentMenu = menus[role] || menus.user;
@@ -320,15 +371,32 @@ localStorage.clear();
             </div>
           </div>
 
-          {(role === "user" || role === "admin") && (
+          {(role === "user" || role === "admin" || role === "shopKepper") && (
             <>
               <div className="text-center mb-4">
                 <h5 className="fw-bold mb-1 d-inline-flex align-items-center">
                   {currentUser?.name}
-                  <i
+                  {
+                    role === "shopKepper" ? (
+                                      <i
+                  className={`${
+                    currentUser?.isVerified
+                      ? "fa-solid fa-circle-check"
+                      : "fa-solid fa-circle-xmark"
+                  } ms-1`}
+                  style={{
+                    color: currentUser?.isVerified ? "#28a745" : "#dc3545",
+                    fontSize: "18px",
+                  }}
+                ></i>
+                    ):(
+                       <i
                     className="fa-solid fa-circle-check ms-2"
                     style={{ color: "#4caf50", fontSize: "16px" }}
                   ></i>
+                    )
+                  }
+                 
                 </h5>
 
                 <div>
@@ -338,12 +406,14 @@ localStorage.clear();
                         <i className="fa-solid fa-user me-1 text-primary"></i>{" "}
                         User
                       </>
-                    ) : (
+                    ) : role === "admin" ? (
                       <>
                         <i className="fa-solid fa-user-shield me-1 text-danger"></i>{" "}
                         Admin
                       </>
-                    )}
+                    ): <>
+                     <i className="fa-solid fa-user-tie me-1 text-dark"></i> Service Provider
+                    </> }
                   </span>
                 </div>
               </div>
@@ -388,39 +458,6 @@ localStorage.clear();
                   <i className="fa-solid fa-right-from-bracket me-2"></i> Logout
                 </button>
               </div>
-            </>
-          )}
-
-          {/* ShopKeeper Info */}
-          {role === "shopKepper" && (
-            <>
-              <div className="d-flex justify-content-center align-items-center">
-                <h5 className="fw-bold mb-0 ">{currentUser?.name}</h5>
-                <i
-                  className={`${
-                    currentUser?.isVerified
-                      ? "fa-solid fa-circle-check"
-                      : "fa-solid fa-circle-xmark"
-                  } ms-1`}
-                  style={{
-                    color: currentUser?.isVerified ? "#28a745" : "#dc3545",
-                    fontSize: "18px",
-                  }}
-                ></i>
-              </div>
-
-              <div className="d-flex justify-content-center">
-                <span className="badge rounded-pill bg-primary">
-                  <i className="fa-solid fa-user-tie ms-2"></i> Service Provider
-                </span>
-              </div>
-
-              <button className="mt-2 btn btn-primary" onClick={logOut}>
-                Logout
-              </button>
-                  <button className="mt-2 btn btn-success" onClick={() => navigate('/admin/shopKepper/transactions')}>
-                Transactions
-              </button>
             </>
           )}
         </div>

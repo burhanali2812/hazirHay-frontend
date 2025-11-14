@@ -38,7 +38,13 @@ function ShopkepperRequests({
   const [routeInfo, setRouteInfo] = useState(null);
   const [declineOrder, setDeclineOrder] = useState(null);
   const token = localStorage.getItem("token");
-  useCheckBlockedStatus(token); // Custom hook to check if shopkeeper is blocked
+  useCheckBlockedStatus(token);
+    const role = sessionStorage.getItem("role");
+      useEffect(() => {
+      if (role !== "shopKepper") {
+        navigate("/unauthorized/user", { replace: true });
+      }
+    }, [role]); // Custom hook to check if shopkeeper is blocked
 
   const declineList = [
     "Not available at requested time",

@@ -27,8 +27,15 @@ function Tracking({ setUpdateAppjs, setKey }) {
   const [cencelOrderLoading, setCancelOrderLoading] = useState(false);
   const [shopLiveCoordinates, setShopLiveCoordinates] = useState([]);
   const location = useLocation();
+    const role = sessionStorage.getItem("role");
+
 
   const navigate = useNavigate();
+      useEffect(() => {
+      if (role !== "user") {
+        navigate("/unauthorized/user", { replace: true });
+      }
+    }, [role]);
   const position = selectedTrackShopData?.location?.[0]?.coordinates;
   console.log("position", position);
   console.log("selectedTrackShopData", selectedTrackShopData);

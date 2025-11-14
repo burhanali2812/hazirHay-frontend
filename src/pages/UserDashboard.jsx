@@ -18,6 +18,8 @@ function UserDashboard({
   setCoordinates,
   setKey
 }) {
+   const role = sessionStorage.getItem("role");
+
   const token = localStorage.getItem("token");
   const [shopAddressModal, setShopAddressModal] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -58,6 +60,12 @@ function UserDashboard({
     rating: "All",
     distance: "All",
   });
+    useEffect(() => {
+    if (role !== "user") {
+      navigate("/unauthorized/user", { replace: true });
+    }
+  }, [role]);
+
   const handleFilterChange = (type, value) => {
     console.log("type", type, "option", value);
 

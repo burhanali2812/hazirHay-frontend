@@ -25,6 +25,12 @@ function Cart({ cartData, setUpdateAppjs, areaName, setCartData, setRefreshFlag 
 
   const user = JSON.parse(sessionStorage.getItem("user"));
   const [copied, setCopied] = useState(false);
+    const role = sessionStorage.getItem("role");
+      useEffect(() => {
+      if (role !== "user") {
+        navigate("/unauthorized/user", { replace: true });
+      }
+    }, [role]);
 
   const handleCopy = (checkoutId) => {
     const text = checkoutId || "1122";

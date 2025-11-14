@@ -11,6 +11,12 @@ function WorkerDashboard({ setUpdateAppjs }) {
   const [ordersModal, setOrdersModal] = useState(false);
   const [selectedReqUser, setSelectedReqUser] = useState(null);
   const [unAssgnedLoading, setUnAssignedLoading] = useState(null);
+    const role = sessionStorage.getItem("role");
+      useEffect(() => {
+      if (role !== "worker") {
+        navigate("/unauthorized/user", { replace: true });
+      }
+    }, [role]);
 
   const handleLogout = () => {
     localStorage.clear();

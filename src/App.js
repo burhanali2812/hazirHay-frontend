@@ -27,6 +27,8 @@ import Blocked from "./pages/Blocked";
 import WorkerSignup from "./pages/WorkerSignup";
 import WorkerDashboard from "./pages/WorkerDashboard";
 import Transactions from "./pages/Transactions";
+import UnauthorizedPage from "./pages/UnauthorizedPage";
+import WorkersPage from "./pages/WorkersPage";
 
 function App() {
   const [topText, setTopText] = useState("");
@@ -243,11 +245,14 @@ const deleteNotification = async (id) => {
   };
 
   useEffect(() => {
-    getAllUser();
+    if(role !== null){
+          getAllUser();
     getAllShopKepper();
     getCartData();
     getNotifications();
-  }, []);
+    }
+
+  }, [role]);
 
   useEffect(() => {
     if (UpdateAppjs) {
@@ -305,6 +310,14 @@ const deleteNotification = async (id) => {
             element={
               <WorkerDashboard
               setUpdateAppjs = {setUpdateAppjs}
+              />
+            }
+          />
+           <Route
+            path="unauthorized/user"
+            element={
+              <UnauthorizedPage
+             
               />
             }
           />
@@ -377,6 +390,12 @@ const deleteNotification = async (id) => {
             path="shopKepper/worker/signup"
             element={
               <WorkerSignup setUpdateAppjs={setUpdateAppjs}/>
+            }
+          />
+           <Route
+            path="shopKepper/workersList"
+            element={
+              <WorkersPage/>
             }
           />
           <Route

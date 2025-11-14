@@ -21,9 +21,9 @@ function ShopKepperDashboard({  setUpdateAppjs, setKey }) {
   const [rejectedOrderscount, setrejectedOrdersCount] = useState(0);
     const [assignedOrderscount, setAssignedOrdersCount] = useState(0);
      const [unAssignedOrderscount, setUnAssignedOrdersCount] = useState(0);
-    const [startDate, setStartDate] = useState("");
+    const [startDate, setStartDate] = useState(new Date().toISOString().split("T")[0]);
       const [shop, setShop] = useState(null);
-  const [endDate, setEndDate] = useState("");
+  const [endDate, setEndDate] = useState(new Date().toISOString().split("T")[0]);
     const [filterLoading, setFilterLoading] = useState(false);
       const role = sessionStorage.getItem("role");
 

@@ -1,5 +1,6 @@
 import axios from "axios";
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import "../pages/style.css";
 const Transactions = () => {
   const [transactions, setTransactions] = useState([]);
@@ -13,6 +14,13 @@ const [endDate, setEndDate] = useState(new Date().toISOString().split("T")[0]);
   const [dateModalOpen, setDateModalOpen] = useState(false);
   const user = JSON.parse(sessionStorage.getItem("user"));
   const token = localStorage.getItem("token");
+      const navigate = useNavigate();
+      const role = sessionStorage.getItem("role");
+      useEffect(() => {
+      if (role !== "shopKepper") {
+        navigate("/unauthorized/user", { replace: true });
+      }
+    }, [role]);
   const fetchTransactions = async () => {
     try {
       const response = await axios(
@@ -44,6 +52,7 @@ const [endDate, setEndDate] = useState(new Date().toISOString().split("T")[0]);
       console.error("Error fetching transactions:", error);
     }
   };
+
   useEffect(() => {
     fetchTransactions();
   }, []);
@@ -124,9 +133,20 @@ const [endDate, setEndDate] = useState(new Date().toISOString().split("T")[0]);
                     <p className="mb-0 fw-bold me-2">
                       {transaction.workerId?.name}
                     </p>
-                    <span className="badge text-bg-primary small">
-                      {transaction.orderIds?.length}
-                    </span>
+<span
+  className="badge text-bg-secondary d-inline-flex justify-content-center align-items-center"
+  style={{
+    width: "17px",
+    height: "17px",
+    borderRadius: "50%",
+    fontSize: "10px",      
+    padding: 0             
+  }}
+>
+  {transaction.orderIds?.length}
+</span>
+
+
                   </div>
                   <small className="text-muted">
                     {new Date(transaction.date).toLocaleString()}
