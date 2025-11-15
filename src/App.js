@@ -396,7 +396,7 @@ const deleteNotification = async (id) => {
            <Route
             path="shopKepper/workersList"
             element={
-              <WorkersPage  shopKepperWorkers={shopKepperWorkers}/>
+              <WorkersPage  shopKepperWorkers={shopKepperWorkers} setShopKepperWorkers={setShopKepperWorkers}/>
             }
           />
           <Route

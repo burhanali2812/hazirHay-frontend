@@ -1,11 +1,44 @@
-import React from "react";
+import React,{useState} from "react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
+const WorkersPage = ({ shopKepperWorkers, setShopKepperWorkers }) => {
+  const token = localStorage.getItem("token");
+  const[deleteLoading, setDeleteLoading] = useState(null);
+  const navigate = useNavigate();
 
-const WorkersPage = ({ shopKepperWorkers, onDeleteWorker }) => {
+    const onDeleteWorker = async (workerId) => {
+        setDeleteLoading(workerId);
+      if (!window.confirm("Are you sure you want to delete this worker?")) {
+        setDeleteLoading(null);
+        return;
+      }
+        try {
+            const response = await axios.delete(
+                `https://hazir-hay-backend.vercel.app/worker/deleteWorker/${workerId}`,
+                {
+                    headers: { Authorization: `Bearer ${token}` },
+                    params: { t: Date.now() },
+                }
+            );
+            if (response.status === 200) {
+                alert("Worker deleted successfully");
+                setDeleteLoading(null);
+                setShopKepperWorkers((prevWorkers) =>
+                    prevWorkers.filter((worker) => worker._id !== workerId)
+                );
+            }
+        } catch (error) {
+            console.error("Error deleting worker:", error);
+            alert("Failed to delete worker");
+            setDeleteLoading(null);
+        }
+    };
+
   return (
     <div className="container my-4">
       <h2 className="text-center fw-bold mb-4"><i class="fa-solid fa-users-line me-2"></i>Workers List</h2>
 <div className="d-flex justify-content-end mb-3 me-1">
-  <button className="btn btn-primary btn-sm">
+  <button className="btn btn-primary btn-sm" onClick={()=>navigate("/admin/shopKepper/worker/signup")}>
     <i className="fa-solid fa-user-plus me-2"></i>Add New Worker
   </button>
 </div>
@@ -29,8 +62,8 @@ const WorkersPage = ({ shopKepperWorkers, onDeleteWorker }) => {
                     alt="worker"
                     className="rounded-circle"
                     style={{
-                      width: "58px",
-                      height: "58px",
+                      width: "65px",
+                      height: "65px",
                       objectFit: "cover",
                       border: "2px solid #e5e7eb",
                     }}
@@ -50,6 +83,7 @@ const WorkersPage = ({ shopKepperWorkers, onDeleteWorker }) => {
                         color: worker.isBusy ? "#d9534f" : "#28a745",
                         fontWeight: 600,
                         fontSize: "12px",
+                        marginLeft : "-1px"
                       }}
                     >
                       {worker.isBusy ? "Busy" : "Available"}
@@ -57,7 +91,7 @@ const WorkersPage = ({ shopKepperWorkers, onDeleteWorker }) => {
                   </div>
 
                 
-                  <div className="d-flex align-items-center gap-3">
+                  <div className="d-flex align-items-center gap-2">
                   
                     <a href={`tel:${worker.phone}`}>
                       <i
@@ -85,17 +119,19 @@ const WorkersPage = ({ shopKepperWorkers, onDeleteWorker }) => {
                         }}
                       ></i>
                     </a>
-
-             
-                    <i
+                    {deleteLoading === worker._id ? (
+                      <div className="spinner-border text-danger" role="status" style={{width: "18px", height: "18px"}}>
+                        <span className="visually-hidden">Loading...</span>
+                      </div>
+                    ) :   <i
                       className="fa-solid fa-trash"
                       style={{
                         fontSize: "18px",
                         color: "#ef4444",
                         cursor: "pointer",
                       }}
-                      // onClick={() => onDeleteWorker(worker._id)}
-                    ></i>
+                       onClick={() => onDeleteWorker(worker._id)}
+                    ></i>}     
                   </div>
 
                 </div>
