@@ -77,130 +77,124 @@ function WorkerSignup({ setUpdateAppjs }) {
   };
 
 return (
-  <div className="container" style={{ paddingBottom: "65px" }}>
-    {/* Back Button */}
-    <div
-      className="d-flex align-items-center mt-2"
-      style={{ cursor: "pointer", width: "fit-content" }}
-      onClick={() => window.history.back()}
-    >
-      <i className="fa-solid fa-arrow-left me-2" style={{ fontSize: "18px" }}></i>
-      <span className="fw-bold">Back</span>
-    </div>
+  <div className="container py-4" style={{ paddingBottom: "65px" }}>
+  {/* Back Button */}
+  <div
+    className="d-flex align-items-center mb-3"
+    style={{ cursor: "pointer", width: "fit-content" }}
+    onClick={() => window.history.back()}
+  >
+    <i className="fa-solid fa-arrow-left me-2" style={{ fontSize: "18px" }}></i>
+    <span className="fw-bold">Back</span>
+  </div>
 
-    {/* Centered Form */}
-    <div
-      className="d-flex justify-content-center align-items-start"
-      style={{
-        minHeight: "calc(100vh - 60px)",
-        paddingTop: "30px",
-        paddingBottom: "30px",
-      }}
-    >
-      <div className="p-3" style={{ maxWidth: "450px", width: "100%" }}>
-        {/* Header */}
-        <div className="text-center mb-3">
-          <h4 className="fw-bold text-dark mt-3">Create Your Worker Account</h4>
-          <p className="text-muted small">
-            Enter your worker details to start your journey with us.
-          </p>
+  {/* Centered Form */}
+  <div className="d-flex flex-column justify-content-center align-items-center" style={{ minHeight: "calc(100vh - 65px)" }}>
+    <div className="p-3" style={{ maxWidth: "450px", width: "100%" }}>
+      {/* Header */}
+      <div className="text-center mb-3">
+        <h4 className="fw-bold text-dark mt-3">Create Your Worker Account</h4>
+        <p className="text-muted small">
+          Enter your worker details to start your journey with us.
+        </p>
+      </div>
+
+      <form onSubmit={handleSubmit}>
+        {/* Profile Picture */}
+        <div className="text-center mb-4">
+          <div
+            className="mx-auto position-relative"
+            style={{
+              width: "130px",
+              height: "130px",
+              borderRadius: "50%",
+              overflow: "hidden",
+              border: "3px solid #e0e0e0",
+              backgroundColor: "#f9f9f9",
+              transition: "0.3s ease",
+            }}
+          >
+            {profilePicture ? (
+              <img
+                src={URL.createObjectURL(profilePicture)}
+                alt="Profile Preview"
+                style={{ width: "100%", height: "100%", objectFit: "cover" }}
+              />
+            ) : (
+              <div className="d-flex justify-content-center align-items-center h-100">
+                <i className="fa-solid fa-user text-secondary" style={{ fontSize: "60px" }}></i>
+              </div>
+            )}
+          </div>
+
+          <label
+            htmlFor="profilePicture"
+            className="btn btn-outline-primary btn-sm mt-3 rounded-pill px-3"
+          >
+            <i className="fa-solid fa-upload me-1"></i> Upload Picture
+          </label>
+          <input
+            type="file"
+            id="profilePicture"
+            className="d-none"
+            name="profilePicture"
+            accept="image/*"
+            onChange={handleChange}
+          />
         </div>
 
-        <form onSubmit={handleSubmit}>
-          {/* Profile Picture */}
-          <div className="text-center mb-4">
-            <div
-              className="mx-auto position-relative"
-              style={{
-                width: "130px",
-                height: "130px",
-                borderRadius: "50%",
-                overflow: "hidden",
-                border: "3px solid #e0e0e0",
-                backgroundColor: "#f9f9f9",
-                transition: "0.3s ease",
-              }}
-            >
-              {profilePicture ? (
-                <img
-                  src={URL.createObjectURL(profilePicture)}
-                  alt="Profile Preview"
-                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                />
-              ) : (
-                <div className="d-flex justify-content-center align-items-center h-100">
-                  <i className="fa-solid fa-user text-secondary" style={{ fontSize: "60px" }}></i>
-                </div>
-              )}
-            </div>
+        {/* Name Field */}
+        <div className="form-floating mb-3">
+          <input
+            type="text"
+            className="form-control rounded-3"
+            id="nameInput"
+            placeholder="Enter your name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+          />
+          <label htmlFor="nameInput">Full Name</label>
+        </div>
 
-            <label
-              htmlFor="profilePicture"
-              className="btn btn-outline-primary btn-sm mt-3 rounded-pill px-3"
-            >
-              <i className="fa-solid fa-upload me-1"></i> Upload Picture
-            </label>
-            <input
-              type="file"
-              id="profilePicture"
-              className="d-none"
-              name="profilePicture"
-              accept="image/*"
-              onChange={handleChange}
-            />
-          </div>
+        {/* Phone Field */}
+        <div className="form-floating mb-4">
+          <input
+            type="tel"
+            className="form-control rounded-3"
+            id="phoneInput"
+            placeholder="Enter your phone number"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            required
+          />
+          <label htmlFor="phoneInput">Phone Number</label>
+        </div>
 
-          {/* Name Field */}
-          <div className="form-floating mb-3">
-            <input
-              type="text"
-              className="form-control rounded-3"
-              id="nameInput"
-              placeholder="Enter your name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-            />
-            <label htmlFor="nameInput">Full Name</label>
-          </div>
-
-          {/* Phone Field */}
-          <div className="form-floating mb-4">
-            <input
-              type="tel"
-              className="form-control rounded-3"
-              id="phoneInput"
-              placeholder="Enter your phone number"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              required
-            />
-            <label htmlFor="phoneInput">Phone Number</label>
-          </div>
-
-          {/* Submit Button */}
-          <button
-            type="submit"
-            className="btn btn-primary w-100 py-2 fw-semibold rounded-3"
-            disabled={loading}
-            style={{ letterSpacing: "0.5px" }}
-          >
-            {loading ? (
-              <>
-                <span>Creating...</span>
-                <span className="spinner-grow spinner-grow-sm ms-2" aria-hidden="true"></span>
-              </>
-            ) : (
-              <>
-                <i className="fa-solid fa-right-to-bracket me-2"></i> Create
-              </>
-            )}
-          </button>
-        </form>
-      </div>
+        {/* Submit Button */}
+        <button
+          type="submit"
+          className="btn btn-primary w-100 py-2 fw-semibold rounded-3"
+          disabled={loading}
+          style={{ letterSpacing: "0.5px" }}
+        >
+          {loading ? (
+            <>
+              <span>Creating...</span>
+              <span className="spinner-grow spinner-grow-sm ms-2" aria-hidden="true"></span>
+            </>
+          ) : (
+            <>
+              <i className="fa-solid fa-right-to-bracket me-2"></i> Create
+            </>
+          )}
+        </button>
+      </form>
     </div>
   </div>
+</div>
 );
+
 
 }
 

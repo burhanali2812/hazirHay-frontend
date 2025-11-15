@@ -66,26 +66,7 @@ function OrderWithJourney({ setStausUpdate }) {
       console.error("Error sending notification:", error);
     }
   };
-  const updateShopkepper = async () => {
-    try {
-      const response = await axios.put(
-        `https://hazir-hay-backend.vercel.app/shopKeppers/updateBusy/${user._id}`,
-        { isBusy: false },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-          params: { t: Date.now() },
-        }
-      );
-
-      if (response.data.success) {
-        setStausUpdate(true);
-        alert("Shopkeeper status updated to busy");
-        console.log("Shopkeeper status updated to busy");
-      }
-    } catch (error) {
-      console.error("Error updating shopkeeper status:", error);
-    }
-  };
+ 
 
 const postTransaction = async () => {
   if (!selectedTrackShopData || selectedTrackShopData.length === 0) {
@@ -189,7 +170,6 @@ const postTransaction = async () => {
         if (res.data.warning) {
           setCalcelLoading(false);
           alert(res.data.message);
-          updateShopkepper();
           Swal.fire({
             title: "Cancelled!",
             text: "Orders have been cancelled successfully.",
@@ -204,7 +184,6 @@ const postTransaction = async () => {
           navigate("/worker/dashboard");
         } else {
           setCalcelLoading(false);
-          updateShopkepper();
           Swal.fire({
             title: "Cancelled!",
             text: "Orders have been cancelled successfully.",
@@ -219,11 +198,33 @@ const postTransaction = async () => {
           navigate("/worker/dashboard");
         }
       }
+  
     } catch (error) {
-      setCalcelLoading(false);
-      console.error("Error deleting orders:", error);
-      alert("Something went wrong while deleting orders.");
-    }
+  setCalcelLoading(false);
+
+  if (error.response && error.response.status === 403 && error.response.data.blocked) {
+    Swal.fire({
+      title: "Shop Blocked!",
+      text: "Your shop has been blocked for 7 days due to exceeding the cancellation limit.",
+      icon: "warning",
+      timer: 1500,
+      showConfirmButton: false,
+      background: "#fff8e1",
+    });
+
+    navigate("/worker/dashboard");
+    return;
+  }
+
+  // Default unknown error  
+  Swal.fire({
+    title: "Error!",
+    text: "Something went wrong.",
+    icon: "error",
+    timer: 1200,
+    showConfirmButton: false,
+  });
+}
   };
 
   const updateLocation = async (lat, lng) => {

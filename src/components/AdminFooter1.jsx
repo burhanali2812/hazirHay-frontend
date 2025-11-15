@@ -201,6 +201,13 @@ function AdminFooter({
         label: "Transaction History",
         path: "/admin/shopKepper/transactions",
       },
+        {
+        key: "switch",
+        icon: "fa-solid fa-shuffle",
+        label: "Worker Mode",
+        path: "/admin/shopKepper/transactions",
+      },
+     
       {
         key: "contact",
         icon: "fa-solid fa-address-book",

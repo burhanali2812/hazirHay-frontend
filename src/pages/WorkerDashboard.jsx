@@ -239,6 +239,7 @@ function WorkerDashboard({ setUpdateAppjs }) {
           headers: {
             Authorization: `Bearer ${token}`,
           },
+          params: { t: Date.now() },
         }
       );
 

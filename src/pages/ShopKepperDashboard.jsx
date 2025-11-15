@@ -119,7 +119,7 @@ const getShopkeeperOrders = async (type) => {
       setCompletedOrders(orders.filter((o) => o.status === "completed"));
       setInprogressOrder(orders.filter((o) => o.status === "inProgress"));
       setAssignedOrders(orders.filter((o) => o.status === "assigned"));
-      setUnAssignedOrders(orders.filter((o) => o.status === "unAssigned"));
+      setUnAssignedOrders(orders.filter((o) => o.orderAssignment.status === "unAssigned"));
 
       if (type === "filter") {
         setFilterLoading(false);
