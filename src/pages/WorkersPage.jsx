@@ -5,7 +5,7 @@ const WorkersPage = ({ shopKepperWorkers, onDeleteWorker }) => {
     <div className="container my-4">
       <h2 className="text-center fw-bold mb-4"><i class="fa-solid fa-users-line me-2"></i>Workers List</h2>
 <div className="d-flex justify-content-end mb-3">
-  <button className="btn btn-primary">
+  <button className="btn btn-primary btn-sm">
     <i className="fa-solid fa-user-plus me-2"></i>Add New Worker
   </button>
 </div>
@@ -79,7 +79,7 @@ const WorkersPage = ({ shopKepperWorkers, onDeleteWorker }) => {
                       <i
                         className="fa-brands fa-whatsapp"
                         style={{
-                          fontSize: "20px",
+                          fontSize: "22px",
                           color: "#22c55e",
                           cursor: "pointer",
                         }}
