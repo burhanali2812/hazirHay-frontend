@@ -33,118 +33,156 @@ const WorkersPage = ({ shopKepperWorkers, setShopKepperWorkers }) => {
             setDeleteLoading(null);
         }
     };
+return (
+  <div className="container my-4">
+    
+    {/* Title */}
+    <h4 className="text-center fw-bold mb-1">
+      <i className="fa-solid fa-users-line me-2"></i>Workers List
+    </h4>
 
-  return (
-    <div className="container my-4">
-      <h2 className="text-center fw-bold mb-4"><i class="fa-solid fa-users-line me-2"></i>Workers List</h2>
-<div className="d-flex justify-content-end mb-3 me-1">
-  <button className="btn btn-primary btn-sm" onClick={()=>navigate("/admin/shopKepper/worker/signup")}>
-    <i className="fa-solid fa-user-plus me-2"></i>Add New Worker
-  </button>
+    {/* Subtitle */}
+    <p className="text-center text-muted mb-4" style={{ fontSize: "13px" }}>
+      Manage all workers, check availability, and contact them instantly.
+    </p>
+
+    {/* Add Button */}
+    <div className="d-flex justify-content-end mb-3 me-1">
+      <button
+        className="btn btn-primary btn-sm"
+        onClick={() => navigate("/admin/shopKepper/worker/signup")}
+      >
+        <i className="fa-solid fa-user-plus me-2"></i>Add Worker
+      </button>
+    </div>
+
+    {/* Workers List */}
+    <div className="row g-3">
+      {shopKepperWorkers?.length > 0 ? (
+        shopKepperWorkers.map((worker) => (
+          <div key={worker._id} className="col-12 col-md-6 col-lg-4">
+            <div
+              className="card border-0 shadow-sm h-100"
+              style={{ borderRadius: "14px" }}
+            >
+              <div className="card-body d-flex align-items-center gap-3">
+
+                {/* Profile Image */}
+                <img
+                  src={worker.profilePicture || "/avatar.png"}
+                  alt="worker"
+                  className="rounded-circle"
+                  style={{
+                    width: "58px",
+                    height: "58px",
+                    objectFit: "cover",
+                    border: "2px solid #f1f1f1",
+                  }}
+                />
+
+                {/* Worker Info */}
+                <div className="flex-grow-1">
+                  <h6 className="fw-semibold mb-1" style={{ fontSize: "14px" }}>
+                    {worker.name}
+                  </h6>
+
+                  {/* Status */}
+                  <span
+                    className="badge rounded-pill px-2"
+                    style={{
+                      backgroundColor: worker.isBusy ? "#ffeaea" : "#eaffea",
+                      color: worker.isBusy ? "#d9534f" : "#28a745",
+                      fontSize: "11px",
+                      fontWeight: 600,
+                    }}
+                  >
+                    {worker.isBusy ? "Busy" : "Available"}
+                  </span>
+
+                  {/* Orders */}
+                  <p className="mb-0 mt-1 text-muted" style={{ fontSize: "12px" }}>
+                    Orders: <strong>{worker.orderCount}</strong>
+                  </p>
+                </div>
+
+                {/* Action Buttons */}
+               <div
+  className="d-flex align-items-center gap-2"
+  style={{ minWidth: "110px", justifyContent: "flex-end" }}
+>
+
+  {/* Call */}
+  <a
+    href={`tel:${worker.phone}`}
+    className="text-decoration-none"
+    style={{
+      background: "#eef5ff",
+      padding: "7px 9px",
+      borderRadius: "10px",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+    }}
+  >
+    <i className="fa-solid fa-phone" style={{ fontSize: "15px", color: "#3b82f6" }}></i>
+  </a>
+
+  {/* WhatsApp */}
+  <a
+    href={`https://wa.me/${worker.phone}`}
+    target="_blank"
+    rel="noopener noreferrer"
+    className="text-decoration-none"
+    style={{
+      background: "#e7fbe9",
+      padding: "7px 9px",
+      borderRadius: "10px",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+    }}
+  >
+    <i className="fa-brands fa-whatsapp" style={{ fontSize: "17px", color: "#22c55e" }}></i>
+  </a>
+
+  {/* Delete */}
+  {deleteLoading === worker._id ? (
+    <div
+      className="spinner-border text-danger"
+      style={{ width: "16px", height: "16px" }}
+    ></div>
+  ) : (
+    <div
+      onClick={() => onDeleteWorker(worker._id)}
+      style={{
+        background: "#ffe9e9",
+        padding: "7px 9px",
+        borderRadius: "10px",
+        cursor: "pointer",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      <i className="fa-solid fa-trash" style={{ fontSize: "15px", color: "#ef4444" }}></i>
+    </div>
+  )}
+
 </div>
 
-      <div className="row">
-        {shopKepperWorkers && shopKepperWorkers.length > 0 ? (
-          shopKepperWorkers.map((worker) => (
-            <div key={worker._id} className="col-12 col-md-6 mb-3">
-              <div
-                className="card shadow-lg border-0"
-                style={{
-                  borderRadius: "16px",
-                  padding: "14px 16px",
-                }}
-              >
-                <div className="d-flex align-items-center">
 
-              
-                  <img
-                    src={worker.profilePicture || "/avatar.png"}
-                    alt="worker"
-                    className="rounded-circle"
-                    style={{
-                      width: "65px",
-                      height: "65px",
-                      objectFit: "cover",
-                      border: "2px solid #e5e7eb",
-                    }}
-                  />
-
-                 
-                  <div className="ms-3 flex-grow-1">
-                    <h6 className="fw-bold mb-1" style={{ fontSize: "15px" }}>
-                      {worker.name}
-                    </h6>
-
-                 
-                    <span
-                      className={`badge px-3 py-1 rounded-pill`}
-                      style={{
-                        backgroundColor: worker.isBusy ? "#ffe5e5" : "#e7ffe9",
-                        color: worker.isBusy ? "#d9534f" : "#28a745",
-                        fontWeight: 600,
-                        fontSize: "12px",
-                        marginLeft : "-1px"
-                      }}
-                    >
-                      {worker.isBusy ? "Busy" : "Available"}
-                    </span>
-                  </div>
-
-                
-                  <div className="d-flex align-items-center gap-2">
-                  
-                    <a href={`tel:${worker.phone}`}>
-                      <i
-                        className="fa-solid fa-phone"
-                        style={{
-                          fontSize: "18px",
-                          color: "#3b82f6",
-                          cursor: "pointer",
-                        }}
-                      ></i>
-                    </a>
-
-              
-                    <a
-                      href={`https://wa.me/${worker.phone}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      <i
-                        className="fa-brands fa-whatsapp"
-                        style={{
-                          fontSize: "22px",
-                          color: "#22c55e",
-                          cursor: "pointer",
-                        }}
-                      ></i>
-                    </a>
-                    {deleteLoading === worker._id ? (
-                      <div className="spinner-border text-danger" role="status" style={{width: "18px", height: "18px"}}>
-                        <span className="visually-hidden">Loading...</span>
-                      </div>
-                    ) :   <i
-                      className="fa-solid fa-trash"
-                      style={{
-                        fontSize: "18px",
-                        color: "#ef4444",
-                        cursor: "pointer",
-                      }}
-                       onClick={() => onDeleteWorker(worker._id)}
-                    ></i>}     
-                  </div>
-
-                </div>
               </div>
             </div>
-          ))
-        ) : (
-          <p className="text-center">No workers found.</p>
-        )}
-      </div>
-
+          </div>
+        ))
+      ) : (
+        <p className="text-center">No workers found.</p>
+      )}
     </div>
-  );
+  </div>
+);
+
+
 };
 
 export default WorkersPage;

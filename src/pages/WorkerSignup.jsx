@@ -77,10 +77,10 @@ function WorkerSignup({ setUpdateAppjs }) {
   };
 
 return (
-  <div className="container py-4" style={{ paddingBottom: "65px" }}>
+  <div className="container py-4" >
   {/* Back Button */}
   <div
-    className="d-flex align-items-center mb-3"
+    className="d-flex align-items-center mb-3 mt-4"
     style={{ cursor: "pointer", width: "fit-content" }}
     onClick={() => window.history.back()}
   >
@@ -89,7 +89,7 @@ return (
   </div>
 
   {/* Centered Form */}
-  <div className="d-flex flex-column justify-content-center align-items-center" style={{ minHeight: "calc(100vh - 65px)" }}>
+  <div className="d-flex flex-column justify-content-center align-items-center" style={{ minHeight: "calc(100vh - 75px)" }}>
     <div className="p-3" style={{ maxWidth: "450px", width: "100%" }}>
       {/* Header */}
       <div className="text-center mb-3">
