@@ -1,4 +1,5 @@
 import "./App.css";
+import "./index.css";
 import AdminFooter1 from "./components/AdminFooter1";
 import Dashboard from "./pages/Dashboard";
 import Login from "./pages/Login";
@@ -395,7 +396,7 @@ const deleteNotification = async (id) => {
            <Route
             path="shopKepper/workersList"
             element={
-              <WorkersPage/>
+              <WorkersPage  shopKepperWorkers={shopKepperWorkers}/>
             }
           />
           <Route
