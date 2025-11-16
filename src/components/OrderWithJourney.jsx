@@ -352,6 +352,35 @@ function OrderWithJourney({ setStausUpdate }) {
     window.open(url, "_blank");
   };
 
+    const messages = [
+    "Please wait…",
+     "Calculating the best route…",
+    "Fetching your live location…",
+    "Setting up your map…",
+    "Almost there…",
+    "Getting everything ready for you…",
+    "Preparing your journey details…",
+    "Loading route information…",
+    "This will just take a moment…",
+    "Finalizing your trip…",
+  ];
+
+  const [currentMessage, setCurrentMessage] = useState(messages[0]);
+  const [index, setIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setIndex((prev) => {
+        const nextIndex = prev + 1;
+        setCurrentMessage(messages[nextIndex] || messages[messages.length - 1]);
+        return nextIndex >= messages.length - 1 ? prev : nextIndex;
+      });
+    }, 2200); 
+
+    return () => clearInterval(interval);
+  }, []);
+
+
   return (
     <>
       <div
@@ -396,14 +425,18 @@ function OrderWithJourney({ setStausUpdate }) {
           {/* GOOGLE MAP BUTTON */}
         {
           routeInfo === null ? (
-            <div className="text-center mt-3">
-              <div
-                className="spinner-border text-primary"
-                role="status"
-              >
-                <span className="visually-hidden">Loading...</span>
-              </div>
-            </div>
+        <div className="d-flex flex-column justify-content-center align-items-center mt-4" style={{ minHeight: "150px" }}>
+      
+      {/* Spinner */}
+      <div className="spinner-border text-primary mb-3" role="status" style={{ width: "3rem", height: "3rem" }}>
+        <span className="visually-hidden">Loading...</span>
+      </div>
+
+      {/* Beautiful animated message */}
+      <p className="fw-semibold fs-5 text-primary" style={{ transition: "opacity 0.5s ease-in-out" }}>
+        {currentMessage}
+      </p>
+    </div>
           ):(
           <>
             <button
@@ -414,7 +447,6 @@ function OrderWithJourney({ setStausUpdate }) {
                 [shopKepperCords[0], shopKepperCords[1]]
               )
             }
-            disabled={routeInfo === null}
           >
             <i className="fa-solid fa-map-location-dot me-1"></i>
             Open in Google Maps
