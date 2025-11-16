@@ -72,7 +72,7 @@ function AdminFooter({
         key: "shop",
         icon: "fa-solid fa-shop",
         label: "Shop",
-        path: "/admin/shopKepper/worker/signup",
+        path: "/admin/shopKepper/myShop",
       },
       {
         key: "setting",

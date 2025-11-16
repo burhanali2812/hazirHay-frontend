@@ -57,7 +57,7 @@ function App() {
   const [unSeenNotification, setUnSeenNotification] = useState([]);
   const [shopKepperWorkers, setShopKepperWorkers] = useState([]);
   const [shopKepperStatus2, setShopKepperStatus2] = useState(false);
-  const [isBlocked, setIsBlocked] = useState(false);
+  const [shopOfCurrentShopkepper, setShopOfCurrentShopkepper] = useState(null);
   const navigate = useNavigate();
    const location = useLocation(); 
 
@@ -395,6 +395,7 @@ useEffect(() => {
               <ShopKepperDashboard
                 setUpdateAppjs={setUpdateAppjs}
                 setKey={setKey}
+               
               />
             }
           />
@@ -426,7 +427,7 @@ useEffect(() => {
           />
           <Route
             path="shopKepper/myShop"
-            element={<MyShop setKey={setKey} />}
+            element={<MyShop setKey={setKey} shopKepperWorkers={shopKepperWorkers}/>}
           />
           <Route path="shopKepper/transactions" element={<Transactions />} />
 
