@@ -585,7 +585,7 @@ function WorkerDashboard({ setUpdateAppjs }) {
                       } btn-sm rounded-pill shadow-sm fw-semibold w-100 d-flex justify-content-center align-items-center`}
                       title="Start this delivery"
                       onClick={() => handleStart(group.orders, isStart)}
-                      disabled={group.user._id !== progressUserId}
+                      disabled={group.user._id !== progressUserId && progressUserId !== null}
                     >
                       <i
                         className={`fa-solid ${
