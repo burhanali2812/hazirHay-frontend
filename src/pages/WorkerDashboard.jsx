@@ -53,7 +53,7 @@ function WorkerDashboard({ setUpdateAppjs }) {
     handlegetAssignedOrder();
   }, []);
   const getCurrentLocation = async () => {
-    isDataLoading(true);
+    setIsDataLoading(true);
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         async (pos) => {
@@ -66,17 +66,17 @@ function WorkerDashboard({ setUpdateAppjs }) {
             name: "Current Location",
             coordinates: [lat, lng],
           };
-          isDataLoading(false);
+          setIsDataLoading(false);
           setCurrentLocation(location);
         },
         (error) => {
-          isDataLoading(false);
+          setIsDataLoading(false);
           console.error("Error getting location:", error);
           alert("Unable to get your location. Please allow location access.");
         }
       );
     } else {
-      isDataLoading(false);
+      setIsDataLoading(false);
       alert("Geolocation is not supported by your browser.");
     }
   };
@@ -85,7 +85,7 @@ function WorkerDashboard({ setUpdateAppjs }) {
   }, []);
 
   async function getDistance(workerCoords) {
-    isDataLoading(true);
+    setIsDataLoading(true);
     try {
       if (!currentLocation || !currentLocation.coordinates) {
            setIsDataLoading(false);
@@ -315,6 +315,9 @@ function WorkerDashboard({ setUpdateAppjs }) {
     "Please wait…",
     "Fetching your orders…",
     "Preparing your tasks…",
+         "Calculating the best route…",
+    "Fetching your live location…",
+    "Setting up your map…",
     "Organizing everything for you…",
     "Almost ready…",
   ];
