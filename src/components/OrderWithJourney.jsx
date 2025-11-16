@@ -402,6 +402,7 @@ function OrderWithJourney({ setStausUpdate }) {
                 [shopKepperCords[0], shopKepperCords[1]]
               )
             }
+            disabled={routeInfo === null}
           >
             <i className="fa-solid fa-map-location-dot me-1"></i>
             Open in Google Maps
