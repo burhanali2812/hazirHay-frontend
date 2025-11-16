@@ -11,6 +11,9 @@ function WorkerDashboard({ setUpdateAppjs }) {
   const [ordersModal, setOrdersModal] = useState(false);
   const [selectedReqUser, setSelectedReqUser] = useState(null);
   const [unAssgnedLoading, setUnAssignedLoading] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filteredOrders, setFilteredOrders] = useState([]);
+  const [showMapModal, setShowMapModal] = useState(false);
     const role = sessionStorage.getItem("role");
       useEffect(() => {
       if (role !== "worker") {
@@ -162,8 +165,9 @@ function WorkerDashboard({ setUpdateAppjs }) {
 
     fetchAllDistances();
   }, [assignedOrders, currentLocation]);
+  const finalOrdersToDisplay2 = searchTerm.trim() ? filteredOrders : assignedOrders;
 
-  const groupRequests = assignedOrders.reduce((acc, req) => {
+  const groupRequests = finalOrdersToDisplay2.reduce((acc, req) => {
     const userId = req.userId?._id || req.userId;
     if (!acc[userId]) {
       acc[userId] = {
@@ -268,6 +272,28 @@ function WorkerDashboard({ setUpdateAppjs }) {
     }
   };
 
+  const handleChange = (e) => {
+    const term = e.target.value;
+    setSearchTerm(term);
+    if (term.trim() === "") {
+      setFilteredOrders(assignedOrders);
+    } else {
+      const filtered = assignedOrders.filter((order) => {
+        const orderId = order.orderId || "";
+        const userName = order.userId?.name || "";
+        return (
+          orderId.toLowerCase().includes(term.toLowerCase()) ||
+          userName.toLowerCase().includes(term.toLowerCase())
+        );
+      });
+      setFilteredOrders(filtered);
+    }
+  }
+
+
+
+
+
 
   return (
     <div>
@@ -362,6 +388,9 @@ function WorkerDashboard({ setUpdateAppjs }) {
                 className="form-control border-0 rounded-pill ps-3 bg-light py-2"
                 placeholder="ORD-XYZ-ABC | USERNAME"
                 style={{ fontSize: "14px" }}
+                value={searchTerm}
+                onChange={handleChange}
+
               />
               <span className="input-group-text bg-transparent border-0 pe-3">
                 <i className="fas fa-search text-muted"></i>
@@ -434,7 +463,7 @@ function WorkerDashboard({ setUpdateAppjs }) {
                 <div className="small text-secondary">
                   <div className="d-flex align-items-center mb-2">
                     <i className="fa-solid fa-location-dot text-danger me-2"></i>
-                    <span className="fw-semibold">{area}</span>
+                    <span className="fw-semibold">{area}</span> <p className="text-primary fw-bold" onClick={()=>setShowMapModal(true)}>View on map</p>
                   </div>
 
                   <div className="d-flex align-items-center justify-content-between flex-wrap">
@@ -491,6 +520,7 @@ function WorkerDashboard({ setUpdateAppjs }) {
                       className={`btn btn-${isStart ? "warning": "primary"} btn-sm rounded-pill shadow-sm fw-semibold w-100 d-flex justify-content-center align-items-center`}
                       title="Start this delivery"
                       onClick={()=>handleStart(group.orders, isStart)}
+                      disabled= {group?.orders?.some((order) => order.status !== "inProgress")}
                     >
                       <i
       className={`fa-solid ${isStart ? "fa-motorcycle" : "fa-play"} me-2`}
@@ -615,6 +645,31 @@ function WorkerDashboard({ setUpdateAppjs }) {
           </div>
         </div>
       )}
+      {
+        showMapModal && (
+          <div className="modal fade show d-block" tabIndex="-1" style={{ backgroundColor: "rgba(0, 0, 0, 0.6)" }}>
+            <div className="modal-dialog modal-lg modal-dialog-centered">
+              <div className="modal-content shadow" style={{ borderRadius: "10px" }}>
+                <div className="modal-header text-light py-2 px-3" style={{ backgroundColor: "#1e1e2f" }}>
+                  <h6 className="modal-title m-0">Map View</h6>
+                  <button type="button" className="btn-close btn-close-white" aria-label="Close" onClick={() => setShowMapModal(false)}></button>
+                </div>
+                <div className="modal-body p-0">
+                  <iframe
+                    title="Map"
+                    src={`https://www.google.com/maps?q=${currentLocation?.coordinates[0]},${currentLocation?.coordinates[1]}&z=15&output=embed`}
+                    width="100%"
+                    height="450"
+                    style={{ border: 0 }}
+                    allowFullScreen=""
+                    loading="lazy"
+                  ></iframe>
+                </div>
+              </div>
+            </div>
+          </div>
+        )
+      }
     </div>
   );
 }

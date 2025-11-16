@@ -344,6 +344,11 @@ const postTransaction = async () => {
     localStorage.removeItem("currentCheckout");
     navigate("/worker/dashboard");
   };
+    const openGoogleMaps = (userCoords,shopCoords) => {
+  const url = `https://www.google.com/maps/dir/?api=1&origin=${userCoords[1]},${userCoords[0]}&destination=${shopCoords[1]},${shopCoords[0]}&travelmode=driving`;
+
+  window.open(url, "_blank");
+};
 
   return (
     <>
@@ -386,6 +391,17 @@ const postTransaction = async () => {
               />
             )}
           </div>
+<button 
+  className="btn btn-primary"
+  onClick={() =>
+    openGoogleMaps(
+      [position[1], position[0]],        // user: lat, lng
+      [shopKepperCords[0], shopKepperCords[1]] // shop: lat, lng
+    )
+  }
+>
+  Show on Google Map
+</button>
           <button
             className="btn btn-sm w-100 mt-3 fw-semibold d-flex align-items-center justify-content-center gap-2 py-2 rounded-pill shadow-sm text-white"
             style={{
