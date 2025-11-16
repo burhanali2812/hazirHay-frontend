@@ -63,12 +63,14 @@ function App() {
   const user = JSON.parse(localStorage.getItem("user"));
 
   useEffect(() => {
+    const token = localStorage.getItem("token");
+      const role = localStorage.getItem("role");
     if(token && role){
       if(role==="shopKepper"){
         navigate("/admin/shopKepper/dashboard");
       }
       else if(role==="user"){
-        navigate("admin//user/dashboard");
+        navigate("/admin/user/dashboard");
 
     }
     else if(role==="admin"){
