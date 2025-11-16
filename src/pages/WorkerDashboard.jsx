@@ -1,5 +1,5 @@
 import axios from "axios";
-import React, { useEffect, useState } from "react";
+import React, { use, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 function WorkerDashboard({ setUpdateAppjs }) {
   const user = JSON.parse(localStorage.getItem("user"));
@@ -14,6 +14,7 @@ function WorkerDashboard({ setUpdateAppjs }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredOrders, setFilteredOrders] = useState([]);
   const [showMapModal, setShowMapModal] = useState(false);
+  const [progressUserId, setProgressUserId] = useState(null);
   const role = localStorage.getItem("role");
   useEffect(() => {
     if (role !== "worker") {
@@ -227,6 +228,20 @@ function WorkerDashboard({ setUpdateAppjs }) {
 
     setOrdersModal(true);
   };
+useEffect(() => {
+  if (groupedRequestsArray.length !== 0) {
+    
+    // Find the first group where any order is inProgress
+    const progressGroup = groupedRequestsArray.find((group) =>
+      group.orders.some((order) => order.status === "inProgress")
+    );
+
+    console.log("progress group user:", progressGroup?.user?._id || null);
+
+    setProgressUserId(progressGroup?.user?._id || null);
+  }
+}, [groupedRequestsArray]);
+
 
   const handleUnAssignedOrders = async (orderId) => {
     setUnAssignedLoading(orderId);
@@ -517,9 +532,7 @@ function WorkerDashboard({ setUpdateAppjs }) {
                       } btn-sm rounded-pill shadow-sm fw-semibold w-100 d-flex justify-content-center align-items-center`}
                       title="Start this delivery"
                       onClick={() => handleStart(group.orders, isStart)}
-                      disabled={group?.orders?.some(
-                        (order) => order.status !== "inProgress" && order.status !== "assigned"
-                      )}
+                      disabled={group.user._id !== progressUserId }
                     >
                       <i
                         className={`fa-solid ${

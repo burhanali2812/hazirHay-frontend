@@ -280,7 +280,7 @@ useEffect(() => {
     if (role !== null) {
       getAllUser();
       getAllShopKepper();
-      getCartData();
+      if(role === "user") getCartData();
       getNotifications();
     }
   }, [role]);
@@ -289,7 +289,7 @@ useEffect(() => {
     if (UpdateAppjs) {
       getAllUser();
       getAllShopKepper();
-      getCartData();
+      if(role === "user") getCartData();
       getNotifications();
       if (role === "shopKepper") {
         getShopKepperWorkers();
