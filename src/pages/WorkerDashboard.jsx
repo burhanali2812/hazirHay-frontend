@@ -29,7 +29,7 @@ function WorkerDashboard({ setUpdateAppjs }) {
   };
 
   const handlegetAssignedOrder = async () => {
-    setIsDataLoading(true);
+  
     try {
       const res = await axios.get(
         `https://hazir-hay-backend.vercel.app/requests/getAssignedOrder/${user?._id}`,
@@ -41,12 +41,11 @@ function WorkerDashboard({ setUpdateAppjs }) {
         }
       );
       if (res.data.success) {
-        setIsDataLoading(false);
+      
         //  alert(res.data.message);
         setAssignOrders(res.data.data);
       }
     } catch (error) {
-      setIsDataLoading(false);
       alert(error);
     }
   };
