@@ -7,7 +7,14 @@ import stamp from "../images/stamp.png";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 
-function Cart({ cartData, setUpdateAppjs, areaName, setCartData, setRefreshFlag ,setKey}) {
+function Cart({
+  cartData,
+  setUpdateAppjs,
+  areaName,
+  setCartData,
+  setRefreshFlag,
+  setKey,
+}) {
   // safely get items
 
   const navigate = useNavigate();
@@ -23,14 +30,14 @@ function Cart({ cartData, setUpdateAppjs, areaName, setCartData, setRefreshFlag 
 
   const [checkoutId, setCheckoutId] = useState("");
 
-  const user = JSON.parse(sessionStorage.getItem("user"));
+  const user = JSON.parse(localStorage.getItem("user"));
   const [copied, setCopied] = useState(false);
-    const role = sessionStorage.getItem("role");
-      useEffect(() => {
-      if (role !== "user") {
-        navigate("/unauthorized/user", { replace: true });
-      }
-    }, [role]);
+  const role = localStorage.getItem("role");
+  useEffect(() => {
+    if (role !== "user") {
+      navigate("/unauthorized/user", { replace: true });
+    }
+  }, [role]);
 
   const handleCopy = (checkoutId) => {
     const text = checkoutId || "1122";
@@ -47,9 +54,9 @@ function Cart({ cartData, setUpdateAppjs, areaName, setCartData, setRefreshFlag 
     }
   };
 
-  useEffect(()=>{
-setKey("cart")
-  },[])
+  useEffect(() => {
+    setKey("cart");
+  }, []);
 
   const fallbackCopy = (text) => {
     const textarea = document.createElement("textarea");
@@ -252,26 +259,23 @@ setKey("cart")
       return false;
     }
   };
-const handleNext = async () => {
-  try {
-    setDistanceLoading(true);
+  const handleNext = async () => {
+    try {
+      setDistanceLoading(true);
 
-    let success = await fetchAllDistances();
+      let success = await fetchAllDistances();
 
-    if (success) {
-      setOrderSummaryModal(true);
-      return;
+      if (success) {
+        setOrderSummaryModal(true);
+        return;
+      }
+      alert(" Failed to fetch distances. Please try again.");
+    } catch (err) {
+      console.error("Error in handleNext:", err);
+    } finally {
+      setDistanceLoading(false);
     }
-    alert(" Failed to fetch distances. Please try again.");
-  } catch (err) {
-    console.error("Error in handleNext:", err);
-  } finally {
-    setDistanceLoading(false);
-  }
-};
-
-
-
+  };
 
   // e.g., "28.97"
   function getRateByTime() {
@@ -332,7 +336,6 @@ const handleNext = async () => {
       .toUpperCase()
       .slice(-6); // take 6 chars
 
-  
     const formatted = uniquePart.match(/.{1,3}/g).join("-");
 
     return `ORD-${formatted}`;
@@ -377,7 +380,7 @@ const handleNext = async () => {
       type: "newOrder",
       message: `You have received a new order of ${req.subCategory} (${req.category}) under order id `,
       shopId: req.shopId,
-      checkoutId : req.orderId
+      checkoutId: req.orderId,
     }));
 
     try {
@@ -441,11 +444,11 @@ const handleNext = async () => {
 
         await sendNotificationToUser(checkoutId || newcheckoutId);
         setLoading(false);
-        setRefreshFlag(true)
+        setRefreshFlag(true);
         alert(response?.data?.message || "Request sent successfully!");
         setPostOrderModal(true);
         setOrderSummaryModal(false);
-         setUpdateAppjs(true);
+        setUpdateAppjs(true);
       }
     } catch (error) {
       console.error("❌ Error sending request:", error);
@@ -490,7 +493,7 @@ const handleNext = async () => {
 
       if (response.data.success) {
         if (type === "clear") {
-           setUpdateAppjs(true);
+          setUpdateAppjs(true);
           setCartData([]);
           Swal.fire("Cleared!", "Cart has been cleared.", "success");
         }
@@ -507,20 +510,20 @@ const handleNext = async () => {
   };
 
   return (
-    <div style={{paddingBottom : "120px", paddingTop : "70px"}}>
-      <div
-        
-      >
-        <div >
-          <div >
-            <div className="d-flex  justify-content-between align-items-center mb-4 bg-white py-3 px-2 " style={{
+    <div style={{ paddingBottom: "120px", paddingTop: "70px" }}>
+      <div>
+        <div>
+          <div>
+            <div
+              className="d-flex  justify-content-between align-items-center mb-4 bg-white py-3 px-2 "
+              style={{
                 position: "fixed",
-    top: 0,
-    left: 0,
-    width: "100%",
-    zIndex: 1020
-
-            }}>
+                top: 0,
+                left: 0,
+                width: "100%",
+                zIndex: 1020,
+              }}
+            >
               <div className="d-flex ">
                 <i
                   class="fa-solid fa-circle-chevron-left mt-1"
@@ -542,136 +545,136 @@ const handleNext = async () => {
               )}
             </div>
             <div className="modal-body" style={{ height: "auto" }}>
-            <div className="container">
+              <div className="container">
                 {groupedCart.length > 0 ? (
-                groupedCart.map((shop, index) => (
-                  <div
-                    key={index}
-                    className="card shadow-sm mb-3 border-0"
-                    style={{ borderRadius: "12px" }}
-                  >
+                  groupedCart.map((shop, index) => (
                     <div
-                      className="card-header  fw-bold d-flex align-items-center"
-                      style={{ background: "#AFEEEE" }}
+                      key={index}
+                      className="card shadow-sm mb-3 border-0"
+                      style={{ borderRadius: "12px" }}
                     >
-                      <i className="fa-solid fa-shop me-2 text-primary"></i>
-                      <span>
-                        {shop.shopName}
-                        <i class="fa-solid fa-angle-right"></i>
-                      </span>
-                    </div>
+                      <div
+                        className="card-header  fw-bold d-flex align-items-center"
+                        style={{ background: "#AFEEEE" }}
+                      >
+                        <i className="fa-solid fa-shop me-2 text-primary"></i>
+                        <span>
+                          {shop.shopName}
+                          <i class="fa-solid fa-angle-right"></i>
+                        </span>
+                      </div>
 
-                    <div className="card-body">
-                      {shop.items.map((service, i) => (
-                        <div
-                          key={i}
-                          className="p-2 mb-2 border-bottom"
-                          style={{ fontSize: "15px" }}
-                        >
-                          <div className="d-flex justify-content-between align-items-center">
-                            <p className="mb-1 fw-semibold text-primary">
-                              {service.subCategory}
+                      <div className="card-body">
+                        {shop.items.map((service, i) => (
+                          <div
+                            key={i}
+                            className="p-2 mb-2 border-bottom"
+                            style={{ fontSize: "15px" }}
+                          >
+                            <div className="d-flex justify-content-between align-items-center">
+                              <p className="mb-1 fw-semibold text-primary">
+                                {service.subCategory}
+                              </p>
+                              <button
+                                className="btn btn-outline-danger btn-sm"
+                                onClick={() => deleteItem(service)}
+                                disabled={loadingItemId === service._id}
+                              >
+                                {loadingItemId === service._id ? (
+                                  <div
+                                    className="spinner-border spinner-border-sm text-dark"
+                                    role="status"
+                                  ></div>
+                                ) : (
+                                  <i className="fa-solid fa-trash-can"></i>
+                                )}
+                              </button>
+                            </div>
+
+                            <p className="mb-1 text-muted">
+                              Category: <b>{service.category}</b>
                             </p>
-                            <button
-                              className="btn btn-outline-danger btn-sm"
-                              onClick={() => deleteItem(service)}
-                              disabled={loadingItemId === service._id}
-                            >
-                              {loadingItemId === service._id ? (
-                                <div
-                                  className="spinner-border spinner-border-sm text-dark"
-                                  role="status"
-                                ></div>
-                              ) : (
-                                <i className="fa-solid fa-trash-can"></i>
-                              )}
-                            </button>
+                            <p className="mb-0 text-success fw-bold">
+                              Rs. {service.price}/-
+                            </p>
                           </div>
-
-                          <p className="mb-1 text-muted">
-                            Category: <b>{service.category}</b>
-                          </p>
-                          <p className="mb-0 text-success fw-bold">
-                            Rs. {service.price}/-
-                          </p>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                ))
-              ) : (
-                <div
-                  className="d-flex flex-column justify-content-center align-items-center text-center"
-                  style={{ height: "65vh" }}
-                >
-                  <img
-                    src={cart}
-                    alt="No Data"
-                    className="mb-3"
-                    style={{ width: "180px", height: "auto" }}
-                  />
-                  <h4 className="fw-bold text-danger mb-2">
-                    Your Cart is Empty!
-                  </h4>
-                  <p
-                    className="text-muted mx-auto"
-                    style={{
-                      maxWidth: "420px",
-                      fontSize: "15px",
-                      lineHeight: "1.6",
-                    }}
+                  ))
+                ) : (
+                  <div
+                    className="d-flex flex-column justify-content-center align-items-center text-center"
+                    style={{ height: "65vh" }}
                   >
-                    Don’t miss out on our best services and deals.
-                    <span className="fw-semibold text-primary">
-                      Start adding items
-                    </span>{" "}
-                    now and enjoy a smooth checkout experience! ✨
+                    <img
+                      src={cart}
+                      alt="No Data"
+                      className="mb-3"
+                      style={{ width: "180px", height: "auto" }}
+                    />
+                    <h4 className="fw-bold text-danger mb-2">
+                      Your Cart is Empty!
+                    </h4>
+                    <p
+                      className="text-muted mx-auto"
+                      style={{
+                        maxWidth: "420px",
+                        fontSize: "15px",
+                        lineHeight: "1.6",
+                      }}
+                    >
+                      Don’t miss out on our best services and deals.
+                      <span className="fw-semibold text-primary">
+                        Start adding items
+                      </span>{" "}
+                      now and enjoy a smooth checkout experience! ✨
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+            {groupedCart.length > 0 && (
+              <div
+                className=" bg-white d-flex justify-content-between align-items-center px-3 py-2"
+                style={{
+                  position: "fixed",
+                  bottom: "55px",
+                  left: 0,
+                  width: "100%",
+                  zIndex: 1020,
+                }}
+              >
+                <div>
+                  <p className="mb-1 fs-6 fw-semibold text-primary">
+                    Total:{" "}
+                    <span className="text-success">Rs. {grandTotal}/-</span>
+                  </p>
+                  <p className="mb-0 text-muted">
+                    Total Items:{" "}
+                    <b className="text-dark">{cartData?.items?.length}</b>
                   </p>
                 </div>
-              )}
 
-            </div>
-            </div>
-          {groupedCart.length > 0 && (
-  <div
-    className=" bg-white d-flex justify-content-between align-items-center px-3 py-2"
-    style={{
-      position: "fixed",
-      bottom: "55px", 
-      left: 0,
-      width: "100%",
-      zIndex: 1020,
-    }}
-  >
-    <div>
-      <p className="mb-1 fs-6 fw-semibold text-primary">
-        Total: <span className="text-success">Rs. {grandTotal}/-</span>
-      </p>
-      <p className="mb-0 text-muted">
-        Total Items: <b className="text-dark">{cartData?.items?.length}</b>
-      </p>
-    </div>
-
-    <button
-      type="button"
-      className="btn btn-success px-4 rounded-pill shadow-sm"
-      disabled={distanceLoading}
-      onClick={handleNext}
-    >
-      {distanceLoading ? (
-        <>
-          <span className="spinner-border spinner-border-sm me-2"></span>
-          Loading...
-        </>
-      ) : (
-        <>
-          Next <i className="fa-solid fa-angles-right ms-1"></i>
-        </>
-      )}
-    </button>
-  </div>
-)}
-
+                <button
+                  type="button"
+                  className="btn btn-success px-4 rounded-pill shadow-sm"
+                  disabled={distanceLoading}
+                  onClick={handleNext}
+                >
+                  {distanceLoading ? (
+                    <>
+                      <span className="spinner-border spinner-border-sm me-2"></span>
+                      Loading...
+                    </>
+                  ) : (
+                    <>
+                      Next <i className="fa-solid fa-angles-right ms-1"></i>
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>

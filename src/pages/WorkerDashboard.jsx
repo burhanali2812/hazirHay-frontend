@@ -2,7 +2,7 @@ import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 function WorkerDashboard({ setUpdateAppjs }) {
-  const user = JSON.parse(sessionStorage.getItem("user"));
+  const user = JSON.parse(localStorage.getItem("user"));
   const token = localStorage.getItem("token");
   const [distances, setDistances] = useState({});
   const navigate = useNavigate();
@@ -14,12 +14,12 @@ function WorkerDashboard({ setUpdateAppjs }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredOrders, setFilteredOrders] = useState([]);
   const [showMapModal, setShowMapModal] = useState(false);
-    const role = sessionStorage.getItem("role");
-      useEffect(() => {
-      if (role !== "worker") {
-        navigate("/unauthorized/user", { replace: true });
-      }
-    }, [role]);
+  const role = localStorage.getItem("role");
+  useEffect(() => {
+    if (role !== "worker") {
+      navigate("/unauthorized/user", { replace: true });
+    }
+  }, [role]);
 
   const handleLogout = () => {
     localStorage.clear();
@@ -165,7 +165,9 @@ function WorkerDashboard({ setUpdateAppjs }) {
 
     fetchAllDistances();
   }, [assignedOrders, currentLocation]);
-  const finalOrdersToDisplay2 = searchTerm.trim() ? filteredOrders : assignedOrders;
+  const finalOrdersToDisplay2 = searchTerm.trim()
+    ? filteredOrders
+    : assignedOrders;
 
   const groupRequests = finalOrdersToDisplay2.reduce((acc, req) => {
     const userId = req.userId?._id || req.userId;
@@ -181,8 +183,7 @@ function WorkerDashboard({ setUpdateAppjs }) {
   const groupedRequestsArray = Object.values(groupRequests);
   console.log("groupedRequestsArray", groupedRequestsArray);
   console.log("groupRequests", groupRequests);
-    const ProgressOrder = async (startJourneyOrders) => {
-
+  const ProgressOrder = async (startJourneyOrders) => {
     if (!startJourneyOrders?.length) {
       alert("No orders to progress");
       return;
@@ -193,7 +194,7 @@ function WorkerDashboard({ setUpdateAppjs }) {
         { requests: startJourneyOrders },
         {
           headers: { Authorization: `Bearer ${token}` },
-          params: { t: Date.now() }, 
+          params: { t: Date.now() },
         }
       );
 
@@ -204,21 +205,15 @@ function WorkerDashboard({ setUpdateAppjs }) {
       console.error("Error completing orders:", error);
       alert("Something went wrong while progressing orders.");
     } finally {
-
     }
   };
-  const handleStart = (startJourneyOrders ,isStart) => {
-    
-          localStorage.setItem(
-      "currentCheckout",
-      JSON.stringify(startJourneyOrders)
-    );
- 
-    if (!isStart) {
-    ProgressOrder(startJourneyOrders);
+  const handleStart = (startJourneyOrders, isStart) => {
+    localStorage.setItem("currentCheckout", JSON.stringify(startJourneyOrders));
 
-  }
-     
+    if (!isStart) {
+      ProgressOrder(startJourneyOrders);
+    }
+
     navigate("/admin/user/orderWithJourney");
   };
 
@@ -288,12 +283,7 @@ function WorkerDashboard({ setUpdateAppjs }) {
       });
       setFilteredOrders(filtered);
     }
-  }
-
-
-
-
-
+  };
 
   return (
     <div>
@@ -390,7 +380,6 @@ function WorkerDashboard({ setUpdateAppjs }) {
                 style={{ fontSize: "14px" }}
                 value={searchTerm}
                 onChange={handleChange}
-
               />
               <span className="input-group-text bg-transparent border-0 pe-3">
                 <i className="fas fa-search text-muted"></i>
@@ -410,8 +399,9 @@ function WorkerDashboard({ setUpdateAppjs }) {
               (sum, req) => sum + (req.cost || 0),
               0
             );
-       const isStart = group?.orders?.some((order) => order.status === "inProgress");
-
+            const isStart = group?.orders?.some(
+              (order) => order.status === "inProgress"
+            );
 
             return (
               <div
@@ -463,7 +453,13 @@ function WorkerDashboard({ setUpdateAppjs }) {
                 <div className="small text-secondary">
                   <div className="d-flex align-items-center mb-2">
                     <i className="fa-solid fa-location-dot text-danger me-2"></i>
-                    <span className="fw-semibold">{area}</span> <p className="text-primary fw-bold" onClick={()=>setShowMapModal(true)}>View on map</p>
+                    <span className="fw-semibold">{area}</span>{" "}
+                    <p
+                      className="text-primary fw-bold"
+                      onClick={() => setShowMapModal(true)}
+                    >
+                      View on map
+                    </p>
                   </div>
 
                   <div className="d-flex align-items-center justify-content-between flex-wrap">
@@ -514,18 +510,23 @@ function WorkerDashboard({ setUpdateAppjs }) {
                     </button>
                   </div>
 
-                
                   <div style={{ flex: `0 0 ${isStart ? "40%" : "30%"}` }}>
                     <button
-                      className={`btn btn-${isStart ? "warning": "primary"} btn-sm rounded-pill shadow-sm fw-semibold w-100 d-flex justify-content-center align-items-center`}
+                      className={`btn btn-${
+                        isStart ? "warning" : "primary"
+                      } btn-sm rounded-pill shadow-sm fw-semibold w-100 d-flex justify-content-center align-items-center`}
                       title="Start this delivery"
-                      onClick={()=>handleStart(group.orders, isStart)}
-                      disabled= {group?.orders?.some((order) => order.status !== "inProgress")}
+                      onClick={() => handleStart(group.orders, isStart)}
+                      disabled={group?.orders?.some(
+                        (order) => order.status !== "inProgress"
+                      )}
                     >
                       <i
-      className={`fa-solid ${isStart ? "fa-motorcycle" : "fa-play"} me-2`}
-    ></i>
-                      {isStart ? "En-route...": "Start"}
+                        className={`fa-solid ${
+                          isStart ? "fa-motorcycle" : "fa-play"
+                        } me-2`}
+                      ></i>
+                      {isStart ? "En-route..." : "Start"}
                     </button>
                   </div>
                 </div>
@@ -615,11 +616,11 @@ function WorkerDashboard({ setUpdateAppjs }) {
                                 >
                                   {unAssgnedLoading === req._id ? (
                                     <>
-                                     Removing...
-                <div
-                  className="spinner-border spinner-border-sm text-light ms-2"
-                  role="status"
-                ></div>
+                                      Removing...
+                                      <div
+                                        className="spinner-border spinner-border-sm text-light ms-2"
+                                        role="status"
+                                      ></div>
                                     </>
                                   ) : (
                                     <>
@@ -645,31 +646,44 @@ function WorkerDashboard({ setUpdateAppjs }) {
           </div>
         </div>
       )}
-      {
-        showMapModal && (
-          <div className="modal fade show d-block" tabIndex="-1" style={{ backgroundColor: "rgba(0, 0, 0, 0.6)" }}>
-            <div className="modal-dialog modal-lg modal-dialog-centered">
-              <div className="modal-content shadow" style={{ borderRadius: "10px" }}>
-                <div className="modal-header text-light py-2 px-3" style={{ backgroundColor: "#1e1e2f" }}>
-                  <h6 className="modal-title m-0">Map View</h6>
-                  <button type="button" className="btn-close btn-close-white" aria-label="Close" onClick={() => setShowMapModal(false)}></button>
-                </div>
-                <div className="modal-body p-0">
-                  <iframe
-                    title="Map"
-                    src={`https://www.google.com/maps?q=${currentLocation?.coordinates[0]},${currentLocation?.coordinates[1]}&z=15&output=embed`}
-                    width="100%"
-                    height="450"
-                    style={{ border: 0 }}
-                    allowFullScreen=""
-                    loading="lazy"
-                  ></iframe>
-                </div>
+      {showMapModal && (
+        <div
+          className="modal fade show d-block"
+          tabIndex="-1"
+          style={{ backgroundColor: "rgba(0, 0, 0, 0.6)" }}
+        >
+          <div className="modal-dialog modal-lg modal-dialog-centered">
+            <div
+              className="modal-content shadow"
+              style={{ borderRadius: "10px" }}
+            >
+              <div
+                className="modal-header text-light py-2 px-3"
+                style={{ backgroundColor: "#1e1e2f" }}
+              >
+                <h6 className="modal-title m-0">Map View</h6>
+                <button
+                  type="button"
+                  className="btn-close btn-close-white"
+                  aria-label="Close"
+                  onClick={() => setShowMapModal(false)}
+                ></button>
+              </div>
+              <div className="modal-body p-0">
+                <iframe
+                  title="Map"
+                  src={`https://www.google.com/maps?q=${currentLocation?.coordinates[0]},${currentLocation?.coordinates[1]}&z=15&output=embed`}
+                  width="100%"
+                  height="450"
+                  style={{ border: 0 }}
+                  allowFullScreen=""
+                  loading="lazy"
+                ></iframe>
               </div>
             </div>
           </div>
-        )
-      }
+        </div>
+      )}
     </div>
   );
 }

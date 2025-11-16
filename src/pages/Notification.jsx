@@ -1,15 +1,21 @@
-import React, { useState , useEffect} from "react";
+import React, { useState, useEffect } from "react";
 import Swal from "sweetalert2";
 import notify from "../images/notify.png";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { IoNavigateCircleSharp } from "react-icons/io5";
 
-function Notification({ notification, onDelete , setNotification, setUnSeenNotification, setKey}) {
+function Notification({
+  notification,
+  onDelete,
+  setNotification,
+  setUnSeenNotification,
+  setKey,
+}) {
   const [expandedIds, setExpandedIds] = useState({});
-    const role = sessionStorage.getItem("role");
-const user = JSON.parse(sessionStorage.getItem("user"));
-const navigate = useNavigate();
+  const role = localStorage.getItem("role");
+  const user = JSON.parse(localStorage.getItem("user"));
+  const navigate = useNavigate();
   const toggleExpand = (id) => {
     setExpandedIds((prev) => ({
       ...prev,
@@ -17,16 +23,15 @@ const navigate = useNavigate();
     }));
   };
   useEffect(() => {
-  setKey("notification");
-}, []);
-
+    setKey("notification");
+  }, []);
 
   const iconsList = {
     complete: {
       color: "text-success",
       icon: "fa-solid fa-circle-check",
     },
-     accept: {
+    accept: {
       color: "text-success",
       icon: "fa-solid fa-circle-check",
     },
@@ -42,68 +47,70 @@ const navigate = useNavigate();
       color: "text-success",
       icon: "fa-solid fa-circle-down",
     },
-      inProgress: {
+    inProgress: {
       color: "text-primary",
       icon: "fa-solid fa-circle-down",
     },
   };
 
   // 🎯 Swirl confirmation alert before delete
-const clearAllNotifications = async () => {
-  const result = await Swal.fire({
-    title: "Clear All Notifications?",
-    text: "You won't be able to undo this action.",
-    icon: "warning",
-    showCancelButton: true,
-    confirmButtonColor: "#d33",
-    cancelButtonColor: "#6c757d",
-    confirmButtonText: "Yes, clear all!",
-    background: "#f9f9f9",
-    customClass: {
-      popup: "swirl-popup",
-    },
-  });
+  const clearAllNotifications = async () => {
+    const result = await Swal.fire({
+      title: "Clear All Notifications?",
+      text: "You won't be able to undo this action.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#6c757d",
+      confirmButtonText: "Yes, clear all!",
+      background: "#f9f9f9",
+      customClass: {
+        popup: "swirl-popup",
+      },
+    });
 
-  if (result.isConfirmed) {
-    try {
-      const response = await axios.delete(
-        `https://hazir-hay-backend.vercel.app/notification/clearAllNotifications/${user?._id}`,
-        {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-          params: { t: Date.now() },
+    if (result.isConfirmed) {
+      try {
+        const response = await axios.delete(
+          `https://hazir-hay-backend.vercel.app/notification/clearAllNotifications/${user?._id}`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+            params: { t: Date.now() },
+          }
+        );
+
+        if (response.data.success) {
+          setNotification([]);
+          setUnSeenNotification([]);
+
+          Swal.fire({
+            title: "Cleared!",
+            text: "All notifications have been cleared.",
+            icon: "success",
+            timer: 900,
+            showConfirmButton: false,
+            background: "#f9f9f9",
+            customClass: {
+              popup: "swirl-popup",
+            },
+          });
         }
-      );
-
-      if (response.data.success) {
-        setNotification([]);
-        setUnSeenNotification([])
-
+      } catch (error) {
         Swal.fire({
-          title: "Cleared!",
-          text: "All notifications have been cleared.",
-          icon: "success",
-          timer: 900,
-          showConfirmButton: false,
+          title: "Error!",
+          text: "Something went wrong while clearing notifications.",
+          icon: "error",
           background: "#f9f9f9",
           customClass: {
             popup: "swirl-popup",
           },
         });
+        console.error("Error clearing notifications:", error);
       }
-    } catch (error) {
-      Swal.fire({
-        title: "Error!",
-        text: "Something went wrong while clearing notifications.",
-        icon: "error",
-        background: "#f9f9f9",
-        customClass: {
-          popup: "swirl-popup",
-        },
-      });
-      console.error("Error clearing notifications:", error);
     }
-  }
-};
+  };
 
   const handleNotificationClick = (id) => {
     Swal.fire({
@@ -118,7 +125,6 @@ const clearAllNotifications = async () => {
       customClass: {
         popup: "swirl-popup",
       },
-
     }).then((result) => {
       if (result.isConfirmed) {
         onDelete(id);
@@ -137,30 +143,34 @@ const clearAllNotifications = async () => {
     });
   };
 
-  const handleTrackNow = (notification)=>{
-   const orderId = notification.message.match(/\(ORD-[A-Z0-9-]+\)/)?.[0].replace(/[()]/g, '');
-   const checkOutId = notification.checkoutId;
-   navigate("/admin/user/tracking", {state : {orderId: orderId , checkOutId: checkOutId}})
-  }
+  const handleTrackNow = (notification) => {
+    const orderId = notification.message
+      .match(/\(ORD-[A-Z0-9-]+\)/)?.[0]
+      .replace(/[()]/g, "");
+    const checkOutId = notification.checkoutId;
+    navigate("/admin/user/tracking", {
+      state: { orderId: orderId, checkOutId: checkOutId },
+    });
+  };
 
   return (
     <div className="overflow-auto mb-4">
-<div className="d-flex justify-content-between align-items-center bg-light w-100 px-3 py-3 ">
-  <h5 className="mb-0 fw-semibold text-secondary d-flex align-items-center gap-2">
-    Notifications
-    <span className="badge bg-secondary ms-1">{notification.length}</span>
-  </h5>
+      <div className="d-flex justify-content-between align-items-center bg-light w-100 px-3 py-3 ">
+        <h5 className="mb-0 fw-semibold text-secondary d-flex align-items-center gap-2">
+          Notifications
+          <span className="badge bg-secondary ms-1">{notification.length}</span>
+        </h5>
 
-{
-  notification.length > 0 && (
-      <button className="btn btn-danger btn-sm rounded-pill d-flex align-items-center gap-2 px-3" onClick={clearAllNotifications}>
-    <i className="fa-solid fa-trash"></i>
-    <span>Clear All</span>
-  </button>
-  )
-}
-</div>
-
+        {notification.length > 0 && (
+          <button
+            className="btn btn-danger btn-sm rounded-pill d-flex align-items-center gap-2 px-3"
+            onClick={clearAllNotifications}
+          >
+            <i className="fa-solid fa-trash"></i>
+            <span>Clear All</span>
+          </button>
+        )}
+      </div>
 
       {notification.length > 0 ? (
         <div className="container">
@@ -195,24 +205,20 @@ const clearAllNotifications = async () => {
                   transition: "transform 0.2s ease-out",
                   cursor: "pointer",
                 }}
-                
               >
                 <div className="card-body d-flex align-items-center justify-content-between">
-                 {
-                  icon === "inProgress" ? (
-                    
+                  {icon === "inProgress" ? (
                     <IoNavigateCircleSharp />
+                  ) : (
+                    <i
+                      className={`${icon.icon} ${icon.color}`}
+                      style={{ fontSize: "2.2rem", minWidth: "40px" }}
+                    ></i>
+                  )}
 
-                  ):(
-                     <i
-                    className={`${icon.icon} ${icon.color}`}
-                    style={{ fontSize: "2.2rem", minWidth: "40px" }}
-                  ></i>
-                  )
-                 }
-
-                  <div className="flex-grow-1 ms-3 d-flex flex-column justify-content-center mt-1"
-                  onClick={() => handleNotificationClick(notifi._id)}
+                  <div
+                    className="flex-grow-1 ms-3 d-flex flex-column justify-content-center mt-1"
+                    onClick={() => handleNotificationClick(notifi._id)}
                   >
                     <p className="mb-0">
                       {notifi.message.length > 50 && !isExpanded ? (
@@ -267,12 +273,16 @@ const clearAllNotifications = async () => {
                 >
                   {new Date(notifi.createdAt).toLocaleString()}
                 </small>
-               <div className="container mb-2">
-                 {
-                  notifi.type === "accept"  && role === "user" && (
-                    <button className="btn btn-primary btn-sm w-100 " onClick={()=>handleTrackNow(notifi)}>Track Now<i class="fa-solid fa-magnifying-glass-location ms-1"></i></button>
-                  )
-                }
+                <div className="container mb-2">
+                  {notifi.type === "accept" && role === "user" && (
+                    <button
+                      className="btn btn-primary btn-sm w-100 "
+                      onClick={() => handleTrackNow(notifi)}
+                    >
+                      Track Now
+                      <i class="fa-solid fa-magnifying-glass-location ms-1"></i>
+                    </button>
+                  )}
                 </div>
               </div>
             );

@@ -71,10 +71,8 @@ function Login() {
         });
 
         localStorage.setItem("token", response.data.token);
-        console.log("role", role);
-        sessionStorage.setItem("user", JSON.stringify(response.data.user));
-
-        sessionStorage.setItem("role", role);
+        localStorage.setItem("user", JSON.stringify(response.data.user));
+        localStorage.setItem("role", role);
 
         if (role === "shopKepper") {
           const notBlocked = await checkBlockedStatus(

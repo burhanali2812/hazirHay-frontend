@@ -11,7 +11,7 @@ function Users({
   totalActiveShopkepper,
   totalLiveShopkepper,
 }) {
-  const role = sessionStorage.getItem("role");
+  const role = localStorage.getItem("role");
   const token = localStorage.getItem("token");
   const [liveUsers, setLiveUsers] = useState([]);
   const [latestUsers, setLatestUsers] = useState([]);

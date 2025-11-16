@@ -11,6 +11,7 @@ import Requests from "./pages/Requests";
 import { useEffect, useState } from "react";
 import Users from "./pages/Users";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import ShopKepperDashboard from "./pages/ShopKepperDashboard";
@@ -31,9 +32,10 @@ import Transactions from "./pages/Transactions";
 import UnauthorizedPage from "./pages/UnauthorizedPage";
 import WorkersPage from "./pages/WorkersPage";
 
+
 function App() {
   const [topText, setTopText] = useState("");
-  const token = localStorage.getItem("token");
+
   const [totalUser, setTotalUser] = useState([]);
   const [update, setUpdate] = useState(false);
   const [totalShopkepper, setTotalShopKepper] = useState([]);
@@ -43,23 +45,40 @@ function App() {
   const [UpdateAppjs, setUpdateAppjs] = useState(false);
   const [shopWithShopkepper, setShopWithShopkepper] = useState([]);
   const [refreshFlag, setRefreshFlag] = useState(false);
-    const [statusUpdate, setStausUpdate] = useState(false);
+  const [statusUpdate, setStausUpdate] = useState(false);
   const [cartData, setCartData] = useState([]);
-    const role = sessionStorage.getItem("role");
+  const role = localStorage.getItem("role");
+    const token = localStorage.getItem("token");
 
   const [areaName, setAreaName] = useState("");
   const [key, setKey] = useState("home");
   const [coordinates, setCoordinates] = useState([]);
   const [notification, setNotification] = useState([]);
   const [unSeenNotification, setUnSeenNotification] = useState([]);
-    const [shopKepperWorkers, setShopKepperWorkers] = useState([]);
-    const [shopKepperStatus2, setShopKepperStatus2] = useState(false);
-    const [isBlocked, setIsBlocked] = useState(false);
-  
-    const user = JSON.parse(sessionStorage.getItem("user"));
+  const [shopKepperWorkers, setShopKepperWorkers] = useState([]);
+  const [shopKepperStatus2, setShopKepperStatus2] = useState(false);
+  const [isBlocked, setIsBlocked] = useState(false);
+  const navigate = useNavigate();
 
-    
+  const user = JSON.parse(localStorage.getItem("user"));
 
+  useEffect(() => {
+    if(token && role){
+      if(role==="shopKepper"){
+        navigate("/admin/shopKepper/dashboard");
+      }
+      else if(role==="user"){
+        navigate("admin//user/dashboard");
+
+    }
+    else if(role==="admin"){
+      navigate("/admin/dashboard");
+    }
+    else if(role==="worker"){
+      navigate("/worker/dashboard");
+    }
+    }
+  }, [role, navigate, token]);
 
   const getAllUser = async () => {
     try {
@@ -122,39 +141,45 @@ function App() {
       setTotalShopKepper([]);
     }
   };
-  const getShopKepperWorkers = async()=>{
+  const getShopKepperWorkers = async () => {
     try {
-      const res = await axios.get("https://hazir-hay-backend.vercel.app/worker/getWorkersByShop", {
-        headers: { Authorization: `Bearer ${token}` },
-        params: { t: Date.now() }, 
-      });
-      if(res.data.success){
+      const res = await axios.get(
+        "https://hazir-hay-backend.vercel.app/worker/getWorkersByShop",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          params: { t: Date.now() },
+        }
+      );
+      if (res.data.success) {
         setShopKepperWorkers(res.data.workers);
       }
     } catch (error) {
       console.log(error);
     }
-  }
-    const getUserStatus = async()=>{
+  };
+  const getUserStatus = async () => {
     try {
-      const res = await axios.get(`https://hazir-hay-backend.vercel.app/shopKeppers/getBusyStatus/${user?._id}`, {
-        headers: { Authorization: `Bearer ${token}` },
-        params: { t: Date.now() }, // avoid caching
-      });
-      if(res.data.success){
+      const res = await axios.get(
+        `https://hazir-hay-backend.vercel.app/shopKeppers/getBusyStatus/${user?._id}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          params: { t: Date.now() }, // avoid caching
+        }
+      );
+      if (res.data.success) {
         setShopKepperStatus2(res.data.data);
-       // alert(res.data.data ? "You are currently marked as busy." : "You are currently marked as available.");
+        // alert(res.data.data ? "You are currently marked as busy." : "You are currently marked as available.");
       }
     } catch (error) {
       console.log(error);
     }
-  }
+  };
   useEffect(() => {
-    if(statusUpdate){
-        if (role === "shopKepper") {
-          getUserStatus();
-        }
-        setStausUpdate(false);
+    if (statusUpdate) {
+      if (role === "shopKepper") {
+        getUserStatus();
+      }
+      setStausUpdate(false);
     }
   }, [statusUpdate]);
 
@@ -165,68 +190,74 @@ function App() {
     }
   }, [role]);
 
-  const getNotifications = async()=>{
+  const getNotifications = async () => {
     console.log("fetching.....Notifications");
-    
+
     try {
-      const response = await axios.get(`https://hazir-hay-backend.vercel.app/notification/getAllNotification/${user._id}`,{
-         headers: { Authorization: `Bearer ${token}` },
+      const response = await axios.get(
+        `https://hazir-hay-backend.vercel.app/notification/getAllNotification/${user._id}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
           params: { t: Date.now() },
-      });
-      if(response.data.success){
-       // alert("Notification fetch successfully");
-       const notificationArray = response.data.data || [];
+        }
+      );
+      if (response.data.success) {
+        // alert("Notification fetch successfully");
+        const notificationArray = response.data.data || [];
         setNotification(notificationArray);
-        const unSeen = notificationArray.filter((notify)=> notify.isSeen === false);
+        const unSeen = notificationArray.filter(
+          (notify) => notify.isSeen === false
+        );
         setUnSeenNotification(unSeen);
       }
     } catch (error) {
       console.error(error);
     }
-  }
+  };
 
-  const updateNotification = async()=>{
+  const updateNotification = async () => {
     try {
-       const response = await axios.put("https://hazir-hay-backend.vercel.app/notification/updateNotification", 
-        { notifications: unSeenNotification }
-        ,{
-         headers: { Authorization: `Bearer ${token}` },
+      const response = await axios.put(
+        "https://hazir-hay-backend.vercel.app/notification/updateNotification",
+        { notifications: unSeenNotification },
+        {
+          headers: { Authorization: `Bearer ${token}` },
           params: { t: Date.now() },
-      });
-      if(response.data.success){
-       // alert("Notification Update successfully");
+        }
+      );
+      if (response.data.success) {
+        // alert("Notification Update successfully");
         getNotifications();
       }
     } catch (error) {
       console.error(error);
     }
-  }
+  };
 
-const deleteNotification = async (id) => {
-  // update UI immediately (optimistic update)
-  setNotification((prev) => prev.filter((notify) => notify._id !== id));
+  const deleteNotification = async (id) => {
+    // update UI immediately (optimistic update)
+    setNotification((prev) => prev.filter((notify) => notify._id !== id));
 
-  try {
-    const response = await axios.delete(
-      `https://hazir-hay-backend.vercel.app/notification/deleteNotification/${id}`,
-      {
-        headers: { Authorization: `Bearer ${token}` },
-        params: { t: Date.now() },
+    try {
+      const response = await axios.delete(
+        `https://hazir-hay-backend.vercel.app/notification/deleteNotification/${id}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          params: { t: Date.now() },
+        }
+      );
+
+      if (response.data.success) {
+        //alert("Notification deleted successfully");
+        // optional: refresh from server
+        getNotifications();
       }
-    );
-
-    if (response.data.success) {
-      //alert("Notification deleted successfully");
-      // optional: refresh from server
-       getNotifications();
+    } catch (error) {
+      console.error(error);
+      // rollback UI if deletion fails
+      getNotifications();
     }
-  } catch (error) {
-    console.error(error);
-    // rollback UI if deletion fails
-    getNotifications();
-  }
-};
-
+  };
 
   const getCartData = async () => {
     try {
@@ -246,13 +277,12 @@ const deleteNotification = async (id) => {
   };
 
   useEffect(() => {
-    if(role !== null){
-          getAllUser();
-    getAllShopKepper();
-    getCartData();
-    getNotifications();
+    if (role !== null) {
+      getAllUser();
+      getAllShopKepper();
+      getCartData();
+      getNotifications();
     }
-
   }, [role]);
 
   useEffect(() => {
@@ -261,11 +291,10 @@ const deleteNotification = async (id) => {
       getAllShopKepper();
       getCartData();
       getNotifications();
-       if (role === "shopKepper") {
-      getShopKepperWorkers();
-    }
+      if (role === "shopKepper") {
+        getShopKepperWorkers();
+      }
       setUpdateAppjs(false);
-
     }
   }, [UpdateAppjs]);
 
@@ -281,9 +310,6 @@ const deleteNotification = async (id) => {
     fetchShopKepper();
   }, [update]);
   console.log("key from app.jss", key);
-  
-
-
 
   return (
     <>
@@ -300,28 +326,15 @@ const deleteNotification = async (id) => {
           }
         ></Route>
         <Route path="/shop" element={<ShopForm />}></Route>
-          <Route
-            path="shopKepper/sh&BlTr&bl&5&comp&shbl&tr"
-            element={
-              <Blocked/>
-            }
-          />
-           <Route
-            path="worker/dashboard"
-            element={
-              <WorkerDashboard
-              setUpdateAppjs = {setUpdateAppjs}
-              />
-            }
-          />
-           <Route
-            path="unauthorized/user"
-            element={
-              <UnauthorizedPage
-             
-              />
-            }
-          />
+        <Route
+          path="shopKepper/sh&BlTr&bl&5&comp&shbl&tr"
+          element={<Blocked />}
+        />
+        <Route
+          path="worker/dashboard"
+          element={<WorkerDashboard setUpdateAppjs={setUpdateAppjs} />}
+        />
+        <Route path="unauthorized/user" element={<UnauthorizedPage />} />
         <Route
           path="/admin/*"
           element={
@@ -329,9 +342,10 @@ const deleteNotification = async (id) => {
               topText={topText}
               setUpdate={setUpdate}
               setShopKepperStatus={setShopKepperStatus}
-              unSeenNotification={unSeenNotification} onUpdate = {updateNotification}
+              unSeenNotification={unSeenNotification}
+              onUpdate={updateNotification}
               cartData={cartData}
-              shopKepperStatus2 = {shopKepperStatus2}
+              shopKepperStatus2={shopKepperStatus2}
               pageKey={key}
             />
           }
@@ -347,7 +361,7 @@ const deleteNotification = async (id) => {
                 totalLiveShopkepper={totalLiveShopkepper}
                 setUpdate={setUpdate}
                 setUpdateAppjs={setUpdateAppjs}
-                 setKey={setKey}
+                setKey={setKey}
               />
             }
           />
@@ -358,7 +372,7 @@ const deleteNotification = async (id) => {
                 setTopText={setTopText}
                 setUpdate={setUpdate}
                 shopWithShopkepper={shopWithShopkepper}
-                 setKey={setKey}
+                setKey={setKey}
               />
             }
           />
@@ -379,24 +393,23 @@ const deleteNotification = async (id) => {
             path="shopKepper/dashboard"
             element={
               <ShopKepperDashboard
-               
                 setUpdateAppjs={setUpdateAppjs}
-                 setKey={setKey}
-              
+                setKey={setKey}
               />
             }
           />
-             
-             <Route
+
+          <Route
             path="shopKepper/worker/signup"
-            element={
-              <WorkerSignup setUpdateAppjs={setUpdateAppjs}/>
-            }
+            element={<WorkerSignup setUpdateAppjs={setUpdateAppjs} />}
           />
-           <Route
+          <Route
             path="shopKepper/workersList"
             element={
-              <WorkersPage  shopKepperWorkers={shopKepperWorkers} setShopKepperWorkers={setShopKepperWorkers}/>
+              <WorkersPage
+                shopKepperWorkers={shopKepperWorkers}
+                setShopKepperWorkers={setShopKepperWorkers}
+              />
             }
           />
           <Route
@@ -405,26 +418,18 @@ const deleteNotification = async (id) => {
               <ShopkepperRequests
                 shopKepperStatus={shopKepperStatus}
                 refreshFlag={refreshFlag}
-                setRefreshFlag = {setRefreshFlag}
+                setRefreshFlag={setRefreshFlag}
                 shopKepperWorkers={shopKepperWorkers}
-                 setKey={setKey}
+                setKey={setKey}
               />
             }
           />
-           <Route
+          <Route
             path="shopKepper/myShop"
-            element={
-              <MyShop  setKey={setKey}/>
-            }
+            element={<MyShop setKey={setKey} />}
           />
-           <Route
-            path="shopKepper/transactions"
-            element={
-              <Transactions/>
-            }
-          />
-          
-         
+          <Route path="shopKepper/transactions" element={<Transactions />} />
+
           <Route
             path="user/dashboard"
             element={
@@ -445,7 +450,7 @@ const deleteNotification = async (id) => {
             element={
               <Cart
                 cartData={cartData}
-                setRefreshFlag ={setRefreshFlag}
+                setRefreshFlag={setRefreshFlag}
                 setUpdateAppjs={setUpdateAppjs}
                 areaName={areaName}
                 coordinates={coordinates}
@@ -456,14 +461,28 @@ const deleteNotification = async (id) => {
           />
           <Route
             path="user/tracking"
-            element={<Tracking setUpdateAppjs={setUpdateAppjs} setKey={setKey}/>}
-            
+            element={
+              <Tracking setUpdateAppjs={setUpdateAppjs} setKey={setKey} />
+            }
           />
           <Route path="user/findShops" element={<FindShops />} />
-          <Route path="user/notification" element={<Notification notification={notification} onDelete={deleteNotification} setNotification={setNotification} setUnSeenNotification={setUnSeenNotification} setKey={setKey}/>} />
+          <Route
+            path="user/notification"
+            element={
+              <Notification
+                notification={notification}
+                onDelete={deleteNotification}
+                setNotification={setNotification}
+                setUnSeenNotification={setUnSeenNotification}
+                setKey={setKey}
+              />
+            }
+          />
           <Route path="user/contact" element={<ContactUs />} />
-          <Route path="user/orderWithJourney" element={<OrderWithJourney  setStausUpdate = {setStausUpdate}/>} />
-         
+          <Route
+            path="user/orderWithJourney"
+            element={<OrderWithJourney setStausUpdate={setStausUpdate} />}
+          />
         </Route>
       </Routes>
     </>

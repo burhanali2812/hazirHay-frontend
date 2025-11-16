@@ -14,7 +14,7 @@ function ShopkepperRequests({
   shopKepperWorkers,
   setKey,
 }) {
-  const user = JSON.parse(sessionStorage.getItem("user"));
+  const user = JSON.parse(localStorage.getItem("user"));
   const [requests, setRequests] = useState([]);
   const [shopKepperCords, setShopKepperCords] = useState([]);
   const [acceptedOrders, setAcceptedOrders] = useState([]);
@@ -39,12 +39,12 @@ function ShopkepperRequests({
   const [declineOrder, setDeclineOrder] = useState(null);
   const token = localStorage.getItem("token");
   useCheckBlockedStatus(token);
-    const role = sessionStorage.getItem("role");
-      useEffect(() => {
-      if (role !== "shopKepper") {
-        navigate("/unauthorized/user", { replace: true });
-      }
-    }, [role]); // Custom hook to check if shopkeeper is blocked
+  const role = localStorage.getItem("role");
+  useEffect(() => {
+    if (role !== "shopKepper") {
+      navigate("/unauthorized/user", { replace: true });
+    }
+  }, [role]); // Custom hook to check if shopkeeper is blocked
 
   const declineList = [
     "Not available at requested time",
@@ -57,9 +57,9 @@ function ShopkepperRequests({
     "Incorrect or incomplete address",
   ];
 
-  useEffect(()=>{
-    setKey("requests")
-  },[])
+  useEffect(() => {
+    setKey("requests");
+  }, []);
 
   const handleDeclineRequest = (order) => {
     setDeclineOrder(order);
@@ -557,7 +557,7 @@ function ShopkepperRequests({
       if (res.data.success) {
         if (res.data.data === true) {
           console.log("res.data.data", res.data.data);
-          
+
           navigate("/admin/user/orderWithJourney");
         }
       }
@@ -594,37 +594,35 @@ function ShopkepperRequests({
     }
   };
 
-const handleAssignOrders = async () => {
-  const confirm = window.confirm("Do you confirm to assign orders?");
-  if (!confirm) return; 
-Object.entries(selectedWorkers)?.map(([orderId, worker]) => {
-  console.log("orderId:", orderId);
-  console.log("workerId:", worker._id);
-});
+  const handleAssignOrders = async () => {
+    const confirm = window.confirm("Do you confirm to assign orders?");
+    if (!confirm) return;
+    Object.entries(selectedWorkers)?.map(([orderId, worker]) => {
+      console.log("orderId:", orderId);
+      console.log("workerId:", worker._id);
+    });
 
+    try {
+      const response = await axios.put(
+        "https://hazir-hay-backend.vercel.app/requests/assignMultiple",
+        { selectedWorkers },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          params: { t: Date.now() }, // prevents caching
+        }
+      );
 
-  try {
-    const response = await axios.put(
-      "https://hazir-hay-backend.vercel.app/requests/assignMultiple",
-      { selectedWorkers }, 
-      {
-        headers: { Authorization: `Bearer ${token}` },
-        params: { t: Date.now() }, // prevents caching
+      if (response.data.success) {
+        alert(response.data.message);
+        setSelectedWorkers({});
+        setDetailsModal(false);
+        fetchRequests("auto");
       }
-    );
-
-    if (response.data.success) {
-      alert(response.data.message);
-       setSelectedWorkers({})
-      setDetailsModal(false)
-      fetchRequests("auto")
+    } catch (error) {
+      console.error("Assignment failed:", error);
+      alert("Failed to assign orders. Please try again.");
     }
-  } catch (error) {
-    console.error("Assignment failed:", error);
-    alert("Failed to assign orders. Please try again.");
-  }
-};
-
+  };
 
   return (
     <>
@@ -843,7 +841,7 @@ Object.entries(selectedWorkers)?.map(([orderId, worker]) => {
                                   className="w-100 btn mt-2 btn-primary btn-sm rounded-pill"
                                   onClick={handleAssignOrders}
                                 >
-                                <i className="fa-solid fa-share-from-square me-1"></i>
+                                  <i className="fa-solid fa-share-from-square me-1"></i>
                                   Assign ({Object.keys(selectedWorkers)?.length}{" "}
                                   {acceptedOrders?.length === 1
                                     ? "Order"
@@ -1158,7 +1156,7 @@ Object.entries(selectedWorkers)?.map(([orderId, worker]) => {
                                           style={{
                                             maxHeight: "200px",
                                             overflowY: "auto",
-                                             overflowX: "hidden",
+                                            overflowX: "hidden",
                                           }}
                                         >
                                           {shopKepperWorkers &&
@@ -1224,16 +1222,18 @@ Object.entries(selectedWorkers)?.map(([orderId, worker]) => {
                                             )
                                           ) : (
                                             <li>
-                                           <div className="dropdown-item text-muted text-center py-3 small">
-  <i className="fa-regular fa-face-frown me-1"></i>
-  No workers available
-  <div className="mt-1">
-    <Link to="/admin/shopKepper/worker/signup" className="fw-bold">
-      Add New Worker
-    </Link>
-  </div>
-</div>
-
+                                              <div className="dropdown-item text-muted text-center py-3 small">
+                                                <i className="fa-regular fa-face-frown me-1"></i>
+                                                No workers available
+                                                <div className="mt-1">
+                                                  <Link
+                                                    to="/admin/shopKepper/worker/signup"
+                                                    className="fw-bold"
+                                                  >
+                                                    Add New Worker
+                                                  </Link>
+                                                </div>
+                                              </div>
                                             </li>
                                           )}
                                           <hr />

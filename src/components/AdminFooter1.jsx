@@ -16,10 +16,8 @@ function AdminFooter({
   const navigate = useNavigate();
 
   const [showOffcanvas, setShowOffcanvas] = useState(false);
-  const currentUser = JSON.parse(sessionStorage.getItem("user"));
-  const role = sessionStorage.getItem("role");
-
-
+  const currentUser = JSON.parse(localStorage.getItem("user"));
+  const role = localStorage.getItem("role");
 
   // Menu configuration for roles
   const menus = {
@@ -175,8 +173,8 @@ function AdminFooter({
         path: "/admin/user/tracking",
       },
     ],
- 
-       shopKepper: [
+
+    shopKepper: [
       {
         key: "dashboard",
         icon: "fa-solid fa-gauge",
@@ -201,13 +199,13 @@ function AdminFooter({
         label: "Transaction History",
         path: "/admin/shopKepper/transactions",
       },
-        {
+      {
         key: "switch",
         icon: "fa-solid fa-shuffle",
         label: "Worker Mode",
         path: "/admin/shopKepper/transactions",
       },
-     
+
       {
         key: "contact",
         icon: "fa-solid fa-address-book",
@@ -240,8 +238,7 @@ function AdminFooter({
 
   // Handle navigation or action
   const handleClick = (actionOrPath) => {
-    console.log("key fro footer", pageKey? pageKey : "loading....");
-    
+    console.log("key fro footer", pageKey ? pageKey : "loading....");
 
     if (typeof actionOrPath === "string") {
       navigate(actionOrPath);
@@ -252,8 +249,8 @@ function AdminFooter({
 
   const logOut = () => {
     if (!window.confirm("Are you sure you want to log out?")) return;
-localStorage.clear();
-    sessionStorage.clear();
+    localStorage.clear();
+    localStorage.clear();
     navigate("/login");
   };
 
@@ -383,27 +380,24 @@ localStorage.clear();
               <div className="text-center mb-4">
                 <h5 className="fw-bold mb-1 d-inline-flex align-items-center">
                   {currentUser?.name}
-                  {
-                    role === "shopKepper" ? (
-                                      <i
-                  className={`${
-                    currentUser?.isVerified
-                      ? "fa-solid fa-circle-check"
-                      : "fa-solid fa-circle-xmark"
-                  } ms-1`}
-                  style={{
-                    color: currentUser?.isVerified ? "#28a745" : "#dc3545",
-                    fontSize: "18px",
-                  }}
-                ></i>
-                    ):(
-                       <i
-                    className="fa-solid fa-circle-check ms-2"
-                    style={{ color: "#4caf50", fontSize: "16px" }}
-                  ></i>
-                    )
-                  }
-                 
+                  {role === "shopKepper" ? (
+                    <i
+                      className={`${
+                        currentUser?.isVerified
+                          ? "fa-solid fa-circle-check"
+                          : "fa-solid fa-circle-xmark"
+                      } ms-1`}
+                      style={{
+                        color: currentUser?.isVerified ? "#28a745" : "#dc3545",
+                        fontSize: "18px",
+                      }}
+                    ></i>
+                  ) : (
+                    <i
+                      className="fa-solid fa-circle-check ms-2"
+                      style={{ color: "#4caf50", fontSize: "16px" }}
+                    ></i>
+                  )}
                 </h5>
 
                 <div>
@@ -418,9 +412,12 @@ localStorage.clear();
                         <i className="fa-solid fa-user-shield me-1 text-danger"></i>{" "}
                         Admin
                       </>
-                    ): <>
-                     <i className="fa-solid fa-user-tie me-1 text-dark"></i> Service Provider
-                    </> }
+                    ) : (
+                      <>
+                        <i className="fa-solid fa-user-tie me-1 text-dark"></i>{" "}
+                        Service Provider
+                      </>
+                    )}
                   </span>
                 </div>
               </div>

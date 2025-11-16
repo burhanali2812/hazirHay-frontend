@@ -16,9 +16,9 @@ function UserDashboard({
   areaName,
   setAreaName,
   setCoordinates,
-  setKey
+  setKey,
 }) {
-   const role = sessionStorage.getItem("role");
+  const role = localStorage.getItem("role");
 
   const token = localStorage.getItem("token");
   const [shopAddressModal, setShopAddressModal] = useState(false);
@@ -43,7 +43,7 @@ function UserDashboard({
   const [infoModal, setInfoModal] = useState(false);
   const navigate = useNavigate();
 
-  const user = JSON.parse(sessionStorage.getItem("user"));
+  const user = JSON.parse(localStorage.getItem("user"));
 
   const [distanceRange, setDistanceRange] = useState(10);
   const [isFilter, setIsFilter] = useState(false);
@@ -60,7 +60,7 @@ function UserDashboard({
     rating: "All",
     distance: "All",
   });
-    useEffect(() => {
+  useEffect(() => {
     if (role !== "user") {
       navigate("/unauthorized/user", { replace: true });
     }
@@ -89,9 +89,9 @@ function UserDashboard({
       setPage((prev) => prev - 1);
     }
   };
-  useEffect(()=>{
-    setKey("home")
-  },[])
+  useEffect(() => {
+    setKey("home");
+  }, []);
 
   const handleOpenFilter = (e, filterType) => {
     e.preventDefault();
@@ -471,7 +471,6 @@ function UserDashboard({
     }
   };
 
-  
   const fetchAreaName = async (lat, lon) => {
     try {
       const res = await axios.get(
@@ -696,7 +695,7 @@ function UserDashboard({
     }
 
     fetchDistances();
-  }, [finalServices, selectedArea]); 
+  }, [finalServices, selectedArea]);
 
   const completeOrderRatioSelectedShop = findRatio(
     selectedShopWithShopkepper?.shop?.owner,

@@ -8,7 +8,7 @@ import successAudio from "../sounds/success.mp3";
 import Swal from "sweetalert2";
 import { useCheckBlockedStatus } from "./useCheckBlockedStatus";
 function OrderWithJourney({ setStausUpdate }) {
-  const user = JSON.parse(sessionStorage.getItem("user"));
+  const user = JSON.parse(localStorage.getItem("user"));
   const [routeInfo, setRouteInfo] = useState(null);
   const [shopKepperCords, setShopKepperCords] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -16,12 +16,12 @@ function OrderWithJourney({ setStausUpdate }) {
   const [shareLoading, setShareLoading] = useState(false);
   const [cancelLoading, setCalcelLoading] = useState(false);
   const [isContentShow, setIsContentShow] = useState(true);
-    const role = sessionStorage.getItem("role");
-      useEffect(() => {
-      if (role !== "worker") {
-        navigate("/unauthorized/user", { replace: true });
-      }
-    }, [role]);
+  const role = localStorage.getItem("role");
+  useEffect(() => {
+    if (role !== "worker") {
+      navigate("/unauthorized/user", { replace: true });
+    }
+  }, [role]);
   const selectedTrackShopData = JSON.parse(
     localStorage.getItem("currentCheckout")
   );
@@ -66,36 +66,35 @@ function OrderWithJourney({ setStausUpdate }) {
       console.error("Error sending notification:", error);
     }
   };
- 
 
-const postTransaction = async () => {
-  if (!selectedTrackShopData || selectedTrackShopData.length === 0) {
-    alert("No orders selected for transaction.");
-    return;
-  }
-
-  try {
-    const response = await axios.post(
-      "https://hazir-hay-backend.vercel.app/transactions/createTransaction",
-      { transactionData: selectedTrackShopData },
-      {
-        headers: { Authorization: `Bearer ${token}` },
-        params: { t: Date.now() }, // prevents caching
-      }
-    );
-
-    if (response.data.success) {
-      console.log("Transaction created:", response.data.data);
-      alert("Transaction saved successfully!");
-    } else {
-      alert("Failed to save transaction.");
-      console.error("Response error:", response.data);
+  const postTransaction = async () => {
+    if (!selectedTrackShopData || selectedTrackShopData.length === 0) {
+      alert("No orders selected for transaction.");
+      return;
     }
-  } catch (error) {
-    console.error("Error creating transaction:", error);
-    alert("An error occurred while saving the transaction.");
-  }
-};
+
+    try {
+      const response = await axios.post(
+        "https://hazir-hay-backend.vercel.app/transactions/createTransaction",
+        { transactionData: selectedTrackShopData },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          params: { t: Date.now() }, // prevents caching
+        }
+      );
+
+      if (response.data.success) {
+        console.log("Transaction created:", response.data.data);
+        alert("Transaction saved successfully!");
+      } else {
+        alert("Failed to save transaction.");
+        console.error("Response error:", response.data);
+      }
+    } catch (error) {
+      console.error("Error creating transaction:", error);
+      alert("An error occurred while saving the transaction.");
+    }
+  };
 
   const completedOrder = async () => {
     setLoading(true);
@@ -198,33 +197,36 @@ const postTransaction = async () => {
           navigate("/worker/dashboard");
         }
       }
-  
     } catch (error) {
-  setCalcelLoading(false);
+      setCalcelLoading(false);
 
-  if (error.response && error.response.status === 403 && error.response.data.blocked) {
-    Swal.fire({
-      title: "Shop Blocked!",
-      text: "Your shop has been blocked for 7 days due to exceeding the cancellation limit.",
-      icon: "warning",
-      timer: 1500,
-      showConfirmButton: false,
-      background: "#fff8e1",
-    });
+      if (
+        error.response &&
+        error.response.status === 403 &&
+        error.response.data.blocked
+      ) {
+        Swal.fire({
+          title: "Shop Blocked!",
+          text: "Your shop has been blocked for 7 days due to exceeding the cancellation limit.",
+          icon: "warning",
+          timer: 1500,
+          showConfirmButton: false,
+          background: "#fff8e1",
+        });
 
-    navigate("/worker/dashboard");
-    return;
-  }
+        navigate("/worker/dashboard");
+        return;
+      }
 
-  // Default unknown error  
-  Swal.fire({
-    title: "Error!",
-    text: "Something went wrong.",
-    icon: "error",
-    timer: 1200,
-    showConfirmButton: false,
-  });
-}
+      // Default unknown error
+      Swal.fire({
+        title: "Error!",
+        text: "Something went wrong.",
+        icon: "error",
+        timer: 1200,
+        showConfirmButton: false,
+      });
+    }
   };
 
   const updateLocation = async (lat, lng) => {
@@ -344,11 +346,11 @@ const postTransaction = async () => {
     localStorage.removeItem("currentCheckout");
     navigate("/worker/dashboard");
   };
-    const openGoogleMaps = (userCoords,shopCoords) => {
-  const url = `https://www.google.com/maps/dir/?api=1&origin=${userCoords[1]},${userCoords[0]}&destination=${shopCoords[1]},${shopCoords[0]}&travelmode=driving`;
+  const openGoogleMaps = (userCoords, shopCoords) => {
+    const url = `https://www.google.com/maps/dir/?api=1&origin=${userCoords[1]},${userCoords[0]}&destination=${shopCoords[1]},${shopCoords[0]}&travelmode=driving`;
 
-  window.open(url, "_blank");
-};
+    window.open(url, "_blank");
+  };
 
   return (
     <>
@@ -391,19 +393,19 @@ const postTransaction = async () => {
               />
             )}
           </div>
-  {/* GOOGLE MAP BUTTON */}
-  <button
-    className="btn btn-primary w-100 mt-3 fw-semibold rounded-pill "
-    onClick={() =>
-      openGoogleMaps(
-        [position[1], position[0]],
-        [shopKepperCords[0], shopKepperCords[1]]
-      )
-    }
-  >
-    <i className="fa-solid fa-map-location-dot me-1"></i>
-    Open in Google Maps
-  </button>
+          {/* GOOGLE MAP BUTTON */}
+          <button
+            className="btn btn-primary w-100 mt-3 fw-semibold rounded-pill "
+            onClick={() =>
+              openGoogleMaps(
+                [position[1], position[0]],
+                [shopKepperCords[0], shopKepperCords[1]]
+              )
+            }
+          >
+            <i className="fa-solid fa-map-location-dot me-1"></i>
+            Open in Google Maps
+          </button>
           <button
             className="btn btn-sm w-100 mt-2 fw-semibold d-flex align-items-center justify-content-center gap-2 py-2 rounded-pill shadow-sm text-white"
             style={{

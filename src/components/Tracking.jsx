@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import track from "../images/track.png";
 import notFound from "../images/notFound.png";
 import axios from "axios";
-import { useNavigate , useLocation} from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import Swal from "sweetalert2";
 import completed from "../images/completed.png";
 import rejected from "../images/rejected.png";
@@ -27,52 +27,48 @@ function Tracking({ setUpdateAppjs, setKey }) {
   const [cencelOrderLoading, setCancelOrderLoading] = useState(false);
   const [shopLiveCoordinates, setShopLiveCoordinates] = useState([]);
   const location = useLocation();
-    const role = sessionStorage.getItem("role");
-
+  const role = localStorage.getItem("role");
 
   const navigate = useNavigate();
-      useEffect(() => {
-      if (role !== "user") {
-        navigate("/unauthorized/user", { replace: true });
-      }
-    }, [role]);
+  useEffect(() => {
+    if (role !== "user") {
+      navigate("/unauthorized/user", { replace: true });
+    }
+  }, [role]);
   const position = selectedTrackShopData?.location?.[0]?.coordinates;
   console.log("position", position);
   console.log("selectedTrackShopData", selectedTrackShopData);
   console.log("ID", selectedTrackShopData?.shopId);
   localStorage.setItem("shopid", selectedTrackShopData?.shopId);
-      const orderIdFromNoti = location.state?.orderId || null;
-    const checkOutIdFromNoti = location.state?.checkOutId || null;
+  const orderIdFromNoti = location.state?.orderId || null;
+  const checkOutIdFromNoti = location.state?.checkOutId || null;
 
-    useEffect(()=>{
-      setKey("tracking")
-    },[])
+  useEffect(() => {
+    setKey("tracking");
+  }, []);
 
-useEffect(() => {
-  if (orderIdFromNoti && checkOutIdFromNoti) {
-    const fetchAndSelect = async () => {
-      setLoading(true);
-      const data = await fetchUserCart(); 
-   
+  useEffect(() => {
+    if (orderIdFromNoti && checkOutIdFromNoti) {
+      const fetchAndSelect = async () => {
+        setLoading(true);
+        const data = await fetchUserCart();
 
-      const selectTrackData = data.find(
-        (request) =>
-          request.orderId === orderIdFromNoti &&
-          request.checkoutId === checkOutIdFromNoti
-      );
-      setLoading(true)
+        const selectTrackData = data.find(
+          (request) =>
+            request.orderId === orderIdFromNoti &&
+            request.checkoutId === checkOutIdFromNoti
+        );
+        setLoading(true);
 
-      console.log("selectTrack...", selectTrackData);
-      setSelectedTrackShopData(selectTrackData);
-      setTrackingDetailsModal(true);
-      setLoading(false);
-    };
+        console.log("selectTrack...", selectTrackData);
+        setSelectedTrackShopData(selectTrackData);
+        setTrackingDetailsModal(true);
+        setLoading(false);
+      };
 
-    fetchAndSelect();
-  }
-}, [orderIdFromNoti, checkOutIdFromNoti]);
-
-
+      fetchAndSelect();
+    }
+  }, [orderIdFromNoti, checkOutIdFromNoti]);
 
   const getLiveUpdateLocation = async () => {
     try {
@@ -93,12 +89,16 @@ useEffect(() => {
   };
 
   useEffect(() => {
-    if(selectedTrackShopData !== null && trackingDetailsModal && selectedTrackShopData?.status === "inProgress"){
-         const interval = setInterval(() => {
-      getLiveUpdateLocation();
-    }, 5000);
+    if (
+      selectedTrackShopData !== null &&
+      trackingDetailsModal &&
+      selectedTrackShopData?.status === "inProgress"
+    ) {
+      const interval = setInterval(() => {
+        getLiveUpdateLocation();
+      }, 5000);
 
-    return () => clearInterval(interval);
+      return () => clearInterval(interval);
     }
   }, [selectedTrackShopData, trackingDetailsModal]);
 
@@ -113,11 +113,11 @@ useEffect(() => {
       );
       if (response.data.success) {
         // alert("Cart Data Fetch SuccessFully")
-        const data = response.data.data || []
+        const data = response.data.data || [];
         console.log(response.data.data || []);
         setRequestsData(data);
-        setLoading(false)
-        return data
+        setLoading(false);
+        return data;
       }
     } catch (error) {
       console.error("Error Fetching reuests data:", error.message);
@@ -125,11 +125,10 @@ useEffect(() => {
   };
 
   useEffect(() => {
-    if(orderIdFromNoti === null && checkOutIdFromNoti === null){
-fetchUserCart();
+    if (orderIdFromNoti === null && checkOutIdFromNoti === null) {
+      fetchUserCart();
     }
-    
-  }, [orderIdFromNoti,checkOutIdFromNoti]);
+  }, [orderIdFromNoti, checkOutIdFromNoti]);
 
   const deleteRequest = async (id) => {
     const result = await Swal.fire({
@@ -204,7 +203,7 @@ fetchUserCart();
           "shop Coordinates",
           res.data.data.shop.location.coordinates
         );
-        return data
+        return data;
       }
     } catch (error) {
       setLoading(false);
@@ -267,9 +266,12 @@ fetchUserCart();
       : selectedTrackShopData?.status === "completed"
       ? completed
       : rejected;
-const finalSelectedTrackShopStatus = selectedTrackShopData?.status === "deleted"? "rejected" : selectedTrackShopData?.status;
+  const finalSelectedTrackShopStatus =
+    selectedTrackShopData?.status === "deleted"
+      ? "rejected"
+      : selectedTrackShopData?.status;
   return (
-    <div className="container mt-3 " style={{marginBottom : "65px"}}>
+    <div className="container mt-3 " style={{ marginBottom: "65px" }}>
       {loading && (
         <div
           className="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center bg-dark bg-opacity-75"
@@ -432,12 +434,12 @@ const finalSelectedTrackShopStatus = selectedTrackShopData?.status === "deleted"
                   >
                     {shopCoordinates && position && (
                       <UserShopRoute
-                        userCoords={[position[1], position[0]]} 
+                        userCoords={[position[1], position[0]]}
                         shopCoords={
                           shopLiveCoordinates &&
                           shopLiveCoordinates.length === 2
-                            ? [shopLiveCoordinates[1], shopLiveCoordinates[0]] 
-                            : [shopCoordinates[1], shopCoordinates[0]] 
+                            ? [shopLiveCoordinates[1], shopLiveCoordinates[0]]
+                            : [shopCoordinates[1], shopCoordinates[0]]
                         }
                         onRouteInfo={(info) => setRouteInfo(info)}
                         type="live"
@@ -445,10 +447,7 @@ const finalSelectedTrackShopStatus = selectedTrackShopData?.status === "deleted"
                     )}
                   </div>
                 ) : (
-                  <div
-                    className="d-flex flex-column justify-content-center align-items-center text-center shadow-sm container"
-                  
-                  >
+                  <div className="d-flex flex-column justify-content-center align-items-center text-center shadow-sm container">
                     <img
                       src={finalImage}
                       alt="No Data"
@@ -456,7 +455,15 @@ const finalSelectedTrackShopStatus = selectedTrackShopData?.status === "deleted"
                       style={{ width: "200px", height: "auto" }}
                     />
 
-                    <h4 className={`fw-bold text-${finalSelectedTrackShopStatus === "completed" ? "success" : finalSelectedTrackShopStatus === "rejected" ? "danger" : "warning"} mb-2 mt-0`}>
+                    <h4
+                      className={`fw-bold text-${
+                        finalSelectedTrackShopStatus === "completed"
+                          ? "success"
+                          : finalSelectedTrackShopStatus === "rejected"
+                          ? "danger"
+                          : "warning"
+                      } mb-2 mt-0`}
+                    >
                       {finalSelectedTrackShopStatus === "completed"
                         ? "Order Completed Successfully"
                         : finalSelectedTrackShopStatus === "rejected"
@@ -470,8 +477,8 @@ const finalSelectedTrackShopStatus = selectedTrackShopData?.status === "deleted"
                     >
                       {finalSelectedTrackShopStatus === "completed" && (
                         <>
-                          Your order has been successfully completed . Thank
-                          you for choosing our services.
+                          Your order has been successfully completed . Thank you
+                          for choosing our services.
                         </>
                       )}
                       {finalSelectedTrackShopStatus === "rejected" && (
@@ -539,18 +546,18 @@ const finalSelectedTrackShopStatus = selectedTrackShopData?.status === "deleted"
                       </div>
 
                       {/* DISTANCE + TIME */}
-                     {selectedTrackShopData?.status === "accepted" && (
-                       <div className="d-flex justify-content-around text-muted small mb-3">
-                        <span>
-                          <i className="fa-solid fa-clock me-1 text-secondary"></i>
-                          <b>ETA:</b> {routeInfo?.duration} mins
-                        </span>
-                        <span>
-                          <i className="fa-solid fa-route me-1 text-secondary"></i>
-                          <b>Distance:</b> {routeInfo?.distance} km
-                        </span>
-                      </div>
-                     )}
+                      {selectedTrackShopData?.status === "accepted" && (
+                        <div className="d-flex justify-content-around text-muted small mb-3">
+                          <span>
+                            <i className="fa-solid fa-clock me-1 text-secondary"></i>
+                            <b>ETA:</b> {routeInfo?.duration} mins
+                          </span>
+                          <span>
+                            <i className="fa-solid fa-route me-1 text-secondary"></i>
+                            <b>Distance:</b> {routeInfo?.distance} km
+                          </span>
+                        </div>
+                      )}
 
                       {/* ORDER DETAILS */}
                       <div className="mt-2">
