@@ -54,6 +54,7 @@ function WorkerDashboard({ setUpdateAppjs }) {
     handlegetAssignedOrder();
   }, []);
   const getCurrentLocation = async () => {
+    isDataLoading(true);
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         async (pos) => {
@@ -66,14 +67,17 @@ function WorkerDashboard({ setUpdateAppjs }) {
             name: "Current Location",
             coordinates: [lat, lng],
           };
+          isDataLoading(false);
           setCurrentLocation(location);
         },
         (error) => {
+          isDataLoading(false);
           console.error("Error getting location:", error);
           alert("Unable to get your location. Please allow location access.");
         }
       );
     } else {
+      isDataLoading(false);
       alert("Geolocation is not supported by your browser.");
     }
   };
