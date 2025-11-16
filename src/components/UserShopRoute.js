@@ -140,5 +140,5 @@ export default function UserShopRoute({ userCoords, shopCoords, onRouteInfo, typ
     }
   }, [userCoords, shopCoords]);
 
-  return <div ref={mapContainerRef} style={{ width: "100%", height: "700px" }} />;
+  return <div ref={mapContainerRef} style={{ width: "100%", height: "650px" }} />;
 }

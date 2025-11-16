@@ -371,7 +371,7 @@ const postTransaction = async () => {
         </div>
       </div>
 
-      <div className="bg-white container">
+      <div className=" container">
         <div>
           <div
             style={{
@@ -391,21 +391,23 @@ const postTransaction = async () => {
               />
             )}
           </div>
-<button 
-  className="btn btn-primary"
-  onClick={() =>
-    openGoogleMaps(
-      [position[1], position[0]],        // user: lat, lng
-      [shopKepperCords[0], shopKepperCords[1]] // shop: lat, lng
-    )
-  }
->
-  Show on Google Map
-</button>
+  {/* GOOGLE MAP BUTTON */}
+  <button
+    className="btn btn-primary w-100 mt-3 fw-semibold rounded-pill "
+    onClick={() =>
+      openGoogleMaps(
+        [position[1], position[0]],
+        [shopKepperCords[0], shopKepperCords[1]]
+      )
+    }
+  >
+    <i className="fa-solid fa-map-location-dot me-1"></i>
+    Open in Google Maps
+  </button>
           <button
-            className="btn btn-sm w-100 mt-3 fw-semibold d-flex align-items-center justify-content-center gap-2 py-2 rounded-pill shadow-sm text-white"
+            className="btn btn-sm w-100 mt-2 fw-semibold d-flex align-items-center justify-content-center gap-2 py-2 rounded-pill shadow-sm text-white"
             style={{
-              backgroundColor: isContentShow ? "#dc3545" : "#0d6efd",
+              backgroundColor: isContentShow ? "#dc3545" : "#000000ff",
               border: "none",
               transition: "all 0.25s ease",
               boxShadow: "0 4px 8px rgba(0, 0, 0, 0.15)",
