@@ -518,7 +518,7 @@ function WorkerDashboard({ setUpdateAppjs }) {
                       title="Start this delivery"
                       onClick={() => handleStart(group.orders, isStart)}
                       disabled={group?.orders?.some(
-                        (order) => order.status !== "inProgress"
+                        (order) => order.status !== "inProgress" && order.status !== "assigned"
                       )}
                     >
                       <i

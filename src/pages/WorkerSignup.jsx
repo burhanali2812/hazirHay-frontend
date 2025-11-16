@@ -80,16 +80,15 @@ return (
   <div className="container py-4" >
   {/* Back Button */}
   <div
-    className="d-flex align-items-center mb-3 mt-4"
+    className="d-flex align-items-center  ms-1"
     style={{ cursor: "pointer", width: "fit-content" }}
     onClick={() => window.history.back()}
   >
-    <i className="fa-solid fa-arrow-left me-2" style={{ fontSize: "18px" }}></i>
-    <span className="fw-bold">Back</span>
+    <i className="fa-solid fa-arrow-left me-2" style={{ fontSize: "20px" }}></i>
   </div>
 
   {/* Centered Form */}
-  <div className="d-flex flex-column justify-content-center align-items-center" style={{ minHeight: "calc(100vh - 75px)" }}>
+  <div className="d-flex flex-column justify-content-center align-items-center">
     <div className="p-3" style={{ maxWidth: "450px", width: "100%" }}>
       {/* Header */}
       <div className="text-center mb-3">
