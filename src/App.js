@@ -11,7 +11,7 @@ import Requests from "./pages/Requests";
 import { useEffect, useState } from "react";
 import Users from "./pages/Users";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import ShopKepperDashboard from "./pages/ShopKepperDashboard";
@@ -59,28 +59,26 @@ function App() {
   const [shopKepperStatus2, setShopKepperStatus2] = useState(false);
   const [isBlocked, setIsBlocked] = useState(false);
   const navigate = useNavigate();
+   const location = useLocation(); 
 
   const user = JSON.parse(localStorage.getItem("user"));
-
-  useEffect(() => {
+useEffect(() => {
     const token = localStorage.getItem("token");
-      const role = localStorage.getItem("role");
-    if(token && role){
-      if(role==="shopKepper"){
-        navigate("/admin/shopKepper/dashboard");
-      }
-      else if(role==="user"){
-        navigate("/admin/user/dashboard");
+    const role = localStorage.getItem("role");
 
+    // Only redirect if user is on root or login/signup page
+    if (token && role && (location.pathname === "/" || location.pathname === "/login" || location.pathname === "/signup")) {
+      if (role === "shopKepper") {
+        navigate("/admin/shopKepper/dashboard");
+      } else if (role === "user") {
+        navigate("/admin/user/dashboard");
+      } else if (role === "admin") {
+        navigate("/admin/dashboard");
+      } else if (role === "worker") {
+        navigate("/worker/dashboard");
+      }
     }
-    else if(role==="admin"){
-      navigate("/admin/dashboard");
-    }
-    else if(role==="worker"){
-      navigate("/worker/dashboard");
-    }
-    }
-  }, [role, navigate, token]);
+  }, [location.pathname, navigate]);
 
   const getAllUser = async () => {
     try {
