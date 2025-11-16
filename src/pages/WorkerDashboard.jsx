@@ -15,6 +15,7 @@ function WorkerDashboard({ setUpdateAppjs }) {
   const [filteredOrders, setFilteredOrders] = useState([]);
   const [showMapModal, setShowMapModal] = useState(false);
   const [progressUserId, setProgressUserId] = useState(null);
+  const [isDataLoading, setIsDataLoading] = useState(false);
   const role = localStorage.getItem("role");
   useEffect(() => {
     if (role !== "worker") {
@@ -28,6 +29,7 @@ function WorkerDashboard({ setUpdateAppjs }) {
   };
 
   const handlegetAssignedOrder = async () => {
+    setIsDataLoading(true);
     try {
       const res = await axios.get(
         `https://hazir-hay-backend.vercel.app/requests/getAssignedOrder/${user?._id}`,
@@ -39,10 +41,12 @@ function WorkerDashboard({ setUpdateAppjs }) {
         }
       );
       if (res.data.success) {
+        setIsDataLoading(false);
         //  alert(res.data.message);
         setAssignOrders(res.data.data);
       }
     } catch (error) {
+      setIsDataLoading(false);
       alert(error);
     }
   };
@@ -78,8 +82,10 @@ function WorkerDashboard({ setUpdateAppjs }) {
   }, []);
 
   async function getDistance(workerCoords) {
+    isDataLoading(true);
     try {
       if (!currentLocation || !currentLocation.coordinates) {
+           setIsDataLoading(false);
         console.warn("Current location not available");
         return { distance: null, duration: null };
       }
@@ -92,6 +98,7 @@ function WorkerDashboard({ setUpdateAppjs }) {
 
       if (!workerCoords || workerCoords.length < 2) {
         console.warn("Invalid worker coordinates:", workerCoords);
+        setIsDataLoading(false);
         return { distance: null, duration: null };
       }
 
@@ -103,16 +110,19 @@ function WorkerDashboard({ setUpdateAppjs }) {
       const res = await axios.get(url);
 
       if (!res.data.routes || res.data.routes.length === 0) {
+           setIsDataLoading(false);
         console.warn("No routes found for:", workerCoords);
         return { distance: null, duration: null };
       }
 
       const route = res.data.routes[0];
+         setIsDataLoading(false);
       return {
         distance: (route.distance / 1000).toFixed(2),
         duration: (route.duration / 60).toFixed(0),
       };
     } catch (error) {
+         setIsDataLoading(false);
       console.error("Error in getDistance:", error.message);
       return { distance: null, duration: null };
     }
@@ -228,20 +238,18 @@ function WorkerDashboard({ setUpdateAppjs }) {
 
     setOrdersModal(true);
   };
-useEffect(() => {
-  if (groupedRequestsArray.length !== 0) {
-    
-    // Find the first group where any order is inProgress
-    const progressGroup = groupedRequestsArray.find((group) =>
-      group.orders.some((order) => order.status === "inProgress")
-    );
+  useEffect(() => {
+    if (groupedRequestsArray.length !== 0) {
+      // Find the first group where any order is inProgress
+      const progressGroup = groupedRequestsArray.find((group) =>
+        group.orders.some((order) => order.status === "inProgress")
+      );
 
-    console.log("progress group user:", progressGroup?.user?._id || null);
+      console.log("progress group user:", progressGroup?.user?._id || null);
 
-    setProgressUserId(progressGroup?.user?._id || null);
-  }
-}, [groupedRequestsArray]);
-
+      setProgressUserId(progressGroup?.user?._id || null);
+    }
+  }, [groupedRequestsArray]);
 
   const handleUnAssignedOrders = async (orderId) => {
     setUnAssignedLoading(orderId);
@@ -299,6 +307,29 @@ useEffect(() => {
       setFilteredOrders(filtered);
     }
   };
+
+  const messages = [
+    "Please wait…",
+    "Fetching your orders…",
+    "Preparing your tasks…",
+    "Organizing everything for you…",
+    "Almost ready…",
+  ];
+  const [currentMessage, setCurrentMessage] = useState(messages[0]);
+  const [index, setIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setIndex((prev) => {
+        const nextIndex = prev + 1;
+        setCurrentMessage(messages[nextIndex] || messages[messages.length - 1]);
+        return nextIndex >= messages.length - 1 ? prev : nextIndex;
+      });
+    }, 2200); 
+
+    return () => clearInterval(interval);
+  }, []);
+
 
   return (
     <div>
@@ -403,7 +434,23 @@ useEffect(() => {
           </div>
         </div>
 
-        {groupedRequestsArray?.length > 0 ? (
+        {
+          isDataLoading ? (
+                    <div className="d-flex flex-column justify-content-center align-items-center mt-4" style={{ minHeight: "150px" }}>
+      
+      {/* Spinner */}
+      <div className="spinner-border text-primary mb-3" role="status" style={{ width: "3rem", height: "3rem" }}>
+        <span className="visually-hidden">Loading...</span>
+      </div>
+
+      {/* Beautiful animated message */}
+      <p className="fw-semibold fs-5 text-primary" style={{ transition: "opacity 0.5s ease-in-out" }}>
+        {currentMessage}
+      </p>
+    </div>
+          ) : (
+            <>
+                    {groupedRequestsArray?.length > 0 ? (
           groupedRequestsArray?.map((group, ind) => {
             const user = group.user;
             const firstOrder = group.orders[0];
@@ -532,7 +579,7 @@ useEffect(() => {
                       } btn-sm rounded-pill shadow-sm fw-semibold w-100 d-flex justify-content-center align-items-center`}
                       title="Start this delivery"
                       onClick={() => handleStart(group.orders, isStart)}
-                      disabled={group.user._id !== progressUserId }
+                      disabled={group.user._id !== progressUserId}
                     >
                       <i
                         className={`fa-solid ${
@@ -549,6 +596,11 @@ useEffect(() => {
         ) : (
           <h5 className="text-muted text-center mt-4">No orders assigned</h5>
         )}
+            </>
+          )
+        }
+
+
       </section>
       {ordersModal && (
         <div
