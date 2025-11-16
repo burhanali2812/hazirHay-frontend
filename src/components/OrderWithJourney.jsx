@@ -394,7 +394,19 @@ function OrderWithJourney({ setStausUpdate }) {
             )}
           </div>
           {/* GOOGLE MAP BUTTON */}
-          <button
+        {
+          routeInfo === null ? (
+            <div className="text-center mt-3">
+              <div
+                className="spinner-border text-primary"
+                role="status"
+              >
+                <span className="visually-hidden">Loading...</span>
+              </div>
+            </div>
+          ):(
+          <>
+            <button
             className="btn btn-primary w-100 mt-3 fw-semibold rounded-pill "
             onClick={() =>
               openGoogleMaps(
@@ -663,6 +675,9 @@ function OrderWithJourney({ setStausUpdate }) {
               </button>
             </div>
           )}
+          </>
+          )
+        }
         </div>
         {orderCompleteModal && (
           <div
