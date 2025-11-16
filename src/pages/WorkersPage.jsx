@@ -35,26 +35,36 @@ const WorkersPage = ({ shopKepperWorkers, setShopKepperWorkers }) => {
     };
 return (
   <div className="container my-4">
-    
-    {/* Title */}
-    <h4 className="text-center fw-bold mb-1">
-      <i className="fa-solid fa-users-line me-2"></i>Workers List
-    </h4>
+{/* Back Button */}
+<div className="mb-3">
+  <button
+    className="btn btn-outline-secondary d-flex align-items-center"
+    onClick={() => window.history.back()}
+  >
+    <i className="fa-solid fa-arrow-left me-2"></i> Back
+  </button>
+</div>
 
-    {/* Subtitle */}
-    <p className="text-center text-muted mb-4" style={{ fontSize: "13px" }}>
-      Manage all workers, check availability, and contact them instantly.
-    </p>
+{/* Title */}
+<h4 className="text-center fw-bold mb-1">
+  <i className="fa-solid fa-users-line me-2"></i>Workers List
+</h4>
 
-    {/* Add Button */}
-    <div className="d-flex justify-content-end mb-3 me-1">
-      <button
-        className="btn btn-primary btn-sm"
-        onClick={() => navigate("/admin/shopKepper/worker/signup")}
-      >
-        <i className="fa-solid fa-user-plus me-2"></i>Add Worker
-      </button>
-    </div>
+{/* Subtitle */}
+<p className="text-center text-muted mb-4" style={{ fontSize: "13px" }}>
+  Manage all workers, check availability, and contact them instantly.
+</p>
+
+{/* Add Button */}
+<div className="d-flex justify-content-end mb-3 me-1">
+  <button
+    className="btn btn-primary btn-sm"
+    onClick={() => navigate("/admin/shopKepper/worker/signup")}
+  >
+    <i className="fa-solid fa-user-plus me-2"></i>Add Worker
+  </button>
+</div>
+
 
     {/* Workers List */}
     <div className="row g-3">

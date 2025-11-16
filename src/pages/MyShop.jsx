@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-
+import { useNavigate } from "react-router-dom";
 function MyShop({shopKepperWorkers}) {
   const [shop, setShop] = useState(null);
   const user = JSON.parse(localStorage.getItem("user"));
   const token = localStorage.getItem("token");
+  const navigate = useNavigate();
 
   const getShopData = async () => {
     try {
@@ -116,7 +117,7 @@ function MyShop({shopKepperWorkers}) {
         <div className="row g-3">
           {/* Workers Card */}
           <div className="col-md-6">
-            <div className="card h-100 shadow-lg text-center hover-shadow bg-light border-0">
+            <div className="card h-100 shadow-lg text-center hover-shadow bg-light border-0"  onClick={()=>navigate("/admin/shopKepper/workersList")}>
               <div className="card-body d-flex flex-column align-items-center justify-content-center">
                 <i className="fas fa-users fa-2x text-primary mb-3"></i>
                 <h5 className="card-title">Workers</h5>
