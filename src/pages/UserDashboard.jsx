@@ -49,7 +49,7 @@ function UserDashboard() {
   const [filterText, setFilterText] = useState("");
   const [FilterServices, setFilterServices] = useState([]);
   const [loadingDelandSet, setLoadingDelandSet] = useState(false);
-  const [isFindServiceProvider, setIsFindServiceProvider] = useState(false);
+  const [isDataLoading, setIsDataLoading] = useState(false);
   const [filters, setFilters] = useState({
     status: "All",
     price: "All",
@@ -87,6 +87,9 @@ function UserDashboard() {
   };
   useEffect(() => {
     setKey("home");
+    setTimeout(() => {
+      setIsDataLoading(true)
+    }, 1200);
   }, []);
 
   const handleOpenFilter = (e, filterType) => {
@@ -720,7 +723,22 @@ function UserDashboard() {
           </Suspense>
         </div>
       </form>
-      <div
+     {
+      isDataLoading ? (
+                            <div className="d-flex flex-column justify-content-center align-items-center mt-4" style={{ minHeight: "150px" }}>
+      
+      {/* Spinner */}
+      <div className="spinner-border text-primary mb-3" role="status" style={{ width: "3rem", height: "3rem" }}>
+        <span className="visually-hidden">Loading...</span>
+      </div>
+
+      {/* Beautiful animated message */}
+      <p className="fw-semibold fs-5 text-primary" style={{ transition: "opacity 0.5s ease-in-out" }}>
+        Please Wait Fetch Your Location...
+      </p>
+    </div>
+      ):(
+         <div
         className="card bg-light container shadow-sm"
         style={{
           marginTop: "-35px",
@@ -833,6 +851,8 @@ function UserDashboard() {
           )}
         </button>
       </div>
+      )
+     }
 
       {chooseLocationModal && (
         <>
