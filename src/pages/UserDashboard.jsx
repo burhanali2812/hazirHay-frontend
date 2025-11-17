@@ -87,8 +87,9 @@ function UserDashboard() {
   };
   useEffect(() => {
     setKey("home");
+    setIsDataLoading(true)
     setTimeout(() => {
-      setIsDataLoading(true)
+      setIsDataLoading(false)
     }, 1200);
   }, []);
 

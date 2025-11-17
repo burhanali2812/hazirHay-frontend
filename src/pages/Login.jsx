@@ -83,20 +83,20 @@ function Login() {
           if (!notBlocked) return;
           setTimeout(() => {
             navigate("/admin/shopKepper/dashboard");
-          }, 1500);
+          }, 50);
         }
         if (role === "user") {
           setTimeout(() => {
             navigate("/admin/user/dashboard");
-          }, 1500);
+          }, 500);
         } else if (role === "admin") {
           setTimeout(() => {
             navigate("/admin/dashboard");
-          }, 1500);
+          }, 500);
         } else if (role === "worker") {
           setTimeout(() => {
             navigate("/worker/dashboard");
-          }, 1500);
+          }, 500);
         }
       }
     } catch (error) {
