@@ -249,8 +249,9 @@ function AdminFooter({
 
   const logOut = () => {
     if (!window.confirm("Are you sure you want to log out?")) return;
+        navigate("/login");
     localStorage.clear();
-    navigate("/login");
+
   };
 
   return (

@@ -146,7 +146,7 @@ function MyShop({ shopKepperWorkers }) {
             >
               <div className="card-body d-flex flex-column align-items-center justify-content-center">
                 <i className="fas fa-users fa-2x text-primary mb-3"></i>
-                <h5 className="card-title fw-bold">My Workers</h5>
+                <h6 className="card-title fw-bold">My Workers</h6>
                 <p className="card-text">
                   {shopKepperWorkers?.length || 0} Workers
                 </p>
@@ -159,7 +159,7 @@ function MyShop({ shopKepperWorkers }) {
             <div className="card h-100 shadow-lg text-center hover-shadow bg-light border-0">
               <div className="card-body d-flex flex-column align-items-center justify-content-center">
                 <i className="fas fa-tools fa-2x text-success mb-3"></i>
-                <h5 className="card-title fw-bold">My Services</h5>
+                <h6 className="card-title fw-bold">My Services</h6>
                 <p className="card-text">
                   {shop?.servicesOffered?.length || 0} Services
                 </p>
@@ -171,9 +171,15 @@ function MyShop({ shopKepperWorkers }) {
        <div className="text-center" style={{ marginTop: "35px" }}>
   <h3 className="fw-bold mb-3">Quick Rating Summary</h3>
   
-  <div className="d-flex justify-content-center">
+{
+  shop?.reviews?.length !== 0 ? (
+      <div className="d-flex justify-content-center">
     <PieChart reviews={ratingCounts} />
   </div>
+  ):(
+    <p className="text-muted text-center">Chart Not availble due to no reviews</p>
+  )
+}
 </div>
 
        </div>
