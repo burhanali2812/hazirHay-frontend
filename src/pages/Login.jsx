@@ -1,13 +1,12 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import login from "../images/login.png";
-import "animate.css";
-import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
 import Swal from "sweetalert2";
 import "../components/adminFooter.css";
 import { checkBlockedStatus } from "../components/loginCheckBlocked";
+import {toast, Toaster} from "react-hot-toast"
 function Login() {
   const navigate = useNavigate();
   const [role, setRole] = useState("");
@@ -58,17 +57,18 @@ function Login() {
         loginPayload
       );
       if (response.status === 200) {
-        Swal.fire({
-          title: "Successful!",
-          text: response.data.message || "Login successful!",
-          icon: "success",
-          timer: 900,
-          showConfirmButton: false,
-          background: "#f9f9f9",
-          customClass: {
-            popup: "swirl-popup",
-          },
-        });
+        // Swal.fire({
+        //   title: "Successful!",
+        //   text: response.data.message || "Login successful!",
+        //   icon: "success",
+        //   timer: 900,
+        //   showConfirmButton: false,
+        //   background: "#f9f9f9",
+        //   customClass: {
+        //     popup: "swirl-popup",
+        //   },
+        // });
+        toast.success("Successfully login!")
 
         localStorage.setItem("token", response.data.token);
         localStorage.setItem("user", JSON.stringify(response.data.user));
@@ -83,43 +83,45 @@ function Login() {
           if (!notBlocked) return;
           setTimeout(() => {
             navigate("/admin/shopKepper/dashboard");
-          }, 50);
+          }, 800);
         }
         if (role === "user") {
           setTimeout(() => {
             navigate("/admin/user/dashboard");
-          }, 500);
+          }, 800);
         } else if (role === "admin") {
           setTimeout(() => {
             navigate("/admin/dashboard");
-          }, 500);
+          }, 800);
         } else if (role === "worker") {
           setTimeout(() => {
             navigate("/worker/dashboard");
-          }, 500);
+          }, 800);
         }
       }
     } catch (error) {
       if (error.response) {
-        Swal.fire({
-          title: "Error!",
-          text: error.response.data.message || "Login failed!",
-          icon: "error",
-          background: "#f9f9f9",
-          customClass: {
-            popup: "swirl-popup",
-          },
-        });
+        // Swal.fire({
+        //   title: "Error!",
+        //   text: error.response.data.message || "Login failed!",
+        //   icon: "error",
+        //   background: "#f9f9f9",
+        //   customClass: {
+        //     popup: "swirl-popup",
+        //   },
+        // });
+        toast.error(error.response.data.message || "Login failed!")
       } else {
-        Swal.fire({
-          title: "Error!",
-          text: "Slow or no internet! Please try again.",
-          icon: "error",
-          background: "#f9f9f9",
-          customClass: {
-            popup: "swirl-popup",
-          },
-        });
+        // Swal.fire({
+        //   title: "Error!",
+        //   text: "Slow or no internet! Please try again.",
+        //   icon: "error",
+        //   background: "#f9f9f9",
+        //   customClass: {
+        //     popup: "swirl-popup",
+        //   },
+        // });
+        toast.error("Slow or no internet! Please try again.")
       }
     } finally {
       setLoading(false);
@@ -127,8 +129,8 @@ function Login() {
   };
 
   return (
-    <div className="container animate__animated animate__fadeInDown animate__delay-0s py-4">
-      <ToastContainer />
+    <div className="container  py-4">
+      <Toaster  />
 
       <i
         className="fa-solid fa-arrow-left-long mb-3"
@@ -147,7 +149,7 @@ function Login() {
             journey.
           </p>
 
-          <div className="text-center animate__animated animate__fadeInLeft mb-4">
+          <div className="text-center mb-4">
             <img
               src={login}
               alt="Login"
@@ -156,7 +158,7 @@ function Login() {
             />
           </div>
 
-          <div className="form-floating animate__animated animate__fadeInUp mb-3">
+          <div className="form-floating  mb-3">
             <input
               type="email"
               className="form-control"
@@ -168,7 +170,7 @@ function Login() {
             <label htmlFor="floatingEmail">Email address</label>
           </div>
 
-          <div className="form-floating animate__animated animate__fadeInUp mb-2">
+          <div className="form-floating  mb-2">
             <input
               type={isChecked ? "text" : "password"}
               className="form-control"
@@ -275,7 +277,7 @@ function Login() {
 
           <button
             type="button"
-            className="btn btn-dark rounded w-100 animate__animated animate__fadeInUp animate__delay-0s"
+            className="btn btn-dark rounded w-100 "
             style={{ height: "45px" }}
             onClick={handleLogin}
           >

@@ -20,31 +20,31 @@ function Main() {
   return (
 
     <>
-   <div className="container vh-100 d-flex align-items-center justify-content-center animate__animated animate__fadeInDown">
+   <div className="container vh-100 d-flex align-items-center justify-content-center ">
   <div className="row align-items-center w-100">
     
     <div className="col-md-6 text-center  mb-md-0">
       <img 
         src={logo2} 
         alt="HazirHay Logo"
-        className="img-fluid animate__animated animate__pulse"
+        className="img-fluid "
         style={{ maxHeight: "230px" }}
       />
     </div>
 
   
-    <div className="col-md-6 text-center text-md-start animate__animated animate__zoomIn">
-      <h1 className="fw-bolder mb-0 animate__animated animate__fadeInUp" 
+    <div className="col-md-6 text-center text-md-start ">
+      <h1 className="fw-bolder mb-0 " 
         style={{ fontSize: '2.2rem', color: '#001b35'}}>
         WELCOME TO
       </h1>
 
-      <h2 className="fw-bold mt-0 animate__animated animate__fadeInUp" 
+      <h2 className="fw-bold mt-0 " 
         style={{ fontSize: '1.9rem', color: '#ff6600' }}>
         HAZIRHAY
       </h2>
 
-      <p className="text-muted mt-2 animate__animated animate__fadeIn" 
+      <p className="text-muted mt-2 " 
         style={{ fontSize: '1rem' }}>
         Your one-stop solution for doorstep services — Fast, Reliable, and Hassle-Free.
       </p>
@@ -52,7 +52,7 @@ function Main() {
       <div className="d-flex flex-column flex-sm-row gap-2 mt-3">
         <button 
           type="button" 
-          className="btn btn-dark flex-fill animate__animated animate__fadeInUp animate__delay-1s" 
+          className="btn btn-dark flex-fill " 
           style={{ height: "45px" }} 
           onClick={() => navigate("/login")}
         >
@@ -62,7 +62,7 @@ function Main() {
 
         <button 
           type="button" 
-          className="btn btn-info flex-fill animate__animated animate__fadeInUp animate__delay-1s" 
+          className="btn btn-info flex-fill " 
           style={{ height: "45px" }} 
           onClick={() => setRegisterModal(true)}
         >
@@ -79,7 +79,7 @@ function Main() {
     
     {registerModal && (
   <div
-    className="modal fade show d-block animate__animated animate__fadeIn "
+    className="modal fade show d-block  "
     tabIndex="-1"
     style={{
       backgroundColor: "rgba(0, 0, 0, 0.6)",

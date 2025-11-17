@@ -3,6 +3,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, Outlet } from "react-router-dom";
 import "./adminFooter.css";
 import { useAppContext } from "../context/AppContext";
+import{toast, Toaster} from "react-hot-toast"
 function AdminFooter() {
   const navigate = useNavigate();
   const {unSeenNotification, cartData,shopKepperStatus2,pageKey, updateNotification} = useAppContext();
@@ -241,6 +242,7 @@ function AdminFooter() {
 
   const logOut = () => {
     if (!window.confirm("Are you sure you want to log out?")) return;
+    toast.success("Successfully Logout!")
         navigate("/login");
     localStorage.clear();
 
@@ -248,6 +250,7 @@ function AdminFooter() {
 
   return (
     <>
+     <Toaster />
       {/* Bottom Navigation */}
       {role === "worker" ? (
         ""
