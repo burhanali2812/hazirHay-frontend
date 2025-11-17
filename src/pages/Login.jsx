@@ -132,18 +132,13 @@ function Login() {
     <div className="container  py-4">
       <Toaster  />
 
-      <i
-        className="fa-solid fa-arrow-left-long mb-3"
-        style={{ fontSize: "1.6rem", cursor: "pointer" }}
-        onClick={() => navigate("/")}
-      ></i>
 
       <div className="row justify-content-center">
         <div className="col-12 col-md-8 col-lg-6">
-          <h1 className="fw-bold">Let's Sign You In</h1>
-          <h3 className="fw-bold" style={{ color: "#ff6600" }}>
+          <h2 className="fw-bold">Let's Sign You In</h2>
+          <h4 className="fw-bold" style={{ color: "#ff6600" }}>
             Welcome back!
-          </h3>
+          </h4>
           <p>
             You've been missed. Let’s get you signed in to continue your
             journey.
@@ -154,7 +149,7 @@ function Login() {
               src={login}
               alt="Login"
               className="img-fluid"
-              style={{ maxWidth: "230px" }}
+              style={{ maxWidth: "180px" }}
             />
           </div>
 
