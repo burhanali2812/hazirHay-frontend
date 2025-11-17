@@ -8,8 +8,11 @@ import Swal from "sweetalert2";
 import imageCompression from "browser-image-compression";
 import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import successAudio from "../sounds/success.mp3";
+import { useAppContext } from "../context/AppContext";
 
-function Signup({ onUserAdded, onShopKepperAdded }) {
+
+function Signup() {
+  const { getAllUser, getAllShopKepper } = useAppContext();
   const role = localStorage.getItem("role");
   const navigate = useNavigate();
   const [formData1, setFormData] = useState({
@@ -150,9 +153,9 @@ function Signup({ onUserAdded, onShopKepperAdded }) {
 
         if (role === "user") {
           setSuccessAnimation(true);
-          onUserAdded();
+          await getAllUser();
         } else {
-          onShopKepperAdded();
+          await getAllShopKepper();
           setTimeout(() => navigate("/shop"), 300);
         }
       }

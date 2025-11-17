@@ -1,7 +1,9 @@
 import React,{useState} from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-const WorkersPage = ({ shopKepperWorkers, setShopKepperWorkers }) => {
+import { useAppContext } from "../context/AppContext";
+const WorkersPage = () => {
+  const {shopKepperWorkers, setShopKepperWorkers} = useAppContext();
   const token = localStorage.getItem("token");
   const[deleteLoading, setDeleteLoading] = useState(null);
   const navigate = useNavigate();

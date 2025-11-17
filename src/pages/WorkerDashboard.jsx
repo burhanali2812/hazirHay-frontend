@@ -1,7 +1,7 @@
 import axios from "axios";
 import React, { use, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-function WorkerDashboard({ setUpdateAppjs }) {
+function WorkerDashboard() {
   const user = JSON.parse(localStorage.getItem("user"));
   const token = localStorage.getItem("token");
   const [distances, setDistances] = useState({});
@@ -270,7 +270,7 @@ function WorkerDashboard({ setUpdateAppjs }) {
 
       if (res.data.success) {
         setUnAssignedLoading(null);
-        setUpdateAppjs(true);
+
         alert(res.data.message);
         setSelectedReqUser((prev) => {
           if (!prev) return prev;

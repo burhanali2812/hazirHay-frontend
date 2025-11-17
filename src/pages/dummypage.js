@@ -1,5 +1,326 @@
- <>
-      <Routes>
+
+import "./App.css";
+import "./index.css";
+import "@fortawesome/fontawesome-free/css/all.min.css";
+import "react-toastify/dist/ReactToastify.css";
+
+import { Suspense, lazy } from "react";
+import { Routes, Route } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
+import { useEffect, useState } from "react";
+import axios from "axios";
+
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const Login = lazy(() => import("./pages/Login"));
+const Main = lazy(() => import("./pages/Main"));
+const Signup = lazy(() => import("./pages/Signup"));
+const ShopForm = lazy(() => import("./pages/ShopForm"));
+const Requests = lazy(() => import("./pages/Requests"));
+const Users = lazy(() => import("./pages/Users"));
+const ShopKepperDashboard = lazy(() => import("./pages/ShopKepperDashboard"));
+const ShopkepperRequests = lazy(() => import("./pages/ShopkepperRequests"));
+const UserDashboard = lazy(() => import("./pages/UserDashboard"));
+const FindShops = lazy(() => import("./pages/FindShops"));
+const Notification = lazy(() => import("./pages/Notification"));
+const ContactUs = lazy(() => import("./pages/ContactUs"));
+const MyShop = lazy(() => import("./pages/MyShop"));
+const Blocked = lazy(() => import("./pages/Blocked"));
+const WorkerSignup = lazy(() => import("./pages/WorkerSignup"));
+const WorkerDashboard = lazy(() => import("./pages/WorkerDashboard"));
+const Transactions = lazy(() => import("./pages/Transactions"));
+const UnauthorizedPage = lazy(() => import("./pages/UnauthorizedPage"));
+const WorkersPage = lazy(() => import("./pages/WorkersPage"));
+
+// Components
+const Cart = lazy(() => import("./components/Cart"));
+const Tracking = lazy(() => import("./components/Tracking"));
+const OrderWithJourney = lazy(() => import("./components/OrderWithJourney"));
+const AdminFooter1 = lazy(() => import("./components/AdminFooter1"));
+
+
+
+function App() {
+  const [topText, setTopText] = useState("");
+
+  const [totalUser, setTotalUser] = useState([]);
+  const [update, setUpdate] = useState(false);
+  const [totalShopkepper, setTotalShopKepper] = useState([]);
+  const [totalActiveShopkepper, setTotalActiveShopKepper] = useState([]);
+  const [totalLiveShopkepper, setTotalLiveShopKepper] = useState([]);
+  const [shopKepperStatus, setShopKepperStatus] = useState(false);
+  const [UpdateAppjs, setUpdateAppjs] = useState(false);
+  const [shopWithShopkepper, setShopWithShopkepper] = useState([]);
+  const [refreshFlag, setRefreshFlag] = useState(false);
+  const [statusUpdate, setStausUpdate] = useState(false);
+  const [cartData, setCartData] = useState([]);
+  const role = localStorage.getItem("role");
+    const token = localStorage.getItem("token");
+
+  const [areaName, setAreaName] = useState("");
+  const [key, setKey] = useState("home");
+  const [coordinates, setCoordinates] = useState([]);
+  const [notification, setNotification] = useState([]);
+  const [unSeenNotification, setUnSeenNotification] = useState([]);
+  const [shopKepperWorkers, setShopKepperWorkers] = useState([]);
+  const [shopKepperStatus2, setShopKepperStatus2] = useState(false);
+  const [shopOfCurrentShopkepper, setShopOfCurrentShopkepper] = useState(null);
+  const navigate = useNavigate();
+   const location = useLocation(); 
+
+  const user = JSON.parse(localStorage.getItem("user"));
+useEffect(() => {
+    const token = localStorage.getItem("token");
+    const role = localStorage.getItem("role");
+
+    // Only redirect if user is on root or login/signup page
+    if (token && role && (location.pathname === "/" || location.pathname === "/login" || location.pathname === "/signup")) {
+      if (role === "shopKepper") {
+        navigate("/admin/shopKepper/dashboard");
+      } else if (role === "user") {
+        navigate("/admin/user/dashboard");
+      } else if (role === "admin") {
+        navigate("/admin/dashboard");
+      } else if (role === "worker") {
+        navigate("/worker/dashboard");
+      }
+    }
+  }, [location.pathname, navigate]);
+
+  const getAllUser = async () => {
+    try {
+      const response = await axios.get(
+        "https://hazir-hay-backend.vercel.app/users/getAllUser",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          params: { t: Date.now() },
+        }
+      );
+
+      if (response.data.success) {
+        setTotalUser(response.data.data || []);
+      } else {
+        console.warn("No users found:", response.data.message);
+        setTotalUser([]);
+      }
+    } catch (error) {
+      console.error(
+        "Error fetching users:",
+        error.response?.data?.message || error.message
+      );
+
+      setTotalUser([]);
+    }
+  };
+  const getAllShopKepper = async () => {
+    try {
+      const response = await axios.get(
+        "https://hazir-hay-backend.vercel.app/shopKeppers/getAllShopKepper",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          params: { t: Date.now() },
+        }
+      );
+
+      if (response.data.success) {
+        const shopKepperList = response.data?.data || [];
+        setTotalShopKepper(shopKepperList);
+
+        const activeShopKepper = shopKepperList.filter(
+          (shopKepper) => shopKepper.isVerified === true
+        );
+        setTotalActiveShopKepper(activeShopKepper);
+
+        const liveShopKepper = shopKepperList.filter(
+          (shopKepper) => shopKepper?.isLive === true
+        );
+        setTotalLiveShopKepper(liveShopKepper);
+      } else {
+        console.warn("No ShopKepper found:", response.data.message);
+        setTotalShopKepper([]);
+      }
+    } catch (error) {
+      console.error(
+        "Error fetching ShopKepper:",
+        error.response?.data?.message || error.message
+      );
+      //  toast.error("Failed to fetch ShopKepper. Please try again.");
+      setTotalShopKepper([]);
+    }
+  };
+  const getShopKepperWorkers = async () => {
+    try {
+      const res = await axios.get(
+        "https://hazir-hay-backend.vercel.app/worker/getWorkersByShop",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          params: { t: Date.now() },
+        }
+      );
+      if (res.data.success) {
+        setShopKepperWorkers(res.data.workers);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  const getUserStatus = async () => {
+    try {
+      const res = await axios.get(
+        `https://hazir-hay-backend.vercel.app/shopKeppers/getBusyStatus/${user?._id}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          params: { t: Date.now() }, // avoid caching
+        }
+      );
+      if (res.data.success) {
+        setShopKepperStatus2(res.data.data);
+        // alert(res.data.data ? "You are currently marked as busy." : "You are currently marked as available.");
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  useEffect(() => {
+    if (statusUpdate) {
+      if (role === "shopKepper") {
+        getUserStatus();
+      }
+      setStausUpdate(false);
+    }
+  }, [statusUpdate]);
+
+  useEffect(() => {
+    if (role === "shopKepper") {
+      getShopKepperWorkers();
+      getUserStatus();
+    }
+  }, [role]);
+
+  const getNotifications = async () => {
+    console.log("fetching.....Notifications");
+
+    try {
+      const response = await axios.get(
+        `https://hazir-hay-backend.vercel.app/notification/getAllNotification/${user._id}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          params: { t: Date.now() },
+        }
+      );
+      if (response.data.success) {
+        // alert("Notification fetch successfully");
+        const notificationArray = response.data.data || [];
+        setNotification(notificationArray);
+        const unSeen = notificationArray.filter(
+          (notify) => notify.isSeen === false
+        );
+        setUnSeenNotification(unSeen);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const updateNotification = async () => {
+    try {
+      const response = await axios.put(
+        "https://hazir-hay-backend.vercel.app/notification/updateNotification",
+        { notifications: unSeenNotification },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          params: { t: Date.now() },
+        }
+      );
+      if (response.data.success) {
+        // alert("Notification Update successfully");
+        getNotifications();
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const deleteNotification = async (id) => {
+    // update UI immediately (optimistic update)
+    setNotification((prev) => prev.filter((notify) => notify._id !== id));
+
+    try {
+      const response = await axios.delete(
+        `https://hazir-hay-backend.vercel.app/notification/deleteNotification/${id}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          params: { t: Date.now() },
+        }
+      );
+
+      if (response.data.success) {
+        //alert("Notification deleted successfully");
+        // optional: refresh from server
+        getNotifications();
+      }
+    } catch (error) {
+      console.error(error);
+      // rollback UI if deletion fails
+      getNotifications();
+    }
+  };
+
+  const getCartData = async () => {
+    try {
+      const response = await axios(
+        "https://hazir-hay-backend.vercel.app/cart/getCartData",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      setCartData(response.data.data?.[0] || {});
+      console.log("CartDAta", response.data.data?.[0]);
+
+      console.log(response.data.message || "Cart Data Fetch Successfully!");
+    } catch (error) {
+      console.error("Error Fetching CArt data", error);
+    }
+  };
+
+  useEffect(() => {
+    if (role !== null) {
+      getAllUser();
+      getAllShopKepper();
+      if(role === "user") getCartData();
+      getNotifications();
+    }
+  }, [role]);
+
+  useEffect(() => {
+    if (UpdateAppjs) {
+      getAllUser();
+      getAllShopKepper();
+      if(role === "user") getCartData();
+      getNotifications();
+      if (role === "shopKepper") {
+        getShopKepperWorkers();
+      }
+      setUpdateAppjs(false);
+    }
+  }, [UpdateAppjs]);
+
+  useEffect(() => {
+    const fetchShopKepper = async () => {
+      console.log("Update triggered:", update);
+      if (update) {
+        await getAllShopKepper();
+        setUpdate(false);
+      }
+    };
+
+    fetchShopKepper();
+  }, [update]);
+  console.log("key from app.jss", key);
+
+  return (
+    <>
+    <Suspense fallback={<h2>Loading...</h2>}>
+  <Routes>
         <Route path="/" element={<Main />} />
         <Route path="/login" element={<Login />}></Route>
         <Route
@@ -81,6 +402,7 @@
               <ShopKepperDashboard
                 setUpdateAppjs={setUpdateAppjs}
                 setKey={setKey}
+               
               />
             }
           />
@@ -112,7 +434,7 @@
           />
           <Route
             path="shopKepper/myShop"
-            element={<MyShop setKey={setKey} />}
+            element={<MyShop setKey={setKey} shopKepperWorkers={shopKepperWorkers}/>}
           />
           <Route path="shopKepper/transactions" element={<Transactions />} />
 
@@ -171,4 +493,10 @@
           />
         </Route>
       </Routes>
+    </Suspense>
+    
     </>
+  );
+}
+
+export default App;

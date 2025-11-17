@@ -8,12 +8,9 @@ import noData from "../images/noData.png";
 import { FaWifi } from "react-icons/fa";
 import { MdWifiOff } from "react-icons/md";
 import { useCheckBlockedStatus } from "../components/useCheckBlockedStatus";
-function ShopkepperRequests({
-  refreshFlag,
-  setRefreshFlag,
-  shopKepperWorkers,
-  setKey,
-}) {
+import { useAppContext } from "../context/AppContext";
+function ShopkepperRequests() {
+  const {shopKepperWorkers, setKey} = useAppContext();
   const user = JSON.parse(localStorage.getItem("user"));
   const [requests, setRequests] = useState([]);
   const [shopKepperCords, setShopKepperCords] = useState([]);
@@ -143,9 +140,7 @@ function ShopkepperRequests({
         console.log("request fetch", response.data.data);
         setStatusLoading(false);
 
-        if (refreshFlag) {
-          alert("New Request Added");
-        }
+   
       } else {
         console.warn("No requests found:", response.data.message);
         setRequests([]);
@@ -188,13 +183,6 @@ function ShopkepperRequests({
     fetchRequests("auto");
     getShopkepperStatus();
   }, []);
-
-  useEffect(() => {
-    if (refreshFlag) {
-      fetchRequests("auto");
-      setRefreshFlag(false);
-    }
-  }, [refreshFlag]);
 
   useEffect(() => {
     if (selectedRequest) {

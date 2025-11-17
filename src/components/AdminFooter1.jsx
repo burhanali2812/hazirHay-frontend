@@ -2,18 +2,10 @@ import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { useNavigate, Outlet } from "react-router-dom";
 import "./adminFooter.css";
-
-function AdminFooter({
-  topText,
-  setUpdate,
-  setShopKepperStatus,
-  unSeenNotification,
-  onUpdate,
-  cartData,
-  shopKepperStatus2,
-  pageKey,
-}) {
+import { useAppContext } from "../context/AppContext";
+function AdminFooter() {
   const navigate = useNavigate();
+  const {unSeenNotification, cartData,shopKepperStatus2,pageKey, updateNotification} = useAppContext();
 
   const [showOffcanvas, setShowOffcanvas] = useState(false);
   const currentUser = JSON.parse(localStorage.getItem("user"));
@@ -282,7 +274,7 @@ function AdminFooter({
                   <>
                     <div
                       className="position-relative d-inline-block"
-                      onClick={onUpdate}
+                      onClick={updateNotification}
                     >
                       <i className={item.icon}></i>
                       {unSeenNotification?.length !== 0 && (
@@ -294,7 +286,7 @@ function AdminFooter({
                         </span>
                       )}
                     </div>
-                    <small className="d-block" onClick={onUpdate}>
+                    <small className="d-block" onClick={updateNotification}>
                       {item.label}
                     </small>
                   </>

@@ -6,16 +6,10 @@ import Swal from "sweetalert2";
 import stamp from "../images/stamp.png";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
+import { useAppContext } from "../context/AppContext";
 
-function Cart({
-  cartData,
-  setUpdateAppjs,
-  areaName,
-  setCartData,
-  setRefreshFlag,
-  setKey,
-}) {
-  // safely get items
+function Cart() {
+  const {cartData,areaName,setCartData,setKey, getNotifications, getCartData} = useAppContext();
 
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
@@ -181,7 +175,7 @@ function Cart({
 
       if (response.data.success) {
         alert("Item removed successfully!");
-        setUpdateAppjs(true);
+        await getCartData();
       }
     } catch (error) {
       console.error("Error deleting item:", error.message);
@@ -444,11 +438,11 @@ function Cart({
 
         await sendNotificationToUser(checkoutId || newcheckoutId);
         setLoading(false);
-        setRefreshFlag(true);
         alert(response?.data?.message || "Request sent successfully!");
         setPostOrderModal(true);
         setOrderSummaryModal(false);
-        setUpdateAppjs(true);
+        await getCartData();
+        await getNotifications();
       }
     } catch (error) {
       console.error("❌ Error sending request:", error);
@@ -493,7 +487,7 @@ function Cart({
 
       if (response.data.success) {
         if (type === "clear") {
-          setUpdateAppjs(true);
+          
           setCartData([]);
           Swal.fire("Cleared!", "Cart has been cleared.", "success");
         }

@@ -7,11 +7,10 @@ import "react-toastify/dist/ReactToastify.css";
 import { MapContainer, TileLayer, Marker, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
+import { useAppContext } from "../context/AppContext";
 
-function Requests({ setTopText, setUpdate }) {
-  useEffect(() => {
-    setTopText("Requests");
-  }, [setTopText]);
+function Requests() {
+  const{getAllShopKepper}=useAppContext();
   const token = localStorage.getItem("token");
   const [shopWithShopkepper, setShopWithShopkepper] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -116,7 +115,7 @@ function Requests({ setTopText, setUpdate }) {
 
       if (response.status === 200) {
         toast.success("Shopkeeper verified successfully");
-        setUpdate(true);
+        await getAllShopKepper();
         setAcceptLoadingId(null);
         getShopWithShopkeppers();
         return true;

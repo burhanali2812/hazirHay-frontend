@@ -1,7 +1,9 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { useCheckBlockedStatus } from "../components/useCheckBlockedStatus";
-function ShopKepperDashboard({ setUpdateAppjs, setKey }) {
+import { useAppContext } from "../context/AppContext";
+function ShopKepperDashboard() {
+  const {setKey}=useAppContext();
   const user = JSON.parse(localStorage.getItem("user"));
   const token = localStorage.getItem("token");
   const [orders, setOrders] = useState([]);
@@ -36,7 +38,6 @@ function ShopKepperDashboard({ setUpdateAppjs, setKey }) {
   useCheckBlockedStatus(token);
 
   useEffect(() => {
-    setUpdateAppjs(true);
     setKey("home");
   }, []);
   useEffect(() => {

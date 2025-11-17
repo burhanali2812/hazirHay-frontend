@@ -9,11 +9,12 @@ import rejected from "../images/rejected.png";
 import pending from "../images/pending.png";
 
 import "leaflet/dist/leaflet.css";
-import L from "leaflet";
+
 import "leaflet-routing-machine";
 import UserShopRoute from "./UserShopRoute";
-
-function Tracking({ setUpdateAppjs, setKey }) {
+import { useAppContext } from "../context/AppContext";
+function Tracking() {
+  const{setKey} = useAppContext();
   const token = localStorage.getItem("token");
   const [requestsData, setRequestsData] = useState([]);
   const [searchQuery, setSearchQuery] = useState([]);
@@ -160,7 +161,6 @@ function Tracking({ setUpdateAppjs, setKey }) {
         setTrackingDetailsModal(false);
         setSearchQuery("");
         setSearchData([]);
-        setUpdateAppjs(true);
       } else {
         alert(response.data.message || "Failed to delete");
         setCancelOrderLoading(false);

@@ -2,22 +2,17 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import location from "../images/location.png";
 import "./style.css";
-import noData from "../images/noData.png";
+import { lazy,Suspense } from "react";
 import { useNavigate } from "react-router-dom";
 import notFound from "../videos/notFound.mp4";
 import Swal from "sweetalert2";
 import MyMap from "../components/MyMap";
 
 import { services } from "../components/servicesData";
-import UserShopRoute from "../components/UserShopRoute";
-function UserDashboard({
-  setUpdateAppjs,
-  cartData,
-  areaName,
-  setAreaName,
-  setCoordinates,
-  setKey,
-}) {
+import { useAppContext } from "../context/AppContext";
+const UserShopRoute = lazy(()=>import("../components/UserShopRoute"))
+function UserDashboard() {
+  const { cartData,setAreaName,setCoordinates,setKey,getCartData} = useAppContext();
   const role = localStorage.getItem("role");
 
   const token = localStorage.getItem("token");
@@ -54,6 +49,7 @@ function UserDashboard({
   const [filterText, setFilterText] = useState("");
   const [FilterServices, setFilterServices] = useState([]);
   const [loadingDelandSet, setLoadingDelandSet] = useState(false);
+  const [isFindServiceProvider, setIsFindServiceProvider] = useState(false);
   const [filters, setFilters] = useState({
     status: "All",
     price: "All",
@@ -190,7 +186,7 @@ function UserDashboard({
       if (response.data.success) {
         console.log("Cart saved in DB:", response.data);
         setAddCartLoading(null);
-        setUpdateAppjs(true);
+        await getCartData();
         alert("Item added to cart");
       }
     } catch (error) {
@@ -223,6 +219,7 @@ function UserDashboard({
       console.log("Error fetching requests:", error.message);
     }
   };
+  //findwithloading
   useEffect(() => {
     getAllRequests();
   }, []);
@@ -428,7 +425,6 @@ function UserDashboard({
   };
 
   useEffect(() => {
-    setUpdateAppjs(true);
     getUserLocations();
   }, []);
   const setSelectedLocation = (location) => {
@@ -565,35 +561,6 @@ function UserDashboard({
     }
   };
 
-  const getVerifiedShopWithShopkeppers = async () => {
-    setLoading(true);
-    try {
-      const response = await axios.get(
-        "https://hazir-hay-backend.vercel.app/shopKeppers/allVerifiedShopkepperWithShops",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (response.status === 200) {
-        console.log(response.data.data);
-        const shops = response.data.data || [];
-        // setVerifiedShops(shops);
-        const liveShops = shops.filter((shop) => shop?.isLive === true);
-        // setVerifiedLiveShops(liveShops);
-      }
-    } catch (error) {
-      console.error("Error fetching shopkeepers with shops:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    getVerifiedShopWithShopkeppers();
-  }, []);
 
   const handleCategoryChange = (e) => {
     setSelectedCategory(e.target.value);
@@ -744,11 +711,13 @@ function UserDashboard({
   return (
     <div>
       <form onSubmit={(e) => e.preventDefault()}>
-        <div style={{ height: "420px", width: "100%" }}>
-          <MyMap
+        <div style={{ height: "420px", width: "100%" }} >
+          <Suspense fallback={<h2>Loading...</h2>}>
+            <MyMap
             onLocationSelect={setSelectedArea}
             initialLocation={selectedArea}
           />
+          </Suspense>
         </div>
       </form>
       <div

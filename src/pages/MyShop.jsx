@@ -2,13 +2,18 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import PieChart from "../components/PieChart";
-function MyShop({ shopKepperWorkers }) {
+import { useAppContext } from "../context/AppContext";
+function MyShop() {
+  const {setKey, shopKepperWorkers} = useAppContext();
   const [shop, setShop] = useState(null);
   const user = JSON.parse(localStorage.getItem("user"));
   const token = localStorage.getItem("token");
   const [isViewFull, setIsViewFull] = useState(false);
   const [page, setPage] = useState(0);
   const navigate = useNavigate();
+  useEffect(()=>{
+    setKey("shop")
+  },[])
 
   const getShopData = async () => {
     try {

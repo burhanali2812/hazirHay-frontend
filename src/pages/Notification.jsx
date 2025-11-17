@@ -4,14 +4,10 @@ import notify from "../images/notify.png";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { IoNavigateCircleSharp } from "react-icons/io5";
+import { useAppContext } from "../context/AppContext";
 
-function Notification({
-  notification,
-  onDelete,
-  setNotification,
-  setUnSeenNotification,
-  setKey,
-}) {
+function Notification() {
+  const{deleteNotification,notification,setNotification,setUnSeenNotification,setKey} = useAppContext();
   const [expandedIds, setExpandedIds] = useState({});
   const role = localStorage.getItem("role");
   const user = JSON.parse(localStorage.getItem("user"));
@@ -127,7 +123,7 @@ function Notification({
       },
     }).then((result) => {
       if (result.isConfirmed) {
-        onDelete(id);
+         deleteNotification(id);
         Swal.fire({
           title: "Deleted!",
           text: "Notification removed successfully.",

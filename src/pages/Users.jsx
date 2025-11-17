@@ -3,14 +3,9 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
 import UserInfo from "../components/UserInfo";
-
-function Users({
-  setTopText,
-  totalUser,
-  totalShopkepper,
-  totalActiveShopkepper,
-  totalLiveShopkepper,
-}) {
+import { useAppContext } from "../context/AppContext";
+function Users() {
+  const {totalUser,totalShopkepper} = useAppContext();
   const role = localStorage.getItem("role");
   const token = localStorage.getItem("token");
   const [liveUsers, setLiveUsers] = useState([]);
@@ -100,9 +95,7 @@ function Users({
     }
   };
 
-  useEffect(() => {
-    setTopText("Users");
-  }, [setTopText]);
+
 
   useEffect(() => {
     if (token) {

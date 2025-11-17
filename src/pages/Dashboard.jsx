@@ -3,24 +3,13 @@ import React, { useEffect, useState } from "react";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useNavigate } from "react-router-dom";
-function Dashboard({
-  setTopText,
-  totalUser,
-  totalShopkepper,
-  totalActiveShopkepper,
-  totalLiveShopkepper,
-  setUpdate,
-  setUpdateAppjs,
-}) {
+import { useAppContext } from "../context/AppContext";
+function Dashboard() {
+  const {totalUser,  totalShopkepper,totalActiveShopkepper,totalLiveShopkepper,setKey}= useAppContext();
   const token = localStorage.getItem("token");
   const navigate = useNavigate();
 
   const [totalShops, setTotalShops] = useState([]);
-
-  useEffect(() => {
-    setUpdate(true);
-    setUpdateAppjs(true);
-  }, []);
 
   const getAllShop = async () => {
     try {
@@ -54,9 +43,7 @@ function Dashboard({
     }
   }, [token]);
 
-  useEffect(() => {
-    setTopText("Dashboard");
-  }, [setTopText]);
+
   const target = 10;
 
   return (
