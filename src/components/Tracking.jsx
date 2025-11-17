@@ -7,7 +7,7 @@ import Swal from "sweetalert2";
 import completed from "../images/completed.png";
 import rejected from "../images/rejected.png";
 import pending from "../images/pending.png";
-
+import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
 import "leaflet-routing-machine";

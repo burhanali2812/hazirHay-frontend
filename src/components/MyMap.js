@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from "react";
 import axios from "axios";
-
+import L from "leaflet";  
 export default function MyMap({ onLocationSelect, initialLocation }) {
   const mapContainerRef = useRef(null);
   const mapRef = useRef(null); // store map instance
