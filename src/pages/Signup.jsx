@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import "animate.css";
-import { toast, ToastContainer } from "react-toastify";
+import { Toaster, toast } from "react-hot-toast";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
 import Swal from "sweetalert2";
@@ -147,6 +146,7 @@ function Signup() {
       if (response.status === 200) {
         if (response.data?.user?.id) {
           localStorage.setItem("userId", response.data.user.id);
+          
         } else {
           console.warn("No user ID returned from backend");
         }
@@ -160,16 +160,7 @@ function Signup() {
         }
       }
     } catch (error) {
-            Swal.fire({
-              title: "Error!",
-              text:
-                error.response?.data?.message || "Signup failed",
-              icon: "error",
-              background: "#f9f9f9",
-              customClass: {
-                popup: "swirl-popup",
-              },
-            });
+         
       console.error("Signup failed:", error.response?.data || error.message);
       toast.error("Something went wrong. Please try again.");
     } finally {
@@ -186,8 +177,8 @@ function Signup() {
   }, [successAnimation]);
 
   return (
-    <div className="container  animate__animated animate__fadeInLeft animate__delay-0s">
-      <ToastContainer />
+    <div className="container ">
+      <Toaster />
       <i
         className="fa-solid fa-arrow-left-long mt-3 mx-1"
         style={{ fontSize: "1.6rem", cursor: "pointer" }}
@@ -218,7 +209,7 @@ function Signup() {
           </>
         ))}
 
-      <form className="shadow p-4 rounded bg-white">
+      <form className="shadow-lg p-4 rounded bg-light">
         {/* Profile Picture Preview */}
         <div className="mb-3 text-center">
           <label htmlFor="profilePicture" className="form-label fw-bold">

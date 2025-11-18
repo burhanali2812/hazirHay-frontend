@@ -610,7 +610,7 @@ function WorkerDashboard() {
       </section>
       {ordersModal && (
         <div
-          className="modal fade show d-block animate__animated animate__fadeIn"
+          className="modal fade show d-block "
           tabIndex="-1"
           style={{
             backgroundColor: "rgba(0, 0, 0, 0.6)",

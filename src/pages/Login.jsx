@@ -20,24 +20,25 @@ function Login() {
     try {
       setLoading(true);
        if (role === "") {
-        toast.warning("Choose a role");
+        toast.error("Choose a role");
         setLoading(false);
         return;
       }
       if (email.trim() === "") {
-        toast.warning("Email field cannot be empty!");
+        toast.error("Email field cannot be empty!");
         setLoading(false);
         return;
       }
     if(role !== "worker"){
+
         if (!/\S+@\S+\.\S+/.test(email)) {
-        toast.warning("Valid Email is required!");
+        toast.error("Valid Email is required!");
         setLoading(false);
         return;
       }
     }
       if (password.trim() === "") {
-        toast.warning("Password cannot be empty!");
+        toast.error("Password cannot be empty!");
         setLoading(false);
         return;
       }
@@ -111,18 +112,7 @@ function Login() {
         //   },
         // });
         toast.error(error.response.data.message || "Login failed!")
-      } else {
-        // Swal.fire({
-        //   title: "Error!",
-        //   text: "Slow or no internet! Please try again.",
-        //   icon: "error",
-        //   background: "#f9f9f9",
-        //   customClass: {
-        //     popup: "swirl-popup",
-        //   },
-        // });
-        toast.error("Slow or no internet! Please try again.")
-      }
+      } 
     } finally {
       setLoading(false);
     }
@@ -133,7 +123,7 @@ function Login() {
       <Toaster  />
 
 
-      <div className="row justify-content-center">
+      <div className="row justify-content-center align-items-center">
         <div className="col-12 col-md-8 col-lg-6">
           <h2 className="fw-bold">Let's Sign You In</h2>
           <h4 className="fw-bold" style={{ color: "#ff6600" }}>

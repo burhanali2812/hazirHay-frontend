@@ -90,7 +90,7 @@ function UserDashboard() {
     setIsDataLoading(true)
     setTimeout(() => {
       setIsDataLoading(false)
-    }, 1200);
+    }, 2000);
   }, []);
 
   const handleOpenFilter = (e, filterType) => {

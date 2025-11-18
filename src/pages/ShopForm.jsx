@@ -4,7 +4,6 @@ import shop from "../images/shop.png";
 import { toast, ToastContainer } from "react-toastify";
 import imageCompression from "browser-image-compression";
 import "react-toastify/dist/ReactToastify.css";
-import "animate.css";
 import axios from "axios";
 import Swal from "sweetalert2";
 import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
@@ -318,7 +317,7 @@ function ShopForm() {
   };
 
   return (
-    <div className="container  animate__animated animate__fadeInLeft animate__delay-0s">
+    <div className="container ">
       <ToastContainer />
 
       <h1 className="mx-3 fw-bold mt-3">Your Shop’s Journey Starts Here</h1>
@@ -330,11 +329,11 @@ function ShopForm() {
         reach, and boost your sales like never before.
       </p>
 
-      <div className="text-center animate__animated animate__fadeInLeft">
+      <div className="text-center ">
         <img src={shop} style={{ width: "230px", height: "230px" }} />
       </div>
 
-      <form className="shadow p-4 rounded bg-white">
+      <form className="shadow-sm p-4 rounded bg-light">
         <div className="mb-3 text-center">
           <label htmlFor="profilePicture" className="form-label fw-bold">
             Shop Picture
@@ -697,7 +696,7 @@ function ShopForm() {
 
       {priceModal && (
         <div
-          className="modal fade show d-block animate__animated animate__fadeIn"
+          className="modal fade show d-block "
           tabIndex="-1"
           style={{
             backgroundColor: "rgba(0, 0, 0, 0.6)",
