@@ -12,6 +12,7 @@ function MyShopServices() {
   const [isAddServiceModalOpen, setIsAddServiceModal] = useState(false);
   const [isEditServiceModalOpen, setIsEditServiceModal] = useState(false);
   const [serviceAddLoading, setServiceAddLoading] = useState(false);
+  const [isAlreadyFound, setIsAlreadyFound] = useState(false);
   const [recommendedPrice, setRecommendedPrice] = useState([]);
   const [isFindingRecomendedPrice, setIsRecomendedPriceFinding] =
     useState(false);
@@ -42,15 +43,32 @@ function MyShopServices() {
     }
   };
 
-  useEffect(() => {
-    if (selectedCategory && selectedSubCategory) {
-      getRecomendedPrice(selectedCategory,selectedSubCategory);
+useEffect(() => {
+  if (selectedCategory && selectedSubCategory) {
+      
+    const alreadyExist = shop?.servicesOffered?.filter((service) => {
+      return (
+        service.category === selectedCategory &&
+        service.subCategory.name === selectedSubCategory
+      );
+    });
+
+    if (alreadyExist && alreadyExist.length > 0) {
+        setIsAlreadyFound(true)
+      toast.error("Service Already Present!");
+      return;
     }
-  }, [selectedCategory, selectedSubCategory]);
+    setIsAlreadyFound(false)
+
+    getRecomendedPrice(selectedCategory, selectedSubCategory);
+  }
+}, [selectedCategory, selectedSubCategory]);
+
 
   const handleEditAndDeleteService = async (mode, service) => {
     let payload;
    if(mode === "edit"){
+    setServiceAddLoading(true)
       payload = {
       mode,
       serviceId: service._id,
@@ -86,11 +104,13 @@ function MyShopServices() {
         resetValues();
         setDeleteServiceID(null)
         setIsEditServiceModal(false)
+        setServiceAddLoading(false);
       }
     } catch (error) {
       console.log(error);
       toast.error(error)
       setDeleteServiceID(null)
+      setServiceAddLoading(false);
     }
   };
     const resetValues = () => {
@@ -172,7 +192,7 @@ function MyShopServices() {
   {/* Add New Service Button */}
   <div className="text-end mb-3">
     <button
-      className="btn btn-primary px-4 fw-semibold"
+      className="btn btn-primary btn-sm px-4 fw-semibold"
       onClick={() => setIsAddServiceModal(true)}
     >
       <i className="fa-solid fa-plus me-2"></i>
@@ -304,7 +324,7 @@ function MyShopServices() {
                   </select>
                 </div>
                 <div>
-                  {selectedCategory !== null && selectedSubCategory && (
+                  {selectedCategory !== null && selectedSubCategory && !isAlreadyFound &&  (
                     <>
                       <p className="text-center mb-3">
                         Set price of{" "}
