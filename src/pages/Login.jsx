@@ -119,11 +119,11 @@ function Login() {
   };
 
   return (
-    <div className="container  py-4">
+    <div className="container  py-4 vh-100 d-flex justify-content-center align-items-center">
       <Toaster  />
 
 
-      <div className="row justify-content-center align-items-center">
+      <div className="row justify-content-center w-100">
         <div className="col-12 col-md-8 col-lg-6">
           <h2 className="fw-bold">Let's Sign You In</h2>
           <h4 className="fw-bold" style={{ color: "#ff6600" }}>
