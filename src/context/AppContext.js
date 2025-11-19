@@ -16,6 +16,7 @@ export const AppProvider = ({ children }) => {
   const [shopKepperWorkers, setShopKepperWorkers] = useState([]);
   const [shopKepperStatus2, setShopKepperStatus2] = useState(null);
   const [cartData, setCartData] = useState({});
+    const [shop, setShop] = useState(null);
   const [notification, setNotification] = useState([]);
   const [unSeenNotification, setUnSeenNotification] = useState([]);
 
@@ -48,6 +49,21 @@ export const AppProvider = ({ children }) => {
     } catch (err) {
       console.log("Error fetch users", err);
       setTotalUser([]);
+    }
+  };
+    const getShopData = async () => {
+    try {
+      const response = await api.get(
+        `/shops/shopData/${user._id}`,
+        {
+          params: { t: Date.now() },
+        }
+      );
+        setShop(response.data.shop);
+
+    } catch (err) {
+      console.error("Error fetching shop data:", err);
+      setShop(null)
     }
   };
 
@@ -153,6 +169,7 @@ export const AppProvider = ({ children }) => {
     if (role === "shopKepper") {
       getShopKepperWorkers();
       getUserStatus();
+      getShopData();
     }
   }, [role]);
 
@@ -191,7 +208,9 @@ export const AppProvider = ({ children }) => {
         statusUpdate,
         setStatusUpdate,
         setNotification,
+        shop,
 
+        getShopData,
         getAllUser,
         getAllShopKepper,
         getShopKepperWorkers,

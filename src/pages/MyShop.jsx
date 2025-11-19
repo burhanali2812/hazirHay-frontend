@@ -1,13 +1,10 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import PieChart from "../components/PieChart";
 import { useAppContext } from "../context/AppContext";
 function MyShop() {
-  const {setKey, shopKepperWorkers} = useAppContext();
-  const [shop, setShop] = useState(null);
-  const user = JSON.parse(localStorage.getItem("user"));
-  const token = localStorage.getItem("token");
+  const {setKey, shopKepperWorkers, shop} = useAppContext();
+
   const [isViewFull, setIsViewFull] = useState(false);
   const [page, setPage] = useState(0);
   const navigate = useNavigate();
@@ -15,26 +12,8 @@ function MyShop() {
     setKey("shop")
   },[])
 
-  const getShopData = async () => {
-    try {
-      const response = await axios.get(
-        `https://hazir-hay-backend.vercel.app/shops/shopData/${user._id}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-          params: { t: Date.now() },
-        }
-      );
-      if (response.data.success) {
-        setShop(response.data.shop);
-      }
-    } catch (err) {
-      console.error("Error fetching shop data:", err);
-    }
-  };
 
-  useEffect(() => {
-    getShopData();
-  }, []);
+
 
   const ratingCounts = shop
     ? {
@@ -160,7 +139,7 @@ function MyShop() {
           </div>
 
           {/* Services Card */}
-          <div className="col-6 col-md-6">
+          <div className="col-6 col-md-6" onClick={()=>navigate("/admin/shopKepper/shop/services")}>
             <div className="card h-100 shadow-lg text-center hover-shadow bg-light border-0">
               <div className="card-body d-flex flex-column align-items-center justify-content-center">
                 <i className="fas fa-tools fa-2x text-success mb-3"></i>

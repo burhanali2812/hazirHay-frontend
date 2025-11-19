@@ -8,6 +8,7 @@ import { Routes, Route } from "react-router-dom";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useEffect} from "react";
 import AiChat from "./pages/AiChat";
+import MyShopServices from "./pages/MyShopServices";
 
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Login = lazy(() => import("./pages/Login"));
@@ -101,6 +102,7 @@ function App() {
 
             <Route path="shopKepper/worker/signup" element={<WorkerSignup />} />
             <Route path="shopKepper/workersList" element={<WorkersPage />} />
+            <Route path="shopKepper/shop/services" element={<MyShopServices />} />
             <Route
               path="shopKepper/requests"
               element={<ShopkepperRequests />}
