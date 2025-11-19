@@ -33,6 +33,7 @@ function ShopKepperDashboard() {
   );
   const [endDate, setEndDate] = useState("");
   const [filterLoading, setFilterLoading] = useState(false);
+  const [isDataLoading, setIsDataLoading] = useState(false)
   const role = localStorage.getItem("role");
 
   useCheckBlockedStatus(token);
@@ -77,6 +78,7 @@ function ShopKepperDashboard() {
   ]);
 
   const getShopkeeperOrders = async (type) => {
+    setIsDataLoading(true)
     try {
       // 🔹 Validate date range only if filtering
       if (type === "filter") {
@@ -158,6 +160,7 @@ setTotalOrdersEarnings(earning?.toFixed(0));
           setEndDate("");
           setFilterModal(false);
         }
+        setIsDataLoading(false)
       }
     } catch (error) {
       console.error("Error fetching orders:", error);
@@ -165,6 +168,7 @@ setTotalOrdersEarnings(earning?.toFixed(0));
       if (type === "filter") {
         setFilterLoading(false);
       }
+      setIsDataLoading(false)
     }
   };
   useEffect(() => {
@@ -203,11 +207,29 @@ setTotalOrdersEarnings(earning?.toFixed(0));
   const cancelPercent = Math.round(cancelRequestPercent);
 
   return (
+    
     <div
       style={{ marginBottom: "80px" }}
       className="container-fluid px-3 px-md-5"
     >
-      {/* HEADER CARD */}
+    {
+      isDataLoading ? (
+         <div
+          className="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center bg-dark bg-opacity-75"
+          style={{ zIndex: 1055 }}
+        >
+          <button className="btn btn-dark" type="button" disabled>
+            <span
+              className="spinner-border spinner-border-sm me-2"
+              role="status"
+              aria-hidden="true"
+            ></span>
+            Loading...
+          </button>
+        </div>
+      ):(
+        <>
+          {/* HEADER CARD */}
       <div
         className="card  border-0 p-3 p-md-4 mb-3 mt-2"
         style={{
@@ -520,6 +542,9 @@ setTotalOrdersEarnings(earning?.toFixed(0));
           );
         })}
       </div>
+        </>
+      )
+    }
 
       {/* FILTER MODAL */}
 
@@ -574,7 +599,7 @@ setTotalOrdersEarnings(earning?.toFixed(0));
                       type="date"
                       className="form-control shadow-sm"
                       style={{ borderRadius: "10px" }}
-                      value={startDate}
+                      value={startDate === "" ? showStartDate : startDate}
                       onChange={(e) => setStartDate(e.target.value)}
                     />
                   </div>
@@ -589,7 +614,7 @@ setTotalOrdersEarnings(earning?.toFixed(0));
                       type="date"
                       className="form-control shadow-sm"
                       style={{ borderRadius: "10px" }}
-                      value={endDate}
+                      value={endDate === "" ? showEndDate : endDate}
                       onChange={(e) => setEndDate(e.target.value)}
                     />
                   </div>

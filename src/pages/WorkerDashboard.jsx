@@ -29,7 +29,7 @@ function WorkerDashboard() {
   };
 
   const handlegetAssignedOrder = async () => {
-  
+  setIsDataLoading(true)
     try {
       const res = await axios.get(
         `https://hazir-hay-backend.vercel.app/requests/getAssignedOrder/${user?._id}`,
@@ -41,12 +41,12 @@ function WorkerDashboard() {
         }
       );
       if (res.data.success) {
-      
-        //  alert(res.data.message);
         setAssignOrders(res.data.data);
+        setIsDataLoading(false)
       }
     } catch (error) {
-      alert(error);
+      console.log(error)
+         setIsDataLoading(false)
     }
   };
   useEffect(() => {
@@ -606,7 +606,6 @@ function WorkerDashboard() {
           )
         }
 
-        <button className="btn btn-primary" onClick={()=>navigate("/admin/userAi")}>AskAi</button>
 
 
       </section>

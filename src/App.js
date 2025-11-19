@@ -63,7 +63,21 @@ function App() {
 
   return (
     <>
-      <Suspense fallback={<h2>Loading...</h2>}>
+      <Suspense fallback={
+         <div
+          className="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center bg-dark bg-opacity-75"
+          style={{ zIndex: 1055 }}
+        >
+          <button className="btn btn-dark" type="button" disabled>
+            <span
+              className="spinner-border spinner-border-sm me-2"
+              role="status"
+              aria-hidden="true"
+            ></span>
+            Loading...
+          </button>
+        </div>
+      }>
         <Routes>
           <Route path="/" element={<Main />} />
           <Route path="/login" element={<Login />}></Route>

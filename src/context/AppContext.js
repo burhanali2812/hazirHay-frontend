@@ -20,7 +20,7 @@ export const AppProvider = ({ children }) => {
   const [unSeenNotification, setUnSeenNotification] = useState([]);
 
   const [topText, setTopText] = useState("");
-  const [key, setKey] = useState(null);
+  const [pageKey, setKey] = useState(null);
   const [shopKepperStatus, setShopKepperStatus] = useState(null);
   const [areaName, setAreaName] = useState("");
   const [coordinates, setCoordinates] = useState(null);
@@ -174,7 +174,7 @@ export const AppProvider = ({ children }) => {
    
         topText,
         setTopText,
-        key,
+        pageKey,
         setKey,
         shopKepperStatus,
         setShopKepperStatus,
@@ -190,6 +190,7 @@ export const AppProvider = ({ children }) => {
         setUpdateAppjs,
         statusUpdate,
         setStatusUpdate,
+        setNotification,
 
         getAllUser,
         getAllShopKepper,
