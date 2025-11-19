@@ -140,5 +140,5 @@ export default function UserShopRoute({ userCoords, shopCoords, onRouteInfo, typ
     }
   }, [userCoords, shopCoords]);
 
-  return <iframe ref={mapContainerRef} style={{ width: "100%", height: "650px" }} loading="lazy"/>;
+  return <div ref={mapContainerRef} style={{ width: "100%", height: "650px" }} />;
 }

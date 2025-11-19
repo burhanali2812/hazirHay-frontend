@@ -1,14 +1,17 @@
 import React, { useEffect, useState } from "react";
 import offline from "../images/offline.png";
 import { Link, useNavigate } from "react-router-dom";
+import {toast, Toaster} from "react-hot-toast"
 import Swal from "sweetalert2";
 import axios from "axios";
-import UserShopRoute from "../components/UserShopRoute";
+import { Suspense, lazy } from "react";
 import noData from "../images/noData.png";
 import { FaWifi } from "react-icons/fa";
 import { MdWifiOff } from "react-icons/md";
 import { useCheckBlockedStatus } from "../components/useCheckBlockedStatus";
 import { useAppContext } from "../context/AppContext";
+
+const UserShopRoute = lazy(() => import("../components/UserShopRoute"));
 function ShopkepperRequests() {
   const {shopKepperWorkers, setKey} = useAppContext();
   const user = JSON.parse(localStorage.getItem("user"));
@@ -73,7 +76,7 @@ function ShopkepperRequests() {
   useEffect(() => {
     function getShopkeeperLocation() {
       if (!navigator.geolocation) {
-        alert("Geolocation is not supported by your browser");
+        toast.error("Geolocation is not supported by your browser");
         return;
       }
 
@@ -87,13 +90,13 @@ function ShopkepperRequests() {
         },
         (error) => {
           if (error.code === error.PERMISSION_DENIED) {
-            alert("Please turn on location and allow access to continue");
+            toast.error("Please turn on location and allow access to continue");
           } else if (error.code === error.POSITION_UNAVAILABLE) {
-            alert("Location information is unavailable. Please try again");
+            toast.error("Location information is unavailable. Please try again");
           } else if (error.code === error.TIMEOUT) {
-            alert("Location request timed out. Please try again");
+            toast.error("Location request timed out. Please try again");
           } else {
-            alert("Unable to retrieve your location");
+            toast.error("Unable to retrieve your location");
           }
         }
       );
@@ -167,14 +170,15 @@ function ShopkepperRequests() {
       );
 
       if (response.status === 200) {
+        const st = response.data.data
         setStatusLoading(false);
-        console.log("Current Status:", response.data.data);
-        setIsOnline(response.data.data);
+        console.log("Current Status:", st);
+        setIsOnline(st);
       }
     } catch (error) {
       setStatusLoading(false);
       console.error("Error fetching status:", error);
-      alert(error.response?.data?.message || "Failed to fetch status!");
+      toast.error(error.response?.data?.message || "Failed to fetch status!");
     }
   };
 
@@ -291,7 +295,7 @@ function ShopkepperRequests() {
             actualPrice: prev.actualPrice - Number(order.cost),
           }));
         }
-        alert(`Order ${type === "accept" ? "Accepted" : "Rejected"}`);
+        toast.success(`Order ${type === "accept" ? "Accepted" : "Rejected"}`);
       }
     } catch (error) {
       console.error(
@@ -403,15 +407,15 @@ function ShopkepperRequests() {
 
       if (response.status === 200) {
         setStatusLoading(false);
-        alert(response.data.message || "Status updated successfully!");
+        toast.success(response.data.message || "Status updated successfully!");
 
         setIsOnline(newStatus); // update UI state
       } else {
-        alert("Failed to update status!");
+        toast.error("Failed to update status!");
       }
     } catch (error) {
       console.error("Error updating status:", error);
-      alert(error.response?.data?.message || "Something went wrong!");
+      toast.error(error.response?.data?.message || "Something went wrong!");
     } finally {
       setStatusLoading(false);
     }
@@ -419,7 +423,7 @@ function ShopkepperRequests() {
 
   const handleDeleteRejectedOrders = async (type) => {
     if (!finalRejectedOrdersFordelete?.length) {
-      alert("No orders to delete");
+      toast.error("No orders to delete");
       return;
     }
     if (type === "yes") {
@@ -472,90 +476,15 @@ function ShopkepperRequests() {
     } catch (error) {
       setRequestDeleteLoading(false);
       console.error("Error deleting orders:", error);
-      alert("Something went wrong while deleting orders.");
+      toast.error("Something went wrong while deleting orders.");
     }
   };
 
   const grandTotalWithOutCharges = Number(totalPrice?.actualPrice).toFixed(0);
-  const updateShopkepper = async () => {
-    try {
-      const response = await axios.put(
-        `https://hazir-hay-backend.vercel.app/shopKeppers/updateBusy/${user._id}`,
-        { isBusy: true }, // no body, so pass empty object
-        {
-          headers: { Authorization: `Bearer ${token}` },
-          params: { t: Date.now() },
-        }
-      );
 
-      if (response.data.success) {
-        alert("Shopkeeper status updated to busy");
-        console.log("Shopkeeper status updated to busy");
-      }
-    } catch (error) {
-      console.error("Error updating shopkeeper status:", error);
-    }
-  };
 
-  const ProgressOrder = async () => {
-    if (!startJourneyOrders?.length) {
-      alert("No orders to progress");
-      return;
-    }
 
-    setLoading(true);
 
-    try {
-      const res = await axios.put(
-        "https://hazir-hay-backend.vercel.app/requests/progressRequest",
-        { requests: startJourneyOrders },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-          params: { t: Date.now() }, // avoid caching
-        }
-      );
-
-      if (res.data.success) {
-        await updateShopkepper();
-        await handleDeleteRejectedOrders("none");
-        sendNotificationToUser("inProgress");
-        alert(res.data.message);
-        localStorage.setItem(
-          "currentCheckout",
-          JSON.stringify(acceptedOrdersForJourney)
-        );
-        navigate("/admin/user/orderWithJourney");
-      }
-    } catch (error) {
-      console.error("Error completing orders:", error);
-      alert("Something went wrong while progressing orders.");
-    } finally {
-      setLoading(false);
-    }
-  };
-  const getUserStatus = async () => {
-    try {
-      const res = await axios.get(
-        `https://hazir-hay-backend.vercel.app/shopKeppers/getBusyStatus/${user?._id}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-          params: { t: Date.now() }, // avoid caching
-        }
-      );
-      if (res.data.success) {
-        if (res.data.data === true) {
-          console.log("res.data.data", res.data.data);
-
-          navigate("/admin/user/orderWithJourney");
-        }
-      }
-    } catch (error) {
-      console.log(error);
-    }
-  };
-  useEffect(() => {
-    getUserStatus();
-  }, []);
 
   const markOrderDeleteById = async (order) => {
     setSelectedRequest((prev) => ({
@@ -573,12 +502,12 @@ function ShopkepperRequests() {
       );
 
       if (res.data.success) {
-        alert(res.data.message);
+        toast.success(res.data.message);
         fetchRequests("none");
       }
     } catch (error) {
       console.error("Error deleting orders:", error);
-      alert("Something went wrong while deleting order.");
+      toast.error("Something went wrong while deleting order.");
     }
   };
 
@@ -601,14 +530,14 @@ function ShopkepperRequests() {
       );
 
       if (response.data.success) {
-        alert(response.data.message);
+        toast.success(response.data.message);
         setSelectedWorkers({});
         setDetailsModal(false);
         fetchRequests("auto");
       }
     } catch (error) {
       console.error("Assignment failed:", error);
-      alert("Failed to assign orders. Please try again.");
+      toast.error("Failed to assign orders. Please try again.");
     }
   };
 
@@ -672,7 +601,7 @@ function ShopkepperRequests() {
 
                     return (
                       <div className="col-lg-4 col-md-6" key={index}>
-                        <div className="card border-0 shadow h-100 rounded-3">
+                        <div className="card border-0 shadow h-100 rounded-3 bg-light">
                           <div className="card-body">
                             {/* Checkout ID */}
                             <h5 className="fw-bold text-primary mb-3">
@@ -933,19 +862,33 @@ function ShopkepperRequests() {
                   <div className="modal-body bg-white">
                     <div
                       style={{
-                        height: "380px",
+                        height: "450px",
                         width: "100%",
                         borderRadius: "5px",
                         overflow: "auto",
                       }}
                       className="shadow-sm"
                     >
-                      <UserShopRoute
+                    <Suspense fallback={         <div
+          className="position-fixed top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center bg-dark bg-opacity-75"
+          style={{ zIndex: 1055 }}
+        >
+          <button className="btn btn-dark" type="button" disabled>
+            <span
+              className="spinner-border spinner-border-sm me-2"
+              role="status"
+              aria-hidden="true"
+            ></span>
+            Loading...
+          </button>
+        </div>}>
+                        <UserShopRoute
                         userCoords={userCoords}
                         shopCoords={shopKepperCords ? shopKepperCords : []}
                         onRouteInfo={(info) => setRouteInfo(info)}
                         type={"live"}
                       />
+                    </Suspense>
                     </div>
 
                     <div

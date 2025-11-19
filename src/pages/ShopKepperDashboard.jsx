@@ -231,10 +231,10 @@ setTotalOrdersEarnings(earning?.toFixed(0));
         <>
           {/* HEADER CARD */}
       <div
-        className="card  border-0 p-3 p-md-4 mb-3 mt-2"
+        className="card  border-0 p-3 p-md-4 mb-3 mt-2 bg-light"
         style={{
           borderRadius: "14px",
-          background: "linear-gradient(115deg, #ffffff, #ffffff)",
+         // background: "linear-gradient(115deg, #ffffff, #ffffff)",
         }}
       >
         {/* Profile Section */}
@@ -273,11 +273,7 @@ setTotalOrdersEarnings(earning?.toFixed(0));
               </span>
             </div>
 
-            {/* <div>
-        <span className="text-success fw-semibold small">
-          <i className="fa-solid fa-gift me-1"></i> Bonus: Rs. 0/-
-        </span>
-      </div> */}
+            
           </div>
 
           <button
@@ -298,10 +294,7 @@ setTotalOrdersEarnings(earning?.toFixed(0));
       <div className="row g-3">
         <div className="col-12">
           <div
-            className="card p-3 shadow-sm border-0 d-flex flex-column rounded-4"
-            style={{
-              background: "linear-gradient(135deg, #ffffff 0%, #f9fafb 100%)",
-            }}
+            className="card p-3 shadow-sm border-0 d-flex flex-column rounded-4 bg-light"
           >
             {/* Header Row */}
             <div className="d-flex justify-content-between align-items-center flex-wrap">
@@ -410,8 +403,8 @@ setTotalOrdersEarnings(earning?.toFixed(0));
         {/* Total Orders */}
         <div className="col-12">
           <div
-            className="card p-3 shadow-sm border-0  d-flex flex-row justify-content-between align-items-center rounded-4"
-            style={{ background: "linear-gradient(115deg, #ffffff, #ffffff)" }}
+            className="card p-3 shadow-sm mb-2 border-0  d-flex flex-row justify-content-between align-items-center rounded-4 bg-light"
+           
           >
             <div className="d-flex align-items-center gap-3">
               <div
@@ -489,12 +482,12 @@ setTotalOrdersEarnings(earning?.toFixed(0));
               : 0;
 
           return (
-            <div key={index} className="col-6 col-md-6 col-lg-6">
+            <div key={index} className="col-6 col-md-6 col-lg-6 ">
               <div
-                className="card p-2 shadow-sm border-0  rounded-4 d-flex flex-column justify-content-between align-items-center text-center"
+                className="card p-2 shadow-sm border-0 bg-light rounded-4 d-flex flex-column justify-content-between align-items-center text-center"
                 style={{
                   minHeight: "140px",
-                  background: "linear-gradient(115deg, #ffffff, #ffffff)",
+                 
                 }}
               >
                 <div className="d-flex flex-column align-items-center justify-content-center">
@@ -558,7 +551,7 @@ setTotalOrdersEarnings(earning?.toFixed(0));
           }}
         >
           <div className="modal-dialog modal-sm modal-dialog-centered">
-            <div className="modal-content shadow border-0 rounded-4">
+            <div className="modal-content shadow-sm border-0 rounded-4">
               {/* Header */}
               <div
                 className="modal-header text-white py-2 px-3"
