@@ -25,7 +25,8 @@ const AiChat = () => {
     try {
       const response = await axios.post(
         "https://hazir-hay-backend.vercel.app/worker/askAiWorker",
-        { prompt }
+        { prompt },
+        { timeout: 20000, headers: { "Content-Type": "application/json" } }
       );
 
       const text = response.data?.answer || "No answer found";
