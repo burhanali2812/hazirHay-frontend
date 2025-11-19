@@ -7,6 +7,7 @@ import { Suspense, lazy } from "react";
 import { Routes, Route } from "react-router-dom";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useEffect} from "react";
+import AiChat from "./pages/AiChat";
 
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Login = lazy(() => import("./pages/Login"));
@@ -100,6 +101,7 @@ function App() {
             <Route path="user/findShops" element={<FindShops />} />
             <Route path="user/notification" element={<Notification />} />
             <Route path="user/contact" element={<ContactUs />} />
+             <Route path="userAi" element={<AiChat />} />
             <Route
               path="user/orderWithJourney"
               element={<OrderWithJourney />}

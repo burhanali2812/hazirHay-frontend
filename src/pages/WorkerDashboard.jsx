@@ -606,6 +606,8 @@ function WorkerDashboard() {
           )
         }
 
+        <button className="btn btn-primary" onClick={()=>navigate("/admin/userAi")}>AskAi</button>
+
 
       </section>
       {ordersModal && (
