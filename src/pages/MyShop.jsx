@@ -6,23 +6,23 @@ import axios from "axios";
 import imageCompression from "browser-image-compression";
 import toast from "react-hot-toast";
 function MyShop() {
-  const { setKey, shopKepperWorkers, shop } = useAppContext();
+  const { setKey, shopKepperWorkers, shop ,getShopData} = useAppContext();
 
   const [isViewFull, setIsViewFull] = useState(false);
   const [isEditDataModalOpen, setIsEditDataModalOpen] = useState(false);
   const [isProfilePictureUpdate, setISProfilePictureUpdate] = useState(false);
   const [pictureUploadLoading, setPictureUploadLoading] = useState(false);
   const [isEditCurrentLocation, setISEditCurrentLocation] = useState(false);
+   const [updatingLoading, setUpdatingLoading] = useState(false);
   const [pictureWidthLoad, setPictureWidthLoad] = useState(0);
-    const [position, setPosition] = useState([33.6844, 73.0479]);
-      const [areaName, setAreaName] = useState("");
+  const [position, setPosition] = useState([33.6844, 73.0479]);
+  const [areaName, setAreaName] = useState("");
+  const [shopPicture, setShopPicture] = useState(null);
+  const [shopName, setShopName] = useState("");
+  const [shopAddress, setShopAddress] = useState("");
+  const [currentLocation, setCurrentLOcation] = useState("");
   const [page, setPage] = useState(0);
-  const [formData1, setFormData] = useState({
-    shopPicture: null,
-    shopName: "",
-    shopAddress: "",
-    currentLocation: "",
-  });
+
   const navigate = useNavigate();
   useEffect(() => {
     setKey("shop");
@@ -65,87 +65,133 @@ function MyShop() {
     const { name, files, value } = e.target;
 
     if (name === "shopPicture") {
-      setPictureWidthLoad(0)
+      setPictureWidthLoad(0);
       setPictureUploadLoading(true);
       const file = files[0];
-      setPictureWidthLoad(25)
+      setPictureWidthLoad(25);
       console.log("Profile picture:", file);
 
       if (file) {
-        setPictureWidthLoad(50)
+        setPictureWidthLoad(50);
         try {
           const options = {
             maxSizeMB: 0.6,
             maxWidthOrHeight: 800,
             useWebWorker: true,
           };
-          setPictureWidthLoad(75)
+          setPictureWidthLoad(75);
 
           // Compress the file
           const compressedFile = await imageCompression(file, options);
           console.log("Compressed file:", compressedFile);
-          setPictureWidthLoad(100)
+          setPictureWidthLoad(100);
 
-          // Update form data with compressed file
-          setFormData({ ...formData1, shopPicture: compressedFile });
+          setShopPicture(compressedFile);
           setPictureUploadLoading(false);
         } catch (error) {
           console.error("Compression failed:", error);
-           setPictureUploadLoading(false);
-           setPictureWidthLoad(0)
+          setPictureUploadLoading(false);
+          setPictureWidthLoad(0);
         }
       }
     } else {
-      setFormData({ ...formData1, [name]: value });
+      if (name === "shopName") {
+        setShopName(value);
+      } else if (name === "shopAddress") {
+        setShopAddress(value);
+      } else if (name === "currentLocation") {
+        setISEditCurrentLocation(value);
+      }
     }
   };
-      const fetchLocation = async () => {
-        setPictureUploadLoading(true)
-      navigator.geolocation.getCurrentPosition(
-        async (position) => {
-          const lat = position?.coords?.latitude ?? 33;
-          const lon = position?.coords?.longitude ?? 73;
-          if (lat === null) {
-            alert("lat null");
-          }
+  const fetchLocation = async () => {
+    setPictureUploadLoading(true);
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const lat = position?.coords?.latitude ?? 33;
+        const lon = position?.coords?.longitude ?? 73;
+        if (lat === null) {
+          alert("lat null");
+        }
 
-          setPosition([lat, lon]);
+        setPosition([lat, lon]);
 
-          try {
-            const response = await axios.get(
-              "https://hazir-hay-backend.vercel.app/admin/reverse-geocode",
-              { params: { lat: lat, lon: lon } }
-            );
-            
+        try {
+          const response = await axios.get(
+            "https://hazir-hay-backend.vercel.app/admin/reverse-geocode",
+            { params: { lat: lat, lon: lon } }
+          );
 
-            const name =
-              response.data?.display_name ||
-              response.data.address?.city ||
-              response.data.address?.town ||
-              response.data.address?.village ||
-              response.data.address?.suburb ||
-              "Unknown Area";
+          const name =
+            response.data?.display_name ||
+            response.data.address?.city ||
+            response.data.address?.town ||
+            response.data.address?.village ||
+            response.data.address?.suburb ||
+            "Unknown Area";
 
-              toast.success("Successfully fetched current location!")
-              setISEditCurrentLocation(true)
-              setPictureUploadLoading(false)
+          toast.success("Successfully fetched current location!");
+          setISEditCurrentLocation(true);
+          setPictureUploadLoading(false);
 
-            setAreaName(name);
-            setFormData((prev) => ({
-              ...prev,
-              currentLocation: `${lat}, ${lon}, ${name}`,
-            }));
-          } catch (error) {
-            console.error("Error fetching area name:", error);
-            setPictureUploadLoading(false)
-          }
-        },
-        (error) => {
-          console.error("Error getting location:", error);
-          setPictureUploadLoading(false)
+          setAreaName(name);
+          setCurrentLOcation(`${lat}, ${lon}, ${name}`);
+        } catch (error) {
+          console.error("Error fetching area name:", error);
+          setPictureUploadLoading(false);
+        }
+      },
+      (error) => {
+        console.error("Error getting location:", error);
+        setPictureUploadLoading(false);
+      }
+    );
+  };
+
+  const handleUpdateData = async () => {
+    setUpdatingLoading(true)
+    const formData = new FormData();
+  const finalShopName = shopName || shop?.shopName;
+  const finalShopAddress = shopAddress || shop?.shopAddress;
+  const finalShopPicture = shopPicture || null;
+
+  const finalLocation =position && areaName !== ""? { coordinates: position, area: areaName }: shop.location; 
+
+      console.log("final LOcation", finalLocation);
+      
+
+  formData.append("shopName", finalShopName);
+  formData.append("shopAddress", finalShopAddress);
+  formData.append("location", JSON.stringify(finalLocation));
+
+  if (finalShopPicture) {
+    formData.append("shopPicture", finalShopPicture);
+  }
+
+
+    try {
+      const res = await axios.put(
+        `https://hazir-hay-backend.vercel.app/admin/updateShop/${shop._id}`,
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
         }
       );
-    };
+      if (res.data.success) {
+        await getShopData();
+        setUpdatingLoading(false)
+        setIsEditDataModalOpen(false)
+        toast.success(res.data.message)
+        
+      }
+    } catch (error) {
+      setUpdatingLoading(true)
+      console.log(error);
+      toast.error(error)
+    }
+  };
+
+  const pictureObj = shop?.shopPicture ? JSON.parse(shop.shopPicture) : null;
 
   return (
     <div className="container my-4 pb-5">
@@ -173,9 +219,9 @@ function MyShop() {
           color: "#6c757d",
         }}
       >
-        {shop?.shopPicture ? (
+        {pictureObj ? (
           <img
-            src={shop.shopPicture}
+            src={pictureObj.url}
             alt="Shop Banner"
             className="w-100 h-100"
             style={{ objectFit: "cover" }}
@@ -392,9 +438,17 @@ function MyShop() {
                 className="modal-header text-white py-2 px-3"
                 style={{ backgroundColor: "#0d6efd" }}
               >
-                <h6 className="modal-title m-0">
-                  <i className="fa-solid fa-plus me-2"></i>Upload Picture
-                </h6>
+                {isProfilePictureUpdate ? (
+                  <h6 className="modal-title m-0">
+                    <i className="fa-solid fa-plus me-2"></i>Update Profile
+                    Picture
+                  </h6>
+                ) : (
+                  <h6 className="modal-title m-0">
+                    <i className="fa-solid fa-pen-to-square me-2"></i>Update
+                    Info
+                  </h6>
+                )}
                 <button
                   type="button"
                   className="btn-close btn-close-white"
@@ -428,10 +482,10 @@ function MyShop() {
                           backgroundColor: "#f8f9fa",
                         }}
                       >
-                        {formData1.shopPicture ? (
+                        {shopPicture ? (
                           <img
                             src={
-                              URL.createObjectURL(formData1.shopPicture) ||
+                              URL.createObjectURL(shopPicture) ||
                               shop.shopPicture
                             }
                             alt="Profile Preview"
@@ -458,8 +512,12 @@ function MyShop() {
                         aria-valuemin="0"
                         aria-valuemax="100"
                       >
-                        <div class="progress-bar" style={{ width: {pictureWidthLoad} }}>
-                          {pictureWidthLoad}{"%"}
+                        <div
+                          class="progress-bar"
+                          style={{ width: { pictureWidthLoad } }}
+                        >
+                          {pictureWidthLoad}
+                          {"%"}
                         </div>
                       </div>
                     )}
@@ -480,7 +538,7 @@ function MyShop() {
                         name="shopName"
                         id="nameInput"
                         placeholder="Enter your Shop name"
-                        value={formData1.shopName || shop.shopName}
+                        value={shopName || shop?.shopName}
                         onChange={handleChange}
                       />
                       <label htmlFor="nameInput">
@@ -494,7 +552,7 @@ function MyShop() {
                         name="shopAddress"
                         id="shopAddressInput"
                         placeholder="Enter your address"
-                        value={formData1.shopAddress || shop.shopAddress}
+                        value={shopAddress || shop?.shopAddress}
                         onChange={handleChange}
                         style={{ height: "100px" }}
                       ></textarea>
@@ -508,7 +566,7 @@ function MyShop() {
                         name="currentLocation"
                         id="currentLocationInput"
                         placeholder="Your Current Location"
-                        value={formData1.currentLocation || shop.location.area}
+                        value={currentLocation || shop?.location?.area}
                         onChange={handleChange}
                         style={{ height: "100px" }}
                         disabled={true}
@@ -518,91 +576,91 @@ function MyShop() {
                         <span className="text-danger">*</span>
                       </label>
                     </div>
-                  {
-                    !isEditCurrentLocation && (
-                       <div className="mt-3">
-  <div
-    style={{
-      backgroundColor: "#fff3cd",
-      color: "#856404",
-      padding: "5px 10px",
-      borderRadius: "8px",
-      fontSize: "14px",
-      border: "1px solid #ffeeba",
-    }}
-  >
-    <strong>Note:</strong> The <b>shop's current location</b> is set to your already configured location.  
-    To change the current location, press the <b>"Change My Shop Location"</b> button below.  
-    The system will then automatically fetch and set your shop's current location.
-      <button className="btn btn-warning btn-sm mt-3 mb-2" onClick={fetchLocation}
-      disabled = {pictureUploadLoading}
-      >
-          {pictureUploadLoading ? (
-                      <>
-                        <span
-                          className="spinner-border spinner-border-sm me-2"
-                          role="status"
-                          aria-hidden="true"
-                        ></span>
-                        <span>Fetching Location...</span>
-                      </>
-                    ) : (
-                      <>
-                        Change My Shop Location
-                      </>
+                    {!isEditCurrentLocation && (
+                      <div className="mt-3">
+                        <div
+                          style={{
+                            backgroundColor: "#fff3cd",
+                            color: "#856404",
+                            padding: "5px 10px",
+                            borderRadius: "8px",
+                            fontSize: "14px",
+                            border: "1px solid #ffeeba",
+                          }}
+                        >
+                          <strong>Note:</strong> The{" "}
+                          <b>shop's current location</b> is set to your already
+                          configured location. To change the current location,
+                          press the <b>"Change My Shop Location"</b> button
+                          below. The system will then automatically fetch and
+                          set your shop's current location.
+                          <button
+                            className="btn btn-warning btn-sm mt-3 mb-2"
+                            onClick={fetchLocation}
+                            disabled={pictureUploadLoading}
+                          >
+                            {pictureUploadLoading ? (
+                              <>
+                                <span
+                                  className="spinner-border spinner-border-sm me-2"
+                                  role="status"
+                                  aria-hidden="true"
+                                ></span>
+                                <span>Fetching Location...</span>
+                              </>
+                            ) : (
+                              <>Change My Shop Location</>
+                            )}
+                          </button>
+                        </div>
+                      </div>
                     )}
-      </button>
-  </div>
 
-
-</div>
-                    )
-                  }
-
-                  {
-                    isEditCurrentLocation && (
+                    {/* {isEditCurrentLocation && (
                       <>
                         <div className="d-flex align-items-center my-3">
-                      <hr
-                        className="flex-grow-1"
-                        style={{
-                          borderTop: "3px solid black",
-                          borderRadius: "5px",
-                          margin: 0,
-                        }}
-                      />
-                      <span
-                        className="fw-bold mx-3"
-                        style={{ color: "#ff6600" }}
-                      >
-                        OR
-                      </span>
-                      <hr
-                        className="flex-grow-1"
-                        style={{
-                          borderTop: "3px solid black",
-                          borderRadius: "5px",
-                          margin: 0,
-                        }}
-                      />
-                    </div>
-                    <button
-                      type="button"
-                      className="btn btn-primary w-100 fw-bold mb-2"
-                      // onClick={() => setShowModal(true)}
-                    >
-                      Choose From Map
-                      <i className="fa-solid fa-map-location-dot ms-2"></i>
-                    </button>
+                          <hr
+                            className="flex-grow-1"
+                            style={{
+                              borderTop: "3px solid black",
+                              borderRadius: "5px",
+                              margin: 0,
+                            }}
+                          />
+                          <span
+                            className="fw-bold mx-3"
+                            style={{ color: "#ff6600" }}
+                          >
+                            OR
+                          </span>
+                          <hr
+                            className="flex-grow-1"
+                            style={{
+                              borderTop: "3px solid black",
+                              borderRadius: "5px",
+                              margin: 0,
+                            }}
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          className="btn btn-primary w-100 fw-bold mb-2"
+                          onClick={handleUpdateData}
+                        >
+                          Choose From Map
+                          <i className="fa-solid fa-map-location-dot ms-2"></i>
+                        </button>
                       </>
-                    )
-                  }
+                    )} */}
                   </>
                 )}
                 <div>
                   {/* Button */}
-                  <button className="btn btn-primary mt-2 w-100 rounded-pill fw-semibold">
-                    {isEditDataModalOpen ? (
+                  <button className="btn btn-primary mt-2 w-100 rounded-pill fw-semibold"
+                  disabled={updatingLoading}
+                  onClick={handleUpdateData}
+                  >
+                    {updatingLoading ? (
                       <>
                         <span
                           className="spinner-border spinner-border-sm me-2"
@@ -613,7 +671,6 @@ function MyShop() {
                       </>
                     ) : (
                       <>
-                        <i class="fa-solid fa-screwdriver-wrench me-2"></i>
                         Update
                       </>
                     )}

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import logo2 from "../images/logo5.png";
 import 'animate.css';
 import { useNavigate} from "react-router-dom";
@@ -6,6 +6,36 @@ import { useNavigate} from "react-router-dom";
 function Main() {
       const navigate = useNavigate();
       const[registerModal, setRegisterModal] = useState(false)
+
+      const [deferredPrompt, setDeferredPrompt] = useState(null);
+  const [showInstallButton, setShowInstallButton] = useState(false);
+
+  useEffect(() => {
+    const handler = (e) => {
+      e.preventDefault(); 
+      setDeferredPrompt(e); 
+      setShowInstallButton(true); 
+    };
+
+    window.addEventListener('beforeinstallprompt', handler);
+
+    return () => window.removeEventListener('beforeinstallprompt', handler);
+  }, []);
+
+  const handleInstallClick = async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt(); // Show the install prompt
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === 'accepted') {
+        console.log('User accepted install');
+      } else {
+        console.log('User dismissed install');
+      }
+      setDeferredPrompt(null);
+      setShowInstallButton(false);
+    }
+  };
+
 
       const signUpByRole = (role)=>{
         if(role === "service"){
@@ -70,6 +100,18 @@ function Main() {
           Register
         </button>
       </div>
+      {
+        showInstallButton && (
+                 <button
+          className="btn btn-primary shadow-sm btn-sm"
+          onClick={handleInstallClick}
+          style={{marginTop : "50px"}}
+        >
+          <i className="fas fa-download me-2"></i>Install This App
+        </button>
+        )
+      }
+      <p className='text-center text-muted' style={{marginTop : "5px"}}>(v-1.0.3.3)</p>
     </div>
 
   </div>
