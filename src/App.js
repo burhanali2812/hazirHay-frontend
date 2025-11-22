@@ -9,6 +9,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { useEffect} from "react";
 import AiChat from "./pages/AiChat";
 import MyShopServices from "./pages/MyShopServices";
+import PrivacyPolicies from "./pages/PrivacyPolicies";
 
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Login = lazy(() => import("./pages/Login"));
@@ -84,6 +85,7 @@ function App() {
           <Route path="/login" element={<Login />}></Route>
           <Route path="/signup" element={<Signup />}></Route>
           <Route path="/shop" element={<ShopForm />}></Route>
+          <Route path="/privacyPolicies" element={<PrivacyPolicies />}></Route>
           <Route
             path="shopKepper/sh&BlTr&bl&5&comp&shbl&tr"
             element={<Blocked />}

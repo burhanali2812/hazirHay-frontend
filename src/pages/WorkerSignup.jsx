@@ -61,17 +61,29 @@ function WorkerSignup({ setUpdateAppjs }) {
         alert(res.data.message || "Unexpected response from server.");
       }
     } catch (error) {
-      console.error("Error saving worker:", error);
+  console.error("Error saving worker:", error);
 
-      if (error.response) {
-        alert(error.response.data?.message || "Server error occurred.");
-        console.log("Backend error:", error.response.data);
-      } else if (error.request) {
-        alert("No response from server. Check your internet or backend URL.");
-      } else {
-        alert("Error: " + error.message);
-      }
-    } finally {
+  if (error.response) {
+    const status = error.response.status;
+    const msg = error.response.data?.message;
+
+    if (status === 400) {
+      alert("This phone number is already registered. Try a different one.");
+    }
+    else {
+      alert(msg || "Something went wrong on the server.");
+    }
+
+    console.log("Backend error:", error.response.data);
+  } 
+  else if (error.request) {
+    alert("No response from server. Check your internet or backend URL.");
+  } 
+  else {
+    alert("Error: " + error.message);
+  }
+}
+ finally {
       setLoading(false);
     }
   };

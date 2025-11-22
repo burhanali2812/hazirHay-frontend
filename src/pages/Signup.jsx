@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Toaster, toast } from "react-hot-toast";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
@@ -25,6 +25,7 @@ function Signup() {
     confirmPassword: "",
   });
   const [isChecked, setIsChecked] = useState(false);
+    const [isAgrree, setIsAgree] = useState(false);
   const [loading, setLoading] = useState(false);
   const [successAnimation, setSuccessAnimation] = useState(false);
 
@@ -123,6 +124,12 @@ function Signup() {
       setLoading(false);
       return;
     }
+if (!isAgrree) {
+  toast.error("You must agree to the Privacy Policy and Terms & Conditions");
+  setLoading(false);
+  return;
+}
+
 
     const finalRole = role === "user" ? "user" : "shopKepper";
 
@@ -368,6 +375,19 @@ function Signup() {
           />
           <label className="form-check-label" htmlFor="exampleCheck">
             Show Password
+          </label>
+        </div>
+
+               <div className="form-check mb-3 mx-1">
+          <input
+            type="checkbox"
+            className="form-check-input"
+            id="exampleCheck"
+            checked={isAgrree}
+            onChange={(e) => setIsAgree(e.target.checked)}
+          />
+          <label className="form-check-label" htmlFor="exampleCheck">
+            I agree to the <Link to="/privacyPolicies" className="fw-bold" style={{textDecoration : "none"}}>Privacy Policy</Link> & <Link href="/privacyPolicies" className="fw-bold" style={{textDecoration : "none"}}>Terms</Link>.
           </label>
         </div>
 
