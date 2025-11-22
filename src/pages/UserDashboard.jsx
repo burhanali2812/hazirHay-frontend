@@ -27,6 +27,7 @@ function UserDashboard() {
   const [selectedSubCategory, setSelectedSubCategory] = useState(null);
   const [selectedArea, setSelectedArea] = useState(null);
   const [shopDistance, setShopDistance] = useState(null);
+const [allShopDistance, setAllShopDistance] = useState([]);
   const [routeInfo, setRouteInfo] = useState(null);
 
   const [selectedCategory, setSelectedCategory] = useState(null);
@@ -40,7 +41,7 @@ function UserDashboard() {
 
   const user = JSON.parse(localStorage.getItem("user"));
 
-  const [distanceRange, setDistanceRange] = useState(10);
+  const [distanceRange, setDistanceRange] = useState(0);
   const [isFilter, setIsFilter] = useState(false);
   const [notFoundModal, setNotFoundModal] = useState(false);
   const [addCartLoading, setAddCartLoading] = useState(null);
@@ -340,7 +341,7 @@ function UserDashboard() {
       setLoading(false);
 
       if (error.response && error.response.status === 404) {
-        setNotFoundModal(true); // ✅ open modal here
+        setNotFoundModal(true); 
       } else {
         console.error(
           "Error fetching providers:",
@@ -352,52 +353,85 @@ function UserDashboard() {
     }
   };
 
-  const applyFilters = () => {
-    let filtered = [...availableServices];
+const applyFilters = () => {
+  let filtered = [...availableServices];
+  setIsFilter(false)
 
-    if (filters.status !== "All") {
-      filtered = filtered.filter((shop) =>
-        filters.status === "Online" ? shop.isLive : !shop.isLive
-      );
-    }
+  if (filters.status !== "All") {
+      setIsFilter(true);
+    filtered = filtered.filter(shop =>
+      filters.status === "Online" ? shop.isLive : !shop.isLive
+    );
+  }
 
-    // Price filter
+  if (filters.rating !== "All") {
+    setIsFilter(true);
+    filtered = filtered.filter(
+      shop => findAverageRating(shop.reviews) >= Number(filters.rating)
+    );
+  }
+
+
+  const filteredWithDistance = filtered.map(shop => {
+    const shopInfo = shopData.find(s => s._id === shop._id);
+    return {
+      ...shop,
+      distance: shopInfo?.distance ?? Infinity
+    };
+  });
+
+
+  filteredWithDistance.sort((a, b) => {
+    let result = 0;
+
+    if (filters.status === "Online") result = (b.isLive === true) - (a.isLive === true);
+    if (filters.status === "Offline") result = (a.isLive === true) - (b.isLive === true);
+
+    if (result !== 0) return result;
+
+
     if (filters.price === "Low-to-High") {
-      filtered.sort((a, b) => {
-        const minA = Math.min(
-          ...a.servicesOffered.map((s) => s.subCategory.price)
-        );
-        const minB = Math.min(
-          ...b.servicesOffered.map((s) => s.subCategory.price)
-        );
-        return minA - minB;
-      });
+      setIsFilter(true);
+      result = Math.min(...a.servicesOffered.map(s => s.subCategory.price)) - 
+               Math.min(...b.servicesOffered.map(s => s.subCategory.price));
     } else if (filters.price === "High-to-Low") {
-      filtered.sort((a, b) => {
-        const maxA = Math.max(
-          ...a.servicesOffered.map((s) => s.subCategory.price)
-        );
-        const maxB = Math.max(
-          ...b.servicesOffered.map((s) => s.subCategory.price)
-        );
-        return maxB - maxA;
-      });
+      setIsFilter(true);
+      result = Math.max(...b.servicesOffered.map(s => s.subCategory.price)) - 
+               Math.max(...a.servicesOffered.map(s => s.subCategory.price));
+    }
+    if (result !== 0) return result;
+
+
+    if (filters.ratingSort === "Low-to-High") {
+      setIsFilter(true);
+      result = findAverageRating(a.reviews) - findAverageRating(b.reviews);
+    } else if (filters.ratingSort === "High-to-Low") {
+      setIsFilter(true);
+      result = findAverageRating(b.reviews) - findAverageRating(a.reviews);
+    }
+    if (result !== 0) return result;
+
+
+    if (filters.distance === "Low-to-High") {
+      setIsFilter(true);
+      result = a.distance - b.distance;
+    } else if (filters.distance === "High-to-Low") {
+      setIsFilter(true);
+      result = b.distance - a.distance;
     }
 
-    // Rating filter
-    if (filters.rating !== "All") {
-      filtered = filtered.filter(
-        (shop) => findAverageRating(shop.reviews) >= parseInt(filters.rating)
-      );
-    }
+    return result;
+  });
 
-    setFilterServices(filtered);
-    console.log(filtered);
-  };
 
-  useEffect(() => {
-    applyFilters();
-  }, [filters, availableServices]);
+  filtered = filteredWithDistance.map(({ distance, ...rest }) => rest);
+
+  //setIsFilter(false);
+  setFilterModal(false);
+  setFilterServices(filtered);
+};
+
+
 
   const getUserLocations = async () => {
     try {
@@ -599,7 +633,7 @@ function UserDashboard() {
     if (!ratings || ratings.length === 0) return 0;
 
     const total = ratings.reduce((acc, rating) => acc + rating.rate, 0);
-    return (total / ratings.length).toFixed(1);
+    return Number((total / ratings.length).toFixed(1));
   };
   console.log("Selected area", selectedArea);
 
@@ -623,7 +657,8 @@ function UserDashboard() {
   }, [selectedShopWithShopkepper]);
 
   const priceRangeOptions = ["All", "Low-to-High", "High-to-Low"];
-  const ratingRangeOptions = ["All", "1", "2", "3", "4", "5"];
+  const ratingRangeOptions = ["All", "Low-to-High", "High-to-Low"];
+  const distanceRangeOptions = ["All", "Low-to-High", "High-to-Low"];
   const statusOptions = ["All", "Online", "Offline"];
 
   const finalServices = isFilter ? FilterServices : availableServices;
@@ -711,6 +746,10 @@ function UserDashboard() {
       console.error("Error setting default location:", error);
     }
   };
+  useEffect(()=>{
+    console.log("allShopDistance", allShopDistance);
+    
+  },[])
 
   return (
     <div>
@@ -1857,20 +1896,17 @@ function UserDashboard() {
                   </div>
                 )}
                 {filterText === "Distance" && (
-                  <>
-                    <label className="form-label">
-                      Distance: <b>{distanceRange}</b> km
-                    </label>
-                    <input
-                      type="range"
-                      className="form-range"
-                      min={0}
-                      max={100}
-                      step={10}
-                      value={distanceRange}
-                      onChange={(e) => setDistanceRange(e.target.value)}
-                    />
-                  </>
+                <div className="d-flex flex-wrap gap-2 justify-content-center">
+                    {distanceRangeOptions.map((rate, index) => (
+                      <button
+                        key={index}
+                        className="btn btn-outline-primary rounded-pill"
+                        onClick={() => handleFilterChange("Distance", rate)}
+                      >
+                        {rate}
+                      </button>
+                    ))}
+                  </div>
                 )}
 
                 <hr />
@@ -1879,11 +1915,10 @@ function UserDashboard() {
                   <button
                     className="rounded-pill btn btn-primary"
                     onClick={() => {
-                      setIsFilter(true);
-                      setFilterModal(false);
+                      applyFilters();
                     }}
                   >
-                    Show Result {FilterServices?.length}
+                    Apply Filter
                   </button>
                 </div>
               </div>
