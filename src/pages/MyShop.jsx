@@ -197,14 +197,19 @@ function MyShop() {
   return (
     <div className="container my-4 pb-5">
       {/* Back Button */}
-      <div className="mb-4">
-        <button
-          className="btn btn-outline-primary d-flex align-items-center"
-          onClick={() => window.history.back()}
-        >
-          <i className="fas fa-arrow-left me-2"></i> Back
-        </button>
-      </div>
+  <div className="d-flex align-items-center mb-4 position-relative">
+    {/* Back Button */}
+    <button
+      className="btn btn-outline-secondary btn-sm d-flex align-items-center"
+      onClick={() => window.history.back()}
+      style={{ position: "absolute", left: 0 }}
+    >
+      <i className="fa-solid fa-arrow-left me-2"></i> Back
+    </button>
+
+    {/* Title Center */}
+    <h4 className="m-0 w-100 text-center fw-bold">My Shop</h4>
+  </div>
 
       {/* Hero Banner */}
       <div
@@ -241,7 +246,7 @@ function MyShop() {
             setISProfilePictureUpdate(true);
           }}
         >
-          <i className="fas fa-pen"></i>
+          <i class="fa-solid fa-camera-rotate"></i>
         </button>
       </div>
 
