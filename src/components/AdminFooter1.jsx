@@ -256,12 +256,7 @@ function AdminFooter() {
         ""
       ) : (
         <div
-          className="card fixed-bottom "
-          style={{
-            background: "white",
-            //borderTop: "2px solid black", // Top border
-            boxShadow: "none",
-          }}
+          className="card fixed-bottom bg-light border-0"
         >
           <div className="card-body d-flex justify-content-between p-2">
             {currentMenu.map((item) => (
