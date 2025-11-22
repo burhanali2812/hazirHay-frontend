@@ -6,14 +6,14 @@ import axios from "axios";
 import imageCompression from "browser-image-compression";
 import toast from "react-hot-toast";
 function MyShop() {
-  const { setKey, shopKepperWorkers, shop ,getShopData} = useAppContext();
+  const { setKey, shopKepperWorkers, shop, getShopData } = useAppContext();
 
   const [isViewFull, setIsViewFull] = useState(false);
   const [isEditDataModalOpen, setIsEditDataModalOpen] = useState(false);
   const [isProfilePictureUpdate, setISProfilePictureUpdate] = useState(false);
   const [pictureUploadLoading, setPictureUploadLoading] = useState(false);
   const [isEditCurrentLocation, setISEditCurrentLocation] = useState(false);
-   const [updatingLoading, setUpdatingLoading] = useState(false);
+  const [updatingLoading, setUpdatingLoading] = useState(false);
   const [pictureWidthLoad, setPictureWidthLoad] = useState(0);
   const [position, setPosition] = useState([33.6844, 73.0479]);
   const [areaName, setAreaName] = useState("");
@@ -149,49 +149,50 @@ function MyShop() {
   };
 
   const handleUpdateData = async () => {
-    setUpdatingLoading(true)
+    setUpdatingLoading(true);
     const formData = new FormData();
-  const finalShopName = shopName || shop?.shopName;
-  const finalShopAddress = shopAddress || shop?.shopAddress;
-  const finalShopPicture = shopPicture || null;
+    const finalShopName = shopName || shop?.shopName;
+    const finalShopAddress = shopAddress || shop?.shopAddress;
+    const finalShopPicture = shopPicture || null;
 
-  const finalLocation =position && areaName !== ""? { coordinates: position, area: areaName }: shop.location; 
+    const finalLocation =
+      position && areaName !== ""
+        ? { coordinates: position, area: areaName }
+        : shop.location;
 
-      console.log("final LOcation", finalLocation);
-      
+    console.log("final LOcation", finalLocation);
 
-  formData.append("shopName", finalShopName);
-  formData.append("shopAddress", finalShopAddress);
-  formData.append("location", JSON.stringify(finalLocation));
+    formData.append("shopName", finalShopName);
+    formData.append("shopAddress", finalShopAddress);
+    formData.append("location", JSON.stringify(finalLocation));
 
-  if (finalShopPicture) {
-    formData.append("shopPicture", finalShopPicture);
-  }
-
+    if (finalShopPicture) {
+      formData.append("shopPicture", finalShopPicture);
+    }
 
     try {
       const res = await axios.put(
         `https://hazir-hay-backend.vercel.app/admin/updateShop/${shop._id}`,
         formData,
         {
-          headers: { "Content-Type": "multipart/form-data" },
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
         }
       );
       if (res.data.success) {
         await getShopData();
-        setUpdatingLoading(false)
-        setIsEditDataModalOpen(false)
-        toast.success(res.data.message)
-        
+        setUpdatingLoading(false);
+        setIsEditDataModalOpen(false);
+        toast.success(res.data.message);
       }
     } catch (error) {
-      setUpdatingLoading(true)
+      setUpdatingLoading(true);
       console.log(error);
-      toast.error(error)
+      toast.error(error);
     }
   };
-
-  const pictureObj = shop?.shopPicture ? JSON.parse(shop.shopPicture) : null;
 
   return (
     <div className="container my-4 pb-5">
@@ -219,9 +220,9 @@ function MyShop() {
           color: "#6c757d",
         }}
       >
-        {pictureObj ? (
+        {shop?.shopPicture ? (
           <img
-            src={pictureObj.url}
+            src={shop?.shopPicture}
             alt="Shop Banner"
             className="w-100 h-100"
             style={{ objectFit: "cover" }}
@@ -656,9 +657,10 @@ function MyShop() {
                 )}
                 <div>
                   {/* Button */}
-                  <button className="btn btn-primary mt-2 w-100 rounded-pill fw-semibold"
-                  disabled={updatingLoading}
-                  onClick={handleUpdateData}
+                  <button
+                    className="btn btn-primary mt-2 w-100 rounded-pill fw-semibold"
+                    disabled={updatingLoading}
+                    onClick={handleUpdateData}
                   >
                     {updatingLoading ? (
                       <>
@@ -670,9 +672,7 @@ function MyShop() {
                         <span>Updating...</span>
                       </>
                     ) : (
-                      <>
-                        Update
-                      </>
+                      <>Update</>
                     )}
                   </button>
                 </div>

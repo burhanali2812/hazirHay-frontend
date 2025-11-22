@@ -111,7 +111,7 @@ function Main() {
         </button>
         )
       }
-      <p className='text-center text-muted' style={{marginTop : "5px"}}>(v-1.0.3.3)</p>
+      <p className='text-center text-muted' style={{marginTop : showInstallButton ? "5px" : "20px"}}>(v-1.0.3.3)</p>
     </div>
 
   </div>
