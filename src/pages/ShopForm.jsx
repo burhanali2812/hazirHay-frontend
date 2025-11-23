@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate , useLocation} from "react-router-dom";
 import shop from "../images/shop.png";
 import {toast, Toaster} from "react-hot-toast";
 import imageCompression from "browser-image-compression";
@@ -16,6 +16,9 @@ import markerShadow from "leaflet/dist/images/marker-shadow.png";
 import { services } from "../components/servicesData";
 function ShopForm() {
   const navigate = useNavigate();
+  const location = useLocation();
+
+
   const [formData1, setFormData] = useState({
     shopPicture: null,
     paymentPicture:null,
@@ -42,7 +45,14 @@ function ShopForm() {
   const [price, setPrice] = useState("");
   const [description, setDescription] = useState("");
 
-  const id = localStorage.getItem("userId");
+  const lid = localStorage.getItem("userId");
+    const ShopKepperId = location?.state?.id || null;
+
+    const id = lid || ShopKepperId; 
+  console.log("bydirectId", id);
+  console.log("indirect", ShopKepperId);
+  
+  
 
   const [recommendedPrice, setRecommendedPrice] = useState(0);
 
@@ -257,6 +267,7 @@ function ShopForm() {
       formData.append("shopName", formData1.shopName);
       formData.append("shopAddress", formData1.shopAddress);
       formData.append("shopPicture", formData1.shopPicture);
+      formData.append("paymentPicture", formData1.paymentPicture)
       formData.append("coordinates", JSON.stringify(position));
       formData.append("area", finalAreaName);
       formData.append("services", JSON.stringify(selectedServices));
@@ -277,19 +288,21 @@ function ShopForm() {
         setLoading(false);
       }
     } catch (error) {
-      setLoading(false);
-      console.error("Error submitting shop information:", error);
-      Swal.fire({
-        title: "Error!",
-        text:
-          error.response?.data?.message || "Failed to store shop information",
-        icon: "error",
-        background: "#f9f9f9",
-        customClass: {
-          popup: "swirl-popup",
-        },
-      });
-    }
+  setLoading(false);
+
+  console.error("Error submitting shop information:", error);
+
+  const backendMessage =
+    error.response?.data?.message ||           
+    error.response?.data?.error ||             
+    (error.code === "ERR_NETWORK"
+      ? "Network error! Please check your internet connection."
+      : null) ||
+    "Failed to store shop information.";
+
+  toast.error(backendMessage)
+}
+
   };
   const handleCategoryChange = (e) => {
     setSelectedCategory(e.target.value);

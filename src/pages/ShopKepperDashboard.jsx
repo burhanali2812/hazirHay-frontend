@@ -1,7 +1,10 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { useCheckBlockedStatus } from "../components/useCheckBlockedStatus";
+import { useCheckvarifiedStatus } from "../components/useCheckVerifiedStatus";
 import { useAppContext } from "../context/AppContext";
+import {toast, Toaster} from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 function ShopKepperDashboard() {
   const {setKey}=useAppContext();
   const user = JSON.parse(localStorage.getItem("user"));
@@ -34,9 +37,12 @@ function ShopKepperDashboard() {
   const [endDate, setEndDate] = useState("");
   const [filterLoading, setFilterLoading] = useState(false);
   const [isDataLoading, setIsDataLoading] = useState(false)
+   const [isNoShopModal, setIsNoShopModal] = useState(false)
   const role = localStorage.getItem("role");
+  const navigate = useNavigate();
 
   useCheckBlockedStatus(token);
+  useCheckvarifiedStatus(token)
 
   useEffect(() => {
     setKey("home");
@@ -163,13 +169,25 @@ setTotalOrdersEarnings(earning?.toFixed(0));
         setIsDataLoading(false)
       }
     } catch (error) {
-      console.error("Error fetching orders:", error);
-      alert("Error while getting orders");
-      if (type === "filter") {
-        setFilterLoading(false);
-      }
-      setIsDataLoading(false)
-    }
+  console.error("Error fetching orders:", error);
+
+  const backendMessage =
+    error.response?.data?.message ||
+    error.response?.data?.error ||
+    (error.code === "ERR_NETWORK"
+      ? "Network error! Please check your internet connection."
+      : null) ||
+    "Failed to fetch orders.";
+
+ toast.error(backendMessage)
+
+  if (type === "filter") {
+    setFilterLoading(false);
+  }
+
+  setIsDataLoading(false);
+}
+
   };
   useEffect(() => {
     getShopkeeperOrders("auto");
@@ -178,24 +196,32 @@ setTotalOrdersEarnings(earning?.toFixed(0));
     console.log("Filter applied:", startDate, endDate);
     getShopkeeperOrders("filter");
   };
-  const getShopData = async () => {
-    try {
-      const response = await axios.get(
-        `https://hazir-hay-backend.vercel.app/shops/shopData/${user._id}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-          params: { t: Date.now() },
-        }
-      );
-      if (response.data.success === true) {
-        console.log("Shop Data:", response.data.shop);
-        setShop(response.data.shop);
+const getShopData = async () => {
+  try {
+    const response = await axios.get(
+      `https://hazir-hay-backend.vercel.app/shops/shopData/${user._id}`,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+        params: { t: Date.now() },
       }
-    } catch (err) {
-      console.error("Error fetching shop data:", err);
-      return null;
+    );
+
+    if (response.data.success === true) {
+      console.log("Shop Data:", response.data.shop);
+      setShop(response.data.shop);
     }
-  };
+  } catch (err) {
+    console.error("Error fetching shop data:", err);
+
+    
+    if (err.response?.status === 404) {
+      setIsNoShopModal(true);
+    }
+
+    return null;
+  }
+};
+
 
   useEffect(() => {
     getShopData();
@@ -207,7 +233,9 @@ setTotalOrdersEarnings(earning?.toFixed(0));
   const cancelPercent = Math.round(cancelRequestPercent);
 
   return (
-    
+   
+  <>
+  <Toaster/>
     <div
       style={{ marginBottom: "80px" }}
       className="container-fluid px-3 px-md-5"
@@ -640,7 +668,44 @@ setTotalOrdersEarnings(earning?.toFixed(0));
           </div>
         </div>
       )}
+
+   {isNoShopModal && (
+  <div
+    className="modal fade show"
+    style={{ display: "block", background: "rgba(0,0,0,0.5)" }}
+    tabIndex="-1"
+  >
+    <div className="modal-dialog modal-dialog-centered">
+      <div className="modal-content">
+        <div className="modal-header">
+          <h1 className="modal-title fs-5">No Shop Found</h1>
+        </div>
+
+        <div className="modal-body text-center">
+          <i className="fa-solid fa-shop-slash fs-1 text-danger mb-3"></i>
+          <p className="fw-bold">
+            You have no shop registered yet.
+          </p>
+          <p className="text-secondary">
+            You cannot get any orders and your profile is not visible to users.
+            Kindly register your shop.
+          </p>
+
+      <button
+  className="btn btn-primary mt-2"
+  onClick={() => navigate("/shop", { state: { id: user._id } })}
+>
+  Get Registered
+</button>
+
+        </div>
+      </div>
     </div>
+  </div>
+)}
+
+    </div>
+  </>
   );
 }
 

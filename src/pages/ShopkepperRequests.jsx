@@ -9,6 +9,7 @@ import noData from "../images/noData.png";
 import { FaWifi } from "react-icons/fa";
 import { MdWifiOff } from "react-icons/md";
 import { useCheckBlockedStatus } from "../components/useCheckBlockedStatus";
+import { useCheckvarifiedStatus } from "../components/useCheckVerifiedStatus";
 import { useAppContext } from "../context/AppContext";
 
 const UserShopRoute = lazy(() => import("../components/UserShopRoute"));
@@ -38,13 +39,14 @@ function ShopkepperRequests() {
   const [routeInfo, setRouteInfo] = useState(null);
   const [declineOrder, setDeclineOrder] = useState(null);
   const token = localStorage.getItem("token");
+   useCheckvarifiedStatus(token)
   useCheckBlockedStatus(token);
   const role = localStorage.getItem("role");
   useEffect(() => {
     if (role !== "shopKepper") {
       navigate("/unauthorized/user", { replace: true });
     }
-  }, [role]); // Custom hook to check if shopkeeper is blocked
+  }, [role]); 
 
   const declineList = [
     "Not available at requested time",

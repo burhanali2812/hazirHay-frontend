@@ -142,6 +142,7 @@ if (!isAgrree) {
     formData.append("address", formData1.address);
     formData.append("role", finalRole);
     formData.append("profilePicture", formData1.profilePicture);
+    
 
     try {
       const response = await axios.post(
@@ -166,11 +167,15 @@ if (!isAgrree) {
           setTimeout(() => navigate("/shop"), 300);
         }
       }
-    } catch (error) {
-         
-      console.error("Signup failed:", error.response?.data || error.message);
-      toast.error("Something went wrong. Please try again.");
-    } finally {
+    }  catch (error) {
+  const backendMessage =
+    error.response?.data?.message ||
+    error.response?.data?.error ||
+    error.message;
+
+  toast.error(backendMessage || "Something went wrong");
+}
+ finally {
       setLoading(false);
     }
   };

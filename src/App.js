@@ -11,6 +11,7 @@ import AiChat from "./pages/AiChat";
 import MyShopServices from "./pages/MyShopServices";
 import PrivacyPolicies from "./pages/PrivacyPolicies";
 import LocalShopSignup from "./pages/LocalShopSignup";
+import UnVarifiedShop from "./pages/UnVarifiedShop";
 
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Login = lazy(() => import("./pages/Login"));
@@ -91,6 +92,10 @@ function App() {
           <Route
             path="shopKepper/sh&BlTr&bl&5&comp&shbl&tr"
             element={<Blocked />}
+          />
+           <Route
+            path="/shopKepper/sh&un&Ve&ri&fi&ed@sh@op$"
+            element={<UnVarifiedShop />}
           />
           <Route path="worker/dashboard" element={<WorkerDashboard />} />
           <Route path="unauthorized/user" element={<UnauthorizedPage />} />

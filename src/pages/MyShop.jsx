@@ -2,9 +2,12 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import PieChart from "../components/PieChart";
 import { useAppContext } from "../context/AppContext";
+import { useCheckBlockedStatus } from "../components/useCheckBlockedStatus";
+import { useCheckvarifiedStatus } from "../components/useCheckVerifiedStatus";
 import axios from "axios";
 import imageCompression from "browser-image-compression";
 import toast from "react-hot-toast";
+import NoShop from "./NoShop";
 function MyShop() {
   const { setKey, shopKepperWorkers, shop, getShopData } = useAppContext();
 
@@ -22,9 +25,14 @@ function MyShop() {
   const [shopAddress, setShopAddress] = useState("");
   const [currentLocation, setCurrentLOcation] = useState("");
   const [page, setPage] = useState(0);
+  const token = localStorage.getItem("token");
+
+  useCheckBlockedStatus(token)
+  useCheckvarifiedStatus(token)
 
   const navigate = useNavigate();
   useEffect(() => {
+    getShopData();
     setKey("shop");
   }, []);
 
@@ -211,7 +219,14 @@ function MyShop() {
     <h4 className="m-0 w-100 text-center fw-bold">My Shop</h4>
   </div>
 
-      {/* Hero Banner */}
+   {
+    shop === null ? (
+      <>
+      <NoShop/>
+      </>
+    ): (
+      <>
+         {/* Hero Banner */}
       <div
         className="position-relative rounded overflow-hidden shadow-sm"
         style={{
@@ -427,6 +442,9 @@ function MyShop() {
           )}
         </div>
       </div>
+      </>
+    )
+   }
 
       {isEditDataModalOpen && (
         <div
