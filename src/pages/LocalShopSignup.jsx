@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import toast from "react-hot-toast";
-
+import {toast, Toaster} from "react-hot-toast";
+import imageCompression from "browser-image-compression";
 function LocalShopSignup() {
   const [formData, setFormData] = useState({
     shopName: "",
@@ -23,18 +23,45 @@ function LocalShopSignup() {
   const [message, setMessage] = useState("");
   const navigate = useNavigate();
 
-  // Handle input change
-  const handleChange = (e, index) => {
-    if (e.target.name === "services") {
-      const newServices = [...formData.services];
-      newServices[index].name = e.target.value;
-      setFormData({ ...formData, services: newServices });
-    } else {
-      setFormData({ ...formData, [e.target.name]: e.target.value });
-    }
-  };
+ 
+const handleChange = async (e, index) => {
+  const { name, value, files } = e.target;
 
-  // Add a new service field
+  if (name === "services") {
+    const updatedServices = [...formData.services];
+    updatedServices[index].name = value;
+    setFormData({ ...formData, services: updatedServices });
+    return;
+  }
+
+
+  if (name === "shopPicture" || name === "paymentPic") {
+    if (files && files[0]) {
+      try {
+        const options = {
+          maxSizeMB: 1,          
+          maxWidthOrHeight: 1200, 
+          useWebWorker: true,
+        };
+
+        const compressedFile = await imageCompression(files[0], options);
+
+        if (name === "shopPicture") {
+          setShopPicture(compressedFile);
+        } else if (name === "paymentPic") {
+          setPaymentPic(compressedFile);
+        }
+      } catch (error) {
+        console.error("Image compression failed:", error);
+      }
+    }
+    return;
+  }
+
+  setFormData({ ...formData, [name]: value });
+};
+
+  
   const addService = () => {
     setFormData({
       ...formData,
@@ -42,17 +69,16 @@ function LocalShopSignup() {
     });
   };
 
-  // Remove service field
+  
   const removeService = (index) => {
     const newServices = formData.services.filter((_, i) => i !== index);
     setFormData({ ...formData, services: newServices });
   };
 
-  // Handle form submit
+ 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setMessage("");
 
     try {
       const data = new FormData();
@@ -165,6 +191,7 @@ function LocalShopSignup() {
 
   return (
     <div className="container ">
+        <Toaster/>
       <i
         className="fa-solid fa-arrow-left-long mt-3 mx-1"
         style={{ fontSize: "1.6rem", cursor: "pointer" }}
@@ -305,19 +332,19 @@ function LocalShopSignup() {
         </button>
 
         {/* Location */}
-        <div className="form-floating mb-3">
-          <input
-            type="text"
-            className="form-control"
-            id="area"
-            name="area"
-            placeholder="Area"
-            value={formData.area}
-            onChange={handleChange}
-            required
-          />
-          <label htmlFor="area">Area</label>
-        </div>
+<div className="form-floating mb-3">
+  <textarea
+    className="form-control"
+    id="area"
+    name="area"
+    placeholder="Area"
+    value={formData.area}
+    style={{ height: "120px" }}   // ⬅️ Increase height here
+    required
+  />
+  <label htmlFor="area">Current Location (Auto Fetched)</label>
+</div>
+
 
         <div className="row mb-3">
           <div className="col">
@@ -356,8 +383,45 @@ function LocalShopSignup() {
             accept="image/*"
           />
         </div>
+      <div
+  className="mx-3 mt-4 p-4 rounded shadow-sm"
+  style={{ backgroundColor: "#f8f9fa", borderLeft: "5px solid #0d6efd" }}
+>
+  <h5 className="fw-bold mb-3">
+    Registration Fee: Rs. 500
+  </h5>
 
-        <div className="mb-3">
+  <p className="text-secondary mb-2">
+    Please transfer the one-time registration fee to the account provided below.
+    This helps us verify and activate your shop on Hazir Hay.
+  </p>
+
+  <div className="mt-3">
+    <p className="mb-1 fw-semibold">
+      <i className="fa-solid fa-wallet text-primary me-2"></i>
+      JazzCash Account
+    </p>
+
+    <p className="mb-1">
+      <i className="fa-solid fa-phone text-secondary me-2"></i>
+      <strong>0326 6783442</strong>
+    </p>
+
+    <p className="mb-1">
+      <i className="fa-solid fa-user text-secondary me-2"></i>
+      <strong>Burhan Ali</strong>
+    </p>
+  </div>
+
+  <p className="mt-3 text-secondary">
+    After sending payment, please upload a clear 
+    <strong> payment screenshot </strong> below to complete your registration.
+  </p>
+</div>
+
+
+
+        <div className="mb-3 mt-3">
           <label className="form-label">Payment Screenshot</label>
           <input
             type="file"
@@ -373,7 +437,7 @@ function LocalShopSignup() {
           className="btn btn-primary w-100"
           disabled={loading}
         >
-          {loading ? "Submitting..." : "Sign Up"}
+          {loading ? "Submitting..." : "Register Shop"}
         </button>
       </form>
     </div>
