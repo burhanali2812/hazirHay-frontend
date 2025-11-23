@@ -339,7 +339,7 @@ const handleChange = async (e, index) => {
     name="area"
     placeholder="Area"
     value={formData.area}
-    style={{ height: "120px" }}   // ⬅️ Increase height here
+    style={{ height: "110px" }}   
     required
   />
   <label htmlFor="area">Current Location (Auto Fetched)</label>
