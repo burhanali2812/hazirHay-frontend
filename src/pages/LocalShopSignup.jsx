@@ -383,41 +383,45 @@ const handleChange = async (e, index) => {
             accept="image/*"
           />
         </div>
-      <div
+<div
   className="mx-3 mt-4 p-4 rounded shadow-sm"
-  style={{ backgroundColor: "#f8f9fa", borderLeft: "5px solid #0d6efd" }}
+  style={{
+    backgroundColor: "#ffffff",
+    borderLeft: "5px solid #0d6efd",
+    borderRadius: "12px"
+  }}
 >
-  <h5 className="fw-bold mb-3">
+  <h5 className="fw-bold mb-3 text-primary">
     Registration Fee: Rs. 500
   </h5>
 
-  <p className="text-secondary mb-2">
-    Please transfer the one-time registration fee to the account provided below.
-    This helps us verify and activate your shop on Hazir Hay.
+  <p className="text-secondary mb-3">
+    To activate your shop on Hazir Hay, please send the one-time registration fee
+    and upload the payment screenshot below.
   </p>
 
-  <div className="mt-3">
-    <p className="mb-1 fw-semibold">
-      <i className="fa-solid fa-wallet text-primary me-2"></i>
-      JazzCash Account
+  <div className="p-3 rounded" style={{ background: "#f8f9fa" }}>
+    <p className="fw-semibold mb-2">
+      <i className="fa-solid fa-wallet me-2 text-primary"></i>
+      JazzCash Details
     </p>
 
     <p className="mb-1">
-      <i className="fa-solid fa-phone text-secondary me-2"></i>
+      <i className="fa-solid fa-phone me-2 text-secondary"></i>
       <strong>0326 6783442</strong>
     </p>
 
-    <p className="mb-1">
-      <i className="fa-solid fa-user text-secondary me-2"></i>
+    <p className="mb-0">
+      <i className="fa-solid fa-user me-2 text-secondary"></i>
       <strong>Burhan Ali</strong>
     </p>
   </div>
 
   <p className="mt-3 text-secondary">
-    After sending payment, please upload a clear 
-    <strong> payment screenshot </strong> below to complete your registration.
+    After payment, upload the <strong>payment screenshot</strong> to continue.
   </p>
 </div>
+
 
 
 

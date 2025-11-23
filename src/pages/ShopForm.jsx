@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import shop from "../images/shop.png";
-import { toast, ToastContainer } from "react-toastify";
+import {toast, Toaster} from "react-hot-toast";
 import imageCompression from "browser-image-compression";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
@@ -18,6 +18,7 @@ function ShopForm() {
   const navigate = useNavigate();
   const [formData1, setFormData] = useState({
     shopPicture: null,
+    paymentPicture:null,
     shopName: "",
     shopAddress: "",
     license: "",
@@ -37,6 +38,7 @@ function ShopForm() {
   const [showModal, setShowModal] = useState(false);
   const [successAnimation, setSuccessAnimation] = useState(false);
   const [priceModal, setPriceModal] = useState(false);
+  const [isVariablePricing, setIsVariablePricing] = useState(false);
   const [price, setPrice] = useState("");
   const [description, setDescription] = useState("");
 
@@ -99,35 +101,44 @@ function ShopForm() {
     console.log(position);
   };
   const handleChange = async (e) => {
-    const { name, files, value } = e.target;
+  const { name, files, value } = e.target;
 
-    if (name === "shopPicture") {
-      const file = files[0];
-      if (file) {
-        try {
-          const options = {
-            maxSizeMB: 0.6,
-            maxWidthOrHeight: 800,
-            useWebWorker: true,
-          };
+  if (name === "shopPicture" || name === "paymentPicture") {
+    const file = files[0];
+    if (!file) return;
 
-          const compressedFile = await imageCompression(file, options);
+    try {
+      const options = {
+        maxSizeMB: 0.6,
+        maxWidthOrHeight: 800,
+        useWebWorker: true,
+      };
 
-          setFormData({ ...formData1, shopPicture: compressedFile });
-        } catch (error) {
-          console.error("Compression failed:", error);
-        }
-      }
-    } else {
-      setFormData({ ...formData1, [name]: value });
+      const compressedFile = await imageCompression(file, options);
+
+      setFormData((prev) => ({
+        ...prev,
+        [name]: compressedFile,
+      }));
+    } catch (error) {
+      console.error("Image compression failed:", error);
     }
-  };
+  } 
+  // TEXT INPUTS
+  else {
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  }
+};
+
   useEffect(() => {
     if (priceModal) {
-      // Scroll up near the center/top
+    
       window.scrollTo({ top: 500, behavior: "smooth" });
     } else {
-      // Scroll back to the bottom
+
       window.scrollTo({
         top: document.documentElement.scrollHeight,
         behavior: "smooth",
@@ -187,6 +198,7 @@ function ShopForm() {
       name: selectedSubCategory,
       price,
       description,
+      isVariablePricing,
     };
     setSelectedServices((pre) => [
       ...pre,
@@ -229,6 +241,11 @@ function ShopForm() {
     }
     if (selectedServices.length === 0) {
       toast.error("Please Provide Service");
+      setLoading(false);
+      return;
+    }
+    if(formData1.paymentPicture === null){
+       toast.error("Upload Payment ScreenShot");
       setLoading(false);
       return;
     }
@@ -316,9 +333,13 @@ function ShopForm() {
     setLocationName(name);
   };
 
+  const toggleVariable = ()=>{
+    setIsVariablePricing(!isVariablePricing)
+  }
+
   return (
     <div className="container ">
-      <ToastContainer />
+      <Toaster />
 
       <h1 className="mx-3 fw-bold mt-3">Your Shop’s Journey Starts Here</h1>
       <h3 className="mx-3 fw-bold" style={{ color: "#ff6600" }}>
@@ -516,6 +537,7 @@ function ShopForm() {
                   Sub Category
                 </th>
                 <th scope="col">Price</th>
+                <th scope="col" className="text-nowrap">Variable Pricing</th>
               </tr>
             </thead>
             <tbody>
@@ -530,6 +552,14 @@ function ShopForm() {
                     <td>{sub.category}</td>
                     <td>{sub.subCategory.name}</td>
                     <td>{sub.subCategory.price}</td>
+<td className="text-center">
+  <input
+    type="checkbox"
+    className="form-checkbox"
+    disabled={true} // prevents editing
+    checked={sub.subCategory.isVariablePricing || false} // ensures boolean
+  />
+</td>
                   </tr>
                 ))
               ) : (
@@ -542,6 +572,66 @@ function ShopForm() {
             </tbody>
           </table>
         </div>
+
+        
+<div
+  className=" mt-4"
+
+>
+  <h5 className="fw-bold mb-3 text-primary">
+    Registration Fee: Rs. 1000/-
+  </h5>
+
+  <p className="text-secondary mb-3">
+    To activate your shop on Hazir Hay, please send the one-time registration fee
+    and upload the payment screenshot below.
+  </p>
+
+  <div className="p-3 rounded" style={{ background: "#f8f9fa" }}>
+    <p className="fw-semibold mb-2">
+      <i className="fa-solid fa-wallet me-2 text-primary"></i>
+      JazzCash Details
+    </p>
+
+    <p className="mb-1">
+      <i className="fa-solid fa-phone me-2 text-secondary"></i>
+      <strong>0326 6783442</strong>
+    </p>
+
+    <p className="mb-0">
+      <i className="fa-solid fa-user me-2 text-secondary"></i>
+      <strong>Burhan Ali</strong>
+    </p>
+  </div>
+
+  <p className="mt-3 text-secondary">
+    After payment, upload the <strong>payment screenshot</strong> to continue.
+  </p>
+</div>
+
+
+
+
+        <div className="mb-3 mt-3">
+          <label className="form-label">Payment Screenshot</label>
+          <input
+            type="file"
+            className="form-control"
+              name="paymentPicture"
+            id="payment"
+            onChange={handleChange}
+            accept="image/*"
+            required
+          />
+        </div>
+
+      {formData1.paymentPicture && (
+  <img
+    src={URL.createObjectURL(formData1.paymentPicture)}
+    alt="Payment Picture"
+    style={{ width: "200px", height: "300px", objectFit: "cover" }}
+  />
+)}
 
         <button
           type="submit"
@@ -746,7 +836,7 @@ function ShopForm() {
                 <input
                   type="number"
                   className="form-control form-control-sm "
-                  placeholder="E.g. 200"
+                  placeholder="Enter starting minimum amount e.g 200"
                   value={price}
                   onChange={(e) => setPrice(e.target.value)}
                 />
@@ -776,6 +866,28 @@ function ShopForm() {
                     </p>
                   </>
                 )}
+                <div className="mt-3 mb-2">
+                  <div
+  style={{
+    backgroundColor: "#fff3cd",
+    color: "#856404",
+    padding: "10px 15px",
+    borderRadius: "8px",
+    fontSize: "14px",
+    border: "1px solid #ffeeba",
+    
+  }}
+>
+  <strong>Note:</strong> If your price is not fixed for this category, 
+  please enter the minimum starting price in the above field and tick 
+  the "Variable Pricing" checkbox below.
+</div>
+                  </div>
+
+                <label className="mt-2 mb-2">
+  <input type="checkbox" className="form-check-input me-2" checked={isVariablePricing} onChange={toggleVariable} />
+  Variable Pricing (Depends on work)
+</label>
 
                 {/* Description Input */}
                 <label className="form-label fw-semibold small mb-1">
@@ -794,6 +906,7 @@ function ShopForm() {
                   onClick={() => {
                     handleSelectSubCat();
                     setPrice("");
+                    setIsVariablePricing(false)
                     setDescription("");
                     setPriceModal(false);
                     setRecommendedPrice([]);

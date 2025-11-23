@@ -418,7 +418,8 @@ if (!isAgrree) {
             type="submit"
             className="btn btn-primary w-100 fw-bold"
             disabled={loading}
-            onClick={handleSubmit}
+           onClick={handleSubmit}
+      
           >
             {loading ? (
               <>
