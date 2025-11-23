@@ -414,7 +414,6 @@ if(filters.status === "Offline" ){
 if(filters.status === "All" && filters.distance === "All" && filters.price === "All"){
   setIsFilter(false)
   setFilterServices([])
-  setCopyShopData([])
 }
 
 

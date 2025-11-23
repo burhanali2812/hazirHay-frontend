@@ -171,6 +171,15 @@ function Main() {
             <i className="fa-solid fa-user me-2"></i>
             I’m a User
           </button>
+           <button
+            className="btn btn-primary w-100 mt-2"
+            onClick={() => {
+              navigate("/localShop")
+            }}
+          >
+            <i class="fa-solid fa-shop me-2"></i>
+            Only Shop
+          </button>
         </div>
       </div>
     </div>
