@@ -65,7 +65,7 @@ const [allShopDistance, setAllShopDistance] = useState([]);
 
   const handleFilterChange = (type, value) => {
     console.log("type", type, "option", value);
-
+    setFilterServices([])
     setFilters((prev) => ({ ...prev, [type.toLowerCase()]: value }));
   };
 
@@ -97,6 +97,7 @@ const [allShopDistance, setAllShopDistance] = useState([]);
   const handleOpenFilter = (e, filterType) => {
     e.preventDefault();
     setFilterModal(true);
+  
     setFilterText(filterType);
   };
 
@@ -354,81 +355,76 @@ const [allShopDistance, setAllShopDistance] = useState([]);
   };
 
 const applyFilters = () => {
-  let filtered = [...availableServices];
+  if(copyShopData.length === 0){
+    setCopyShopData(shopData)
+  }
+  console.log("copy", copyShopData);
+  
+  
   setIsFilter(false)
 
-  if (filters.status !== "All") {
-      setIsFilter(true);
-    filtered = filtered.filter(shop =>
-      filters.status === "Online" ? shop.isLive : !shop.isLive
-    );
+if (filters.distance === "Low-to-High" ) {
+  const data = copyShopData.sort((a, b) => 
+    Number(a.distance) - Number(b.distance)
+  );
+  setIsFilter(true)
+
+  setFilterServices(data);
+}
+if (filters.distance === "High-to-Low" ) {
+  const data = copyShopData.sort((a, b) => 
+    Number(b.distance) - Number(a.distance)
+  );
+  setIsFilter(true)
+
+  setFilterServices(data);
+}
+if (filters.price === "Low-to-High") {
+
+  function getMinPrice(shop) {
+    const prices = shop.servicesOffered.map(service => {
+      return service.subCategory?.price || service.price || Infinity;
+    });
+    return Math.min.apply(null, prices);
   }
 
-  if (filters.rating !== "All") {
-    setIsFilter(true);
-    filtered = filtered.filter(
-      shop => findAverageRating(shop.reviews) >= Number(filters.rating)
-    );
-  }
-
-
-  const filteredWithDistance = filtered.map(shop => {
-    const shopInfo = shopData.find(s => s._id === shop._id);
-    return {
-      ...shop,
-      distance: shopInfo?.distance ?? Infinity
-    };
+  const sorted = copyShopData.slice().sort((a, b) => {
+    return getMinPrice(a) - getMinPrice(b);
   });
 
-
-  filteredWithDistance.sort((a, b) => {
-    let result = 0;
-
-    if (filters.status === "Online") result = (b.isLive === true) - (a.isLive === true);
-    if (filters.status === "Offline") result = (a.isLive === true) - (b.isLive === true);
-
-    if (result !== 0) return result;
+  setIsFilter(true);
+  setFilterServices(sorted);
+}
 
 
-    if (filters.price === "Low-to-High") {
-      setIsFilter(true);
-      result = Math.min(...a.servicesOffered.map(s => s.subCategory.price)) - 
-               Math.min(...b.servicesOffered.map(s => s.subCategory.price));
-    } else if (filters.price === "High-to-Low") {
-      setIsFilter(true);
-      result = Math.max(...b.servicesOffered.map(s => s.subCategory.price)) - 
-               Math.max(...a.servicesOffered.map(s => s.subCategory.price));
-    }
-    if (result !== 0) return result;
 
 
-    if (filters.ratingSort === "Low-to-High") {
-      setIsFilter(true);
-      result = findAverageRating(a.reviews) - findAverageRating(b.reviews);
-    } else if (filters.ratingSort === "High-to-Low") {
-      setIsFilter(true);
-      result = findAverageRating(b.reviews) - findAverageRating(a.reviews);
-    }
-    if (result !== 0) return result;
+if(filters.status === "Online" ){
+    const online  = copyShopData?.filter((shop)=> shop.isLive === true)
+        setIsFilter(true)
+    setFilterServices(online)
+
+}
+if(filters.status === "Offline" ){
+    const offline  = copyShopData?.filter((shop)=> shop.isLive === false)
+        setIsFilter(true)
+    setFilterServices(offline)
+
+}
+if(filters.status === "All" && filters.distance === "All" && filters.price === "All"){
+  setIsFilter(false)
+  setFilterServices([])
+  setCopyShopData([])
+}
 
 
-    if (filters.distance === "Low-to-High") {
-      setIsFilter(true);
-      result = a.distance - b.distance;
-    } else if (filters.distance === "High-to-Low") {
-      setIsFilter(true);
-      result = b.distance - a.distance;
-    }
-
-    return result;
-  });
 
 
-  filtered = filteredWithDistance.map(({ distance, ...rest }) => rest);
 
-  //setIsFilter(false);
-  setFilterModal(false);
-  setFilterServices(filtered);
+
+setFilterModal(false)
+
+
 };
 
 
@@ -689,6 +685,7 @@ const applyFilters = () => {
   }
 
   const [shopData, setShopData] = useState([]);
+  const [copyShopData, setCopyShopData] = useState([]);
   useEffect(() => {
     if (!finalServices || finalServices.length === 0) return;
 
@@ -1279,6 +1276,7 @@ const applyFilters = () => {
                   <button
                     className="btn btn-outline-primary rounded-pill btn-sm text-nowrap"
                     onClick={(e) => handleOpenFilter(e, "Price")}
+                    disabled={filters.distance !== "All"}
                   >
                     <i class="fa-solid fa-tags me-1"></i>
                     Price: {filters.price}{" "}
