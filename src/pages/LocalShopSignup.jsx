@@ -20,7 +20,7 @@ function LocalShopSignup() {
   const [shopPicture, setShopPicture] = useState(null);
   const [paymentPic, setPaymentPic] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState("");
+  const [isShowPassword, setIsShowPassword] = useState(false);
   const navigate = useNavigate();
 
  
@@ -39,8 +39,8 @@ const handleChange = async (e, index) => {
     if (files && files[0]) {
       try {
         const options = {
-          maxSizeMB: 1,          
-          maxWidthOrHeight: 1200, 
+          maxSizeMB: 0.6,          
+          maxWidthOrHeight: 800, 
           useWebWorker: true,
         };
 
@@ -79,6 +79,10 @@ const handleChange = async (e, index) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    if(paymentPic === null){
+      toast.error("Please upload payment screenshot!");
+      return;
+    }
 
     try {
       const data = new FormData();
@@ -208,6 +212,51 @@ const handleChange = async (e, index) => {
       </p>
 
       <form onSubmit={handleSubmit}>
+
+         <div className="mb-3 text-center">
+          <label htmlFor="profilePicture" className="form-label fw-bold">
+            Shop Picture
+          </label>
+          <div className="d-flex justify-content-center mb-2">
+            <div
+              style={{
+                width: "130px",
+                height: "130px",
+                borderRadius: "50%",
+                overflow: "hidden",
+                border: "2px solid #ddd",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                backgroundColor: "#f8f9fa",
+              }}
+            >
+              {shopPicture !== null ?  (
+                <img
+                  src={URL.createObjectURL(shopPicture)}
+                  alt="Profile Preview"
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    objectFit: "cover",
+                  }}
+                />
+              ) : (
+                <i
+                  className="fa-solid fa-shop"
+                  style={{ fontSize: "68px", color: "#aaa" }}
+                ></i>
+              )}
+            </div>
+          </div>
+          <input
+            type="file"
+            className="form-control mt-3"
+            name="shopPicture"
+            accept="image/*"
+            onChange={handleChange}
+          />
+        </div>
         <div className="form-floating mb-3">
           <input
             type="text"
@@ -219,7 +268,7 @@ const handleChange = async (e, index) => {
             onChange={handleChange}
             required
           />
-          <label htmlFor="shopName">Shop Name</label>
+          <label htmlFor="shopName">Shop Name<b className="text-danger">*</b></label>
         </div>
 
         <div className="form-floating mb-3">
@@ -240,21 +289,22 @@ const handleChange = async (e, index) => {
             <option value="4th Floor">4th Floor</option>
             <option value="5th Floor">5th Floor</option>
           </select>
-          <label htmlFor="position">Shop Floor</label>
+          <label htmlFor="position">Shop Floor<b className="text-danger">*</b></label>
         </div>
-
+ <p className="text-muted">Enter Shop Address like near kalma chowck or new mobile market, Enter clear address of your shop</p>
         <div className="form-floating mb-3">
           <input
             type="text"
             className="form-control"
             id="shopAddress"
             name="shopAddress"
-            placeholder="Shop Address"
+            placeholder="Enter Shop Address like near kalma chowck or new mobile market, Enter clear address of your shop"
             value={formData.shopAddress}
             onChange={handleChange}
             required
           />
-          <label htmlFor="shopAddress">Shop Address</label>
+          <label htmlFor="shopAddress">Shop Address<b className="text-danger">*</b></label>
+          
         </div>
 
         <div className="form-floating mb-3">
@@ -268,22 +318,10 @@ const handleChange = async (e, index) => {
             onChange={handleChange}
             required
           />
-          <label htmlFor="email">Email</label>
+          <label htmlFor="email">Email<b className="text-danger">*</b></label>
         </div>
 
-        <div className="form-floating mb-3">
-          <input
-            type="password"
-            className="form-control"
-            id="password"
-            name="password"
-            placeholder="Password"
-            value={formData.password}
-            onChange={handleChange}
-            required
-          />
-          <label htmlFor="password">Password</label>
-        </div>
+    
 
         <div className="form-floating mb-3">
           <input
@@ -295,12 +333,39 @@ const handleChange = async (e, index) => {
             value={formData.phone}
             onChange={handleChange}
             required
+            length = {11}
           />
-          <label htmlFor="phone">Phone Number</label>
+          <label htmlFor="phone">Phone Number<b className="text-danger">*</b></label>
+        </div>
+            <div className="form-floating mb-3">
+          <input
+            type= {isShowPassword ? "text" : "password"}
+            className="form-control"
+            id="password"
+            name="password"
+            placeholder="Password"
+            value={formData.password}
+            onChange={handleChange}
+            required
+          />
+          <label htmlFor="password">Password<b className="text-danger">*</b></label>
+        </div>
+          <div className="form-check mb-3 mx-1">
+          <input
+            type="checkbox"
+            className="form-check-input"
+            id="exampleCheck"
+            checked={isShowPassword}
+            onChange={(e) => setIsShowPassword(e.target.checked)}
+          />
+          <label className="form-check-label" htmlFor="exampleCheck">
+            Show Password
+          </label>
         </div>
 
         {/* Services */}
-        <label className="form-label mt-3">Services Offered</label>
+        <label className="form-label mt-3">Services Offered<b className="text-danger">*</b></label>
+        <p className="text-muted">Enter your any 5 main services like for food (Biryani, Pulao, Qorma, Zarda, Beef)</p>
         {formData.services.map((service, index) => (
           <div className="input-group mb-2" key={index}>
             <input
@@ -325,8 +390,9 @@ const handleChange = async (e, index) => {
         ))}
         <button
           type="button"
-          className="btn btn-secondary mb-3"
+          className="btn btn-primary mb-3 w-100"
           onClick={addService}
+          disabled = {formData.services.length === 5}
         >
           Add Service
         </button>
@@ -340,6 +406,7 @@ const handleChange = async (e, index) => {
     placeholder="Area"
     value={formData.area}
     style={{ height: "110px" }}   
+    disabled= {true}
     required
   />
   <label htmlFor="area">Current Location (Auto Fetched)</label>
@@ -373,54 +440,38 @@ const handleChange = async (e, index) => {
           </div>
         </div>
 
-        {/* File uploads */}
-        <div className="mb-3">
-          <label className="form-label">Shop Picture</label>
-          <input
-            type="file"
-            className="form-control"
-            onChange={(e) => setShopPicture(e.target.files[0])}
-            accept="image/*"
-          />
+<div className=" mt-4">
+          <h5 className="fw-bold mb-3 text-primary">
+            Registration Fee: Rs. 500/-
+          </h5>
+
+          <p className="text-secondary mb-3">
+            To activate your shop on Hazir Hay, please send the one-time
+            registration fee (Valid for 1 Year) and upload the payment screenshot below.
+          </p>
+
+          <div className="p-3 rounded" style={{ background: "#f8f9fa" }}>
+            <p className="fw-semibold mb-2">
+              <i className="fa-solid fa-wallet me-2 text-primary"></i>
+              JazzCash Details
+            </p>
+
+            <p className="mb-1">
+              <i className="fa-solid fa-phone me-2 text-secondary"></i>
+              <strong>0326 6783442</strong>
+            </p>
+
+            <p className="mb-0">
+              <i className="fa-solid fa-user me-2 text-secondary"></i>
+              <strong>Burhan Ali</strong>
+            </p>
+          </div>
+
+          <p className="mt-3 text-secondary">
+            After payment, upload the <strong>payment screenshot</strong> to
+            continue.
+          </p>
         </div>
-<div
-  className="mx-3 mt-4 p-4 rounded shadow-sm"
-  style={{
-    backgroundColor: "#ffffff",
-    borderLeft: "5px solid #0d6efd",
-    borderRadius: "12px"
-  }}
->
-  <h5 className="fw-bold mb-3 text-primary">
-    Registration Fee: Rs. 500
-  </h5>
-
-  <p className="text-secondary mb-3">
-    To activate your shop on Hazir Hay, please send the one-time registration fee
-    and upload the payment screenshot below.
-  </p>
-
-  <div className="p-3 rounded" style={{ background: "#f8f9fa" }}>
-    <p className="fw-semibold mb-2">
-      <i className="fa-solid fa-wallet me-2 text-primary"></i>
-      JazzCash Details
-    </p>
-
-    <p className="mb-1">
-      <i className="fa-solid fa-phone me-2 text-secondary"></i>
-      <strong>0326 6783442</strong>
-    </p>
-
-    <p className="mb-0">
-      <i className="fa-solid fa-user me-2 text-secondary"></i>
-      <strong>Burhan Ali</strong>
-    </p>
-  </div>
-
-  <p className="mt-3 text-secondary">
-    After payment, upload the <strong>payment screenshot</strong> to continue.
-  </p>
-</div>
 
 
 
@@ -430,15 +481,24 @@ const handleChange = async (e, index) => {
           <input
             type="file"
             className="form-control"
-            onChange={(e) => setPaymentPic(e.target.files[0])}
+            name="paymentPic"
+            id="paymentPic"
+            onChange={handleChange}
             accept="image/*"
             required
           />
         </div>
+          {paymentPic && (
+          <img
+            src={URL.createObjectURL(paymentPic)}
+            alt="Payment Picture"
+            style={{ width: "200px", height: "300px", objectFit: "cover" }}
+          />
+        )}
 
         <button
           type="submit"
-          className="btn btn-primary w-100"
+          className="btn btn-primary w-100 mt-3 mb-3"
           disabled={loading}
         >
           {loading ? "Submitting..." : "Register Shop"}

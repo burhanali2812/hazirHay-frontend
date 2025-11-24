@@ -1,7 +1,18 @@
 import React from "react";
-
+import {toast,Toaster} from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 function UnVarifiedShop() {
+  const navigate = useNavigate();
+    const logOut = () => {
+    if (!window.confirm("Are you sure you want to log out?")) return;
+    toast.success("Successfully Logout!")
+        navigate("/login");
+    localStorage.clear();
+
+  };
   return (
+  <>
+    <Toaster/>
     <div
       className="d-flex justify-content-center align-items-center container"
  style={{ minHeight: "100vh", backgroundColor: "#f8f9fa" }}
@@ -26,7 +37,7 @@ function UnVarifiedShop() {
         </h3>
 
         <p className="text-muted mb-4" style={{ fontSize: "16px", lineHeight: "1.6" }}>
-          Your payment is under review and may take 2-3 business days to be approved. 
+          Your payment is under review and may take <b>2-3 business days</b> to be approved. 
           <br />
           Once verified, you will receive a confirmation email.
           <br />
@@ -34,11 +45,10 @@ function UnVarifiedShop() {
         </p>
 
         <button
-          className="btn btn-primary  px-4"
-          onClick={() => window.location.reload()}
+          className="btn btn-danger  px-4"
+          onClick={logOut}
         >
-          <i className="fas fa-sync-alt me-2"></i>
-          Refresh Status
+          Log Out
         </button>
 
         <div className="mt-4 text-center text-secondary" style={{ fontSize: "13px" }}>
@@ -47,6 +57,7 @@ function UnVarifiedShop() {
         </div>
       </div>
     </div>
+  </>
   );
 }
 

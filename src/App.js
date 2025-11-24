@@ -12,6 +12,7 @@ import MyShopServices from "./pages/MyShopServices";
 import PrivacyPolicies from "./pages/PrivacyPolicies";
 import LocalShopSignup from "./pages/LocalShopSignup";
 import UnVarifiedShop from "./pages/UnVarifiedShop";
+import Roles from "./pages/Roles";
 
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Login = lazy(() => import("./pages/Login"));
@@ -85,6 +86,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Main />} />
           <Route path="/login" element={<Login />}></Route>
+          <Route path="/roles" element={<Roles />}></Route>
           <Route path="/signup" element={<Signup />}></Route>
           <Route path="/shop" element={<ShopForm />}></Route>
           <Route path="/localShop" element={<LocalShopSignup />}></Route>
