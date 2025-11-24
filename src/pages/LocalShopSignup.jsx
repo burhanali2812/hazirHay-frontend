@@ -211,7 +211,7 @@ const handleChange = async (e, index) => {
         business to the next level.
       </p>
 
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} className="shadow-lg p-4 rounded bg-light">
 
          <div className="mb-3 text-center">
           <label htmlFor="profilePicture" className="form-label fw-bold">

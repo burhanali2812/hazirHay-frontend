@@ -11,7 +11,7 @@ function Blocked() {
   const logOut = () => {
     if (!window.confirm("Are you sure you want to log out?")) return;
     localStorage.clear();
-    navigate("/login");
+    navigate("/");
   };
 
   const requestAdmin = () => {

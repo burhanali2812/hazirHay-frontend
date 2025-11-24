@@ -462,7 +462,7 @@ if (!isAgrree) {
               <button
                 className="btn-close position-absolute"
                 style={{ top: 10, right: 15 }}
-                onClick={() => navigate("/login")}
+                onClick={() => navigate("/")}
               ></button>
 
               <DotLottieReact
@@ -481,11 +481,11 @@ if (!isAgrree) {
               </p>
 
               <button
-                onClick={() => navigate("/login")}
+                onClick={() => navigate("/")}
                 className="btn btn-outline-success mt-1 d-flex align-items-center gap-2"
               >
                 <i className="fas fa-sign-in-alt"></i>
-                Go to Login
+                Go to Home
               </button>
             </div>
           </div>

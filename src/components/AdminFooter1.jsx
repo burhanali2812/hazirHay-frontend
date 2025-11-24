@@ -243,7 +243,7 @@ function AdminFooter() {
   const logOut = () => {
     if (!window.confirm("Are you sure you want to log out?")) return;
     toast.success("Successfully Logout!")
-        navigate("/login");
+        navigate("/");
     localStorage.clear();
 
   };

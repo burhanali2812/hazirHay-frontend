@@ -9,8 +9,6 @@ import { checkBlockedStatus } from "../components/loginCheckBlocked";
 import {toast, Toaster} from "react-hot-toast"
 function Login() {
   const navigate = useNavigate();
-  const [role, setRole] = useState("");
-  const [roleText, setRoleText] = useState("Choose Your Role");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -19,36 +17,28 @@ function Login() {
   const handleLogin = async () => {
     try {
       setLoading(true);
-       if (role === "") {
-        toast.error("Choose a role");
-        setLoading(false);
-        return;
-      }
       if (email.trim() === "") {
         toast.error("Email field cannot be empty!");
         setLoading(false);
         return;
       }
-    if(role !== "worker"){
-
-        if (!/\S+@\S+\.\S+/.test(email)) {
-        toast.error("Valid Email is required!");
-        setLoading(false);
-        return;
-      }
-    }
+      const isEmail = /\S+@\S+\.\S+/.test(email);
+const isPhone = /^\d{10,15}$/.test(email); 
+if (!isEmail && !isPhone) {
+  toast.error("Please enter a valid email or phone number!");
+  setLoading(false);
+  return;
+}
       if (password.trim() === "") {
         toast.error("Password cannot be empty!");
         setLoading(false);
         return;
       }
-     
+   
 
-      // Payload
       const loginPayload = {
         email,
         password,
-        role: role,
       };
 
       console.log(loginPayload);
@@ -58,22 +48,13 @@ function Login() {
         loginPayload
       );
       if (response.status === 200) {
-        // Swal.fire({
-        //   title: "Successful!",
-        //   text: response.data.message || "Login successful!",
-        //   icon: "success",
-        //   timer: 900,
-        //   showConfirmButton: false,
-        //   background: "#f9f9f9",
-        //   customClass: {
-        //     popup: "swirl-popup",
-        //   },
-        // });
         toast.success("Successfully login!")
+        const role = response.data.role
 
         localStorage.setItem("token", response.data.token);
         localStorage.setItem("user", JSON.stringify(response.data.user));
-        localStorage.setItem("role", role);
+        localStorage.setItem("role", role)
+
 
         if (role === "shopKepper") {
           const notBlocked = await checkBlockedStatus(
@@ -185,69 +166,6 @@ function Login() {
             </p>
           </div>
 
-          <div className="dropdown mb-3">
-            <button
-              className="btn btn-primary dropdown-toggle w-100"
-              type="button"
-              id="dropdownMenuButton"
-              data-bs-toggle="dropdown"
-              aria-expanded="false"
-            >
-              {roleText}
-            </button>
-
-            <ul
-              className="dropdown-menu w-100"
-              aria-labelledby="dropdownMenuButton"
-            >
-              <li>
-                <button
-                  className="dropdown-item"
-                  onClick={() => {
-                    setRoleText("Admin");
-                    setRole("admin");
-                  }}
-                >
-                  <i className="fa-solid fa-user-shield me-2"></i>Admin
-                </button>
-              </li>
-              <li>
-                <button
-                  className="dropdown-item"
-                  onClick={() => {
-                    setRoleText("Service Provider");
-                    setRole("shopKepper");
-                  }}
-                >
-                  <i className="fa-solid fa-screwdriver-wrench me-2"></i>Service
-                  Provider
-                </button>
-              </li>
-              <li>
-                <button
-                  className="dropdown-item"
-                  onClick={() => {
-                    setRoleText("Worker");
-                    setRole("worker");
-                  }}
-                >
-                  <i className="fa-solid fa-person-biking me-2"></i>Worker
-                </button>
-              </li>
-
-              <li>
-                <button
-                  className="dropdown-item"
-                  onClick={() => {
-                    setRoleText("User");
-                    setRole("user");
-                  }}
-                >
-                  <i className="fa-solid fa-user me-2"></i>User
-                </button>
-              </li>
-            </ul>
-          </div>
 
           <p className="text-center">
             Don't have an account?{" "}

@@ -1,13 +1,31 @@
 import React from 'react'
-import worker from "../images/worker2.png"
+
 import shop from "../images/shops.png"
 import user from "../images/users.png"
 import service from "../images/services.png"
-
+import { useNavigate } from 'react-router-dom'
 function Roles() {
-  return (
-    <div className="container  mt-4">
+    const navigate = useNavigate();
 
+    const handleRoles = (role)=>{
+        localStorage.setItem("role", role)
+        if(role === "shop"){
+            navigate("/localShopSignup")
+        }
+        else{
+ navigate("/signup")
+        }
+       
+    }
+  return (
+    <div className="container  mt-1">
+              <i
+        className="fa-solid fa-arrow-left-long mt-3 mx-1"
+        style={{ fontSize: "1.6rem", cursor: "pointer" }}
+        onClick={() => {navigate("/"); localStorage.clear();}}
+      ></i>
+<div className='mx-4 mt-1'>
+    
       {/* HEADER */}
       <h2 className="fw-bold" style={{ letterSpacing: "1px" }}>
         Choose Your Role
@@ -19,52 +37,51 @@ function Roles() {
         Join our community today and unlock smart tools to boost your work,
         grow visibility, and connect with the right customers.
       </p>
+</div>
 
-      {/* CARDS GRID */}
-      <div className="row g-2 mt-3 d-flex justify-content-center align-items-center text-center ">
+   
+<div
+  className="d-flex justify-content-center align-items-center "
+  style={{ minHeight: "60vh" }}
+>
+  <div className="row g-1 d-flex justify-content-center text-center">
 
-        {[
-          { img: user, title: "User" },
-          { img: service, title: "Service Provider" },
-          { img: shop, title: "Shop" },
-          { img: worker, title: "Worker" },
-        ].map((item, index) => (
-          <div className="col-6 col-md-6 d-flex justify-content-center" key={index}>
-            <div
-              className="card shadow-lg d-flex flex-column justify-content-center align-items-center"
-              style={{
-                height: "155px",   
-                width: "180px",    
-                borderRadius: "20px",
-                transition: "0.3s",
-                cursor: "pointer",
-                padding: "10px"
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = "scale(1.07)";
-                e.currentTarget.style.boxShadow = "0 12px 30px rgba(0,0,0,0.2)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = "scale(1)";
-                e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.1)";
-              }}
-            >
-              <img
-                src={item.img}
-                alt={item.title}
-                style={{
-                  width: "120px",   
-                  height: "120px",
-                  objectFit: "contain",
-                }}
-              />
+    {[
+      { img: user, title: "User" , role : "user"},
+      { img: service, title: "Service Provider" , role:"shopKepper"},
+      { img: shop, title: "Shop" , role : "shop"},
+    ].map((item, index) => (
+      <div className="col-12 col-md-4 d-flex justify-content-center" key={index}>
+        <div
+          className="card shadow-lg d-flex flex-column justify-content-center align-items-center bg-light"
+          style={{
+            height: "155px",
+            width: "180px",
+            borderRadius: "10px",
+            transition: "0.3s",
+            cursor: "pointer",
+            padding: "10px"
+          }}
 
-              <h6 className="fw-bold">{item.title}</h6>
-            </div>
-          </div>
-        ))}
-
+          onClick={()=>handleRoles(item.role)}
+        >
+          <img
+            src={item.img}
+            alt={item.title}
+            style={{
+              width: "120px",
+              height: "120px",
+              objectFit: "contain",
+            }}
+          />
+          <h6 className="fw-bold">{item.title}</h6>
+        </div>
       </div>
+    ))}
+
+  </div>
+</div>
+
     </div>
   )
 }

@@ -89,7 +89,7 @@ function App() {
           <Route path="/roles" element={<Roles />}></Route>
           <Route path="/signup" element={<Signup />}></Route>
           <Route path="/shop" element={<ShopForm />}></Route>
-          <Route path="/localShop" element={<LocalShopSignup />}></Route>
+          <Route path="/localShopSignup" element={<LocalShopSignup />}></Route>
           <Route path="/privacyPolicies" element={<PrivacyPolicies />}></Route>
           <Route
             path="shopKepper/sh&BlTr&bl&5&comp&shbl&tr"

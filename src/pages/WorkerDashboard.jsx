@@ -25,7 +25,7 @@ function WorkerDashboard() {
 
   const handleLogout = () => {
     localStorage.clear();
-    navigate("/login");
+    navigate("/");
   };
 
   const handlegetAssignedOrder = async () => {
