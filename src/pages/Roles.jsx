@@ -3,18 +3,28 @@ import React from 'react'
 import shop from "../images/shops.png"
 import user from "../images/users.png"
 import service from "../images/services.png"
+import worker from "../images/worker2.png"
 import { useNavigate } from 'react-router-dom'
+import { useAppContext } from '../context/AppContext'
 function Roles() {
     const navigate = useNavigate();
+    const{method} = useAppContext();
 
     const handleRoles = (role)=>{
         localStorage.setItem("role", role)
-        if(role === "shop"){
+
+        if(method === "login"){
+            navigate("/login")
+        }
+        else{
+             if(role === "shop"){
             navigate("/localShopSignup")
         }
         else{
  navigate("/signup")
         }
+        }
+       
        
     }
   return (
@@ -50,8 +60,11 @@ function Roles() {
       { img: user, title: "User" , role : "user"},
       { img: service, title: "Service Provider" , role:"shopKepper"},
       { img: shop, title: "Shop" , role : "shop"},
+       ...(method === "login"
+    ? [{ img: worker, title: "Worker", role: "worker" }]
+    : [])
     ].map((item, index) => (
-      <div className="col-12 col-md-4 d-flex justify-content-center" key={index}>
+      <div className={`${method === "login" ? "col-6 col-md-3" : "col-12 col-md-4"}  d-flex justify-content-center`} key={index}>
         <div
           className="card shadow-lg d-flex flex-column justify-content-center align-items-center bg-light"
           style={{

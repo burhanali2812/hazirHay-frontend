@@ -23,6 +23,7 @@ export const AppProvider = ({ children }) => {
   const [topText, setTopText] = useState("");
   const [pageKey, setKey] = useState(null);
   const [shopKepperStatus, setShopKepperStatus] = useState(null);
+   const [method, setMethod] = useState("");
   const [areaName, setAreaName] = useState("");
   const [coordinates, setCoordinates] = useState(null);
   const [refreshFlag, setRefreshFlag] = useState(false);
@@ -209,6 +210,8 @@ export const AppProvider = ({ children }) => {
         setStatusUpdate,
         setNotification,
         shop,
+        method,
+        setMethod,
 
         getShopData,
         getAllUser,

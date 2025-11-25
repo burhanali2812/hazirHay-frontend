@@ -2,9 +2,10 @@ import React, { useState, useEffect } from 'react';
 import logo2 from "../images/logo5.png";
 import 'animate.css';
 import { useNavigate} from "react-router-dom";
-
+import { useAppContext } from '../context/AppContext';
 function Main() {
       const navigate = useNavigate();
+      const {setMethod} = useAppContext();
 
       const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [showInstallButton, setShowInstallButton] = useState(false);
@@ -74,7 +75,7 @@ function Main() {
           type="button" 
           className="btn btn-dark flex-fill " 
           style={{ height: "45px" }} 
-          onClick={() => navigate("/login")}
+           onClick={()=> {setMethod("login");   navigate("/roles")}}
         >
           <i className="fa-solid fa-right-to-bracket me-2"></i>
           Login
@@ -84,7 +85,7 @@ function Main() {
           type="button" 
           className="btn btn-info flex-fill " 
           style={{ height: "45px" }} 
-          onClick={()=> navigate("/roles")}
+          onClick={()=> {setMethod("register"); navigate("/roles")}}
         >
           <i className="fa-solid fa-user-plus me-2"></i>
           Register
