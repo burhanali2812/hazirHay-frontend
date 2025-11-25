@@ -1,15 +1,78 @@
-import React from "react";
+import React, { useState } from "react";
 import puncture from "../images/puncture.png";
 import petrol from "../images/petrol.png";
 import mechanic from "../images/mechanic.png";
 import processing from "../videos/processing.mp4";
+import { useAppContext } from "../context/AppContext";
+import { useNavigate } from "react-router-dom";
 function FindShops() {
+  const {areaName, localShopData, localShopWithDistance} = useAppContext();
+  const [searchQuery, setSearchQuery] = useState("")
+  const [searchData,setSearchData] = useState([])
+  const navigate = useNavigate();
+  console.log("localWithDistance", localShopWithDistance);
+  
   const quickData = [
     { img: puncture, label: "Puncture" },
     { img: petrol, label: "Petrol Pump" },
     { img: mechanic, label: "Mechanic" },
   ];
+
+const handleChange = (e) => {
+  const value = e.target.value.toLowerCase(); 
+  setSearchQuery(value);
+  console.log("words", value.length);
+
+  if (value.length === 0) {
+     setSearchData([]);
+     setSearchQuery("")
+    return;
+  }
+
+  const data = localShopData?.filter((shop) => {
+    // check shopName
+    const nameMatch = shop.shopName?.toLowerCase().includes(value);
+
+    // check services array
+    const serviceMatch = shop.services?.some((service) =>
+      service.name?.toLowerCase().includes(value)
+    );
+
+    return nameMatch || serviceMatch;
+  });
+
+  console.log("search", data);
+   setSearchData(data);
+};
+
   return (
+<>
+<div className="bg-light py-3">
+<div
+          className="d-flex align-items-center bg-white rounded-pill mx-3 px-3 w-auto "
+          style={{
+            height : "35px",
+            cursor: "pointer",
+            transition: "0.2s",
+          }}
+           onClick={() => navigate("/admin/user/dashboard")} 
+          title="View on map"
+        >
+          <i className="fas fa-map-marker-alt text-danger me-2"></i>
+          <span
+            className="text-muted small fw-semibold"
+            style={{
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              flex: 1,
+            }}
+          >
+         {areaName ? areaName : "Select Your Location"}
+          </span>
+        </div>
+</div>
+
     <div className="container">
       <form className="d-flex " role="search" style={{ width: "auto" }}>
         <div className="position-relative w-100 mt-4">
@@ -18,8 +81,9 @@ function FindShops() {
             className="form-control bg-light rounded-pill ps-5 pe-5"
             placeholder="Eg:- Puncture, Mechanic"
             aria-label="Search"
-            // value={searchQuery}
-            // onChange={handleChange}
+            //disabled={localShopWithDistance?.length === 0}
+             value={searchQuery}
+             onChange={handleChange}
           />
 
           {/* Search Icon (left inside input) */}
@@ -72,7 +136,10 @@ function FindShops() {
       </div>
       <div className="mt-3">
         <h6 className="fw-bold mx-2">Filtered shops</h6>
-        <div className="d-flex justify-content-center align-items-center mt-4">
+              {
+                searchData?.length === 0 ? (
+                  <>
+                    <div className="d-flex justify-content-center align-items-center mt-4">
           <video
             src={processing}
             autoPlay
@@ -98,9 +165,19 @@ function FindShops() {
               <span style={{ color: "#ff6600" }}>"Found it!"</span> 😄
             </p>
           </div>
+                  </>
+                ):(
+                  searchData?.map((shop,ind)=>(
+                    <div className="card bg-light" key={ind}>
+                      <p className="fw-bold">{shop?.shopName}</p>
+                    </div>
+                  ))
+                )
+              }
        
       </div>
     </div>
+</>
   );
 }
 

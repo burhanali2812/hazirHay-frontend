@@ -19,6 +19,8 @@ export const AppProvider = ({ children }) => {
     const [shop, setShop] = useState(null);
   const [notification, setNotification] = useState([]);
   const [unSeenNotification, setUnSeenNotification] = useState([]);
+  const [localShopData, setLocalShopData] = useState([]);
+  const [localShopWithDistance, setLocalShopWithDistance] = useState([]);
 
   const [topText, setTopText] = useState("");
   const [pageKey, setKey] = useState(null);
@@ -30,6 +32,7 @@ export const AppProvider = ({ children }) => {
   const [update, setUpdate] = useState(false);
   const [updateAppjs, setUpdateAppjs] = useState(false);
   const [statusUpdate, setStatusUpdate] = useState(false);
+    const [selectedArea, setSelectedArea] = useState(null);
 
   const [loading, setLoading] = useState(false);
 
@@ -157,6 +160,84 @@ export const AppProvider = ({ children }) => {
     }
   };
 
+  const getLocalVerifiedLiveShops = async()=>{
+    try {
+      const res = await api.get("/localShop/getAllVerifiedLiveLocalShops");
+      setLocalShopData(res.data.shops)
+    } catch (error) {
+      console.log("local shop getting err", error);
+    }
+  }
+
+   async function getDistance(userCoords, shopCoords) {
+    console.log("shopCoordsdd", shopCoords);
+
+    if (!shopCoords || shopCoords.length < 2)
+      return { distance: null, duration: null };
+    const accessToken =
+      "pk.eyJ1Ijoic3llZGJ1cmhhbmFsaTI4MTIiLCJhIjoiY21mamM0NjZiMHg4NTJqczRocXhvdndiYiJ9.Z4l8EQQ47ejlWdVGcimn4A";
+    const url = `https://api.mapbox.com/directions/v5/mapbox/driving/${userCoords[0]},${userCoords[1]};${shopCoords[0]},${shopCoords[1]}?access_token=${accessToken}&overview=false`;
+
+    const res = await axios.get(url);
+    const route = res.data.routes[0];
+
+    if (!res.data.routes || res.data.routes.length === 0) {
+      console.warn("No route found for:", shopCoords);
+      return { distance: null, duration: null };
+    }
+
+    return {
+      distance: (route.distance / 1000).toFixed(2), // km
+      duration: (route.duration / 60).toFixed(0), // minutes
+    };
+  }
+  const userCoords = [
+    selectedArea?.lng || 73.04732533048735,
+    selectedArea?.lat || 33.69832701012015,
+  ];
+    async function calculateDistances() {
+      console.log("Calculating distances for shops:", localShopData);
+  
+      const shopDistances = await Promise.all(
+        localShopData.map(async (shop) => {
+          console.log("Processing shop:", shop);
+          const coords = shop?.location?.coordinates;
+          if (!coords) {
+            console.warn("No coordinates for shop", shop);
+            return { ...shop, distance: null, duration: null };
+          }
+          const shopCoords = [coords[0], coords[1]];
+          const { distance, duration } = await getDistance(
+            userCoords,
+            shopCoords
+          );
+          return { ...shop, distance, duration };
+        })
+      );
+  
+      console.log("shopDistances", shopDistances);
+      return shopDistances;
+    }
+
+ useEffect(()=>{
+  if(role === "user"){
+    if(selectedArea !== null && localShopData.length > 0){
+     async function fetchDistances() {
+      const result = await calculateDistances();
+      console.log("shoppppppppppsss", result);
+
+      setLocalShopWithDistance(result);
+      console.log("ShopData for distance", result);
+    }
+
+    fetchDistances();
+    }
+  }
+
+ },[localShopData,selectedArea])
+
+  
+
 
   useEffect(() => {
     if (!role) return;
@@ -165,7 +246,11 @@ export const AppProvider = ({ children }) => {
     getAllShopKepper();
     getNotifications();
 
-    if (role === "user") getCartData();
+    if (role === "user"){
+      getCartData();
+      getLocalVerifiedLiveShops();
+      
+    }
 
     if (role === "shopKepper") {
       getShopKepperWorkers();
@@ -194,6 +279,9 @@ export const AppProvider = ({ children }) => {
         setTopText,
         pageKey,
         setKey,
+        selectedArea,
+        setSelectedArea,
+        localShopWithDistance,
         shopKepperStatus,
         setShopKepperStatus,
         areaName,
@@ -210,6 +298,7 @@ export const AppProvider = ({ children }) => {
         setStatusUpdate,
         setNotification,
         shop,
+        localShopData,
         method,
         setMethod,
 

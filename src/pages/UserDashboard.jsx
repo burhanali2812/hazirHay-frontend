@@ -12,7 +12,7 @@ import { services } from "../components/servicesData";
 import { useAppContext } from "../context/AppContext";
 const UserShopRoute = lazy(()=>import("../components/UserShopRoute"))
 function UserDashboard() {
-  const { cartData,setAreaName,setCoordinates,setKey,getCartData} = useAppContext();
+  const { cartData,setAreaName,setCoordinates,setKey,getCartData,selectedArea, setSelectedArea} = useAppContext();
   const role = localStorage.getItem("role");
 
   const token = localStorage.getItem("token");
@@ -25,7 +25,6 @@ function UserDashboard() {
   const [subCatModal, setSubCatModal] = useState(false);
   const [locationName, setLocationName] = useState("");
   const [selectedSubCategory, setSelectedSubCategory] = useState(null);
-  const [selectedArea, setSelectedArea] = useState(null);
   const [shopDistance, setShopDistance] = useState(null);
 const [allShopDistance, setAllShopDistance] = useState([]);
   const [routeInfo, setRouteInfo] = useState(null);
@@ -479,6 +478,7 @@ setFilterModal(false)
 
           // Get area name using reverse geocode API
           const areaName = await fetchAreaName(lat, lng);
+          setAreaName(areaName);
 
           const location = {
             area: areaName,
@@ -514,6 +514,7 @@ setFilterModal(false)
         res.data?.address?.suburb ||
         "Unknown Area"
       );
+      
     } catch (error) {
       console.error("Error fetching area name:", error);
       return "Unknown Area";
