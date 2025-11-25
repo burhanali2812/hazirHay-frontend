@@ -69,8 +69,8 @@ function Roles() {
           className="card shadow-lg d-flex flex-column justify-content-center align-items-center bg-light"
           style={{
             height: "155px",
-            width: "170px",
-            borderRadius: "10px",
+            width: "155px",
+            borderRadius: "15px",
             transition: "0.3s",
             cursor: "pointer",
             padding: "10px"
