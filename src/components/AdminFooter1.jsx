@@ -132,7 +132,7 @@ function AdminFooter() {
       {
         key: "shop",
         icon: "fa-solid fa-magnifying-glass-location",
-        label: "Shops",
+        label: "Find Shops",
         path: "/admin/user/findShops",
       },
       {

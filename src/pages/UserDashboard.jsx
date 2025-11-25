@@ -50,7 +50,7 @@ const [allShopDistance, setAllShopDistance] = useState([]);
   const [filterText, setFilterText] = useState("");
   const [FilterServices, setFilterServices] = useState([]);
   const [loadingDelandSet, setLoadingDelandSet] = useState(false);
-  const [isDataLoading, setIsDataLoading] = useState(false);
+  const [isDataLoading, setIsDataLoading] = useState(true);
   const [filters, setFilters] = useState({
     status: "All",
     price: "All",
@@ -88,7 +88,6 @@ const [allShopDistance, setAllShopDistance] = useState([]);
   };
   useEffect(() => {
     setKey("home");
-    setIsDataLoading(true)
     setTimeout(() => {
       setIsDataLoading(false)
     }, 2000);
