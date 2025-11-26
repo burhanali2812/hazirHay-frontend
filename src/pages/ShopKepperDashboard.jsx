@@ -1,7 +1,6 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { useCheckBlockedStatus } from "../components/useCheckBlockedStatus";
-import { useCheckvarifiedStatus } from "../components/useCheckVerifiedStatus";
 import { useAppContext } from "../context/AppContext";
 import {toast, Toaster} from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
@@ -42,7 +41,16 @@ function ShopKepperDashboard() {
   const navigate = useNavigate();
 
   useCheckBlockedStatus(token);
-  useCheckvarifiedStatus(user,token)
+
+ useEffect(()=>{
+  if(!user.isShop){
+    return;
+  }
+  else if(!user?.isVerified){
+     navigate("/shopKepper/sh&un&Ve&ri&fi&ed@sh@op$");
+  }
+ })
+
 
   useEffect(() => {
     setKey("home");

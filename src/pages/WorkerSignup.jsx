@@ -1,10 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import imageCompression from "browser-image-compression";
 import axios from "axios";
 import { useCheckBlockedStatus } from "../components/useCheckBlockedStatus";
-import { useCheckvarifiedStatus } from "../components/useCheckVerifiedStatus";
+import { useNavigate } from "react-router-dom";
 function WorkerSignup({ setUpdateAppjs }) {
   const [profilePicture, setProfilePicture] = useState(null);
+  const navigate = useNavigate();
     const user = JSON.parse(localStorage.getItem("user"));
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -12,7 +13,14 @@ function WorkerSignup({ setUpdateAppjs }) {
     const token = localStorage.getItem("token");
 
    useCheckBlockedStatus(token)
-    useCheckvarifiedStatus(user , token)
+    useEffect(()=>{
+     if(!user.isShop){
+       return;
+     }
+     else if(!user?.isVerified){
+        navigate("/shopKepper/sh&un&Ve&ri&fi&ed@sh@op$");
+     }
+    })
 
   const handleChange = async (e) => {
     const { name, files } = e.target;

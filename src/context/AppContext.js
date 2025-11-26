@@ -240,7 +240,8 @@ export const AppProvider = ({ children }) => {
 
 
   useEffect(() => {
-    if (!role) return;
+   if(user !== null){
+ if (!role) return;
 
     getAllUser();
     getAllShopKepper();
@@ -257,7 +258,8 @@ export const AppProvider = ({ children }) => {
       getUserStatus();
       getShopData();
     }
-  }, [role]);
+   }
+  }, []);
 
 
   return (

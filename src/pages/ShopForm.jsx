@@ -854,6 +854,7 @@ function ShopForm() {
                   type="number"
                   className="form-control form-control-sm "
                   placeholder="Enter starting minimum amount"
+                  style={{height : "40px", fontSize : "16px"}}
                   value={price}
                   onChange={(e) => setPrice(e.target.value)}
                 />

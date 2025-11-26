@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import PieChart from "../components/PieChart";
 import { useAppContext } from "../context/AppContext";
 import { useCheckBlockedStatus } from "../components/useCheckBlockedStatus";
-import { useCheckvarifiedStatus } from "../components/useCheckVerifiedStatus";
 import axios from "axios";
 import imageCompression from "browser-image-compression";
 import toast from "react-hot-toast";
@@ -28,7 +27,14 @@ function MyShop() {
   const token = localStorage.getItem("token");
 
   useCheckBlockedStatus(token)
-  useCheckvarifiedStatus(user , token)
+ useEffect(()=>{
+  if(!user.isShop){
+    return;
+  }
+  else if(!user?.isVerified){
+     navigate("/shopKepper/sh&un&Ve&ri&fi&ed@sh@op$");
+  }
+ })
 
   const navigate = useNavigate();
   useEffect(() => {
