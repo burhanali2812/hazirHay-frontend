@@ -10,7 +10,7 @@ import toast from "react-hot-toast";
 import NoShop from "./NoShop";
 function MyShop() {
   const { setKey, shopKepperWorkers, shop, getShopData } = useAppContext();
-
+  const user = JSON.parse(localStorage.getItem("user"));
   const [isViewFull, setIsViewFull] = useState(false);
   const [isEditDataModalOpen, setIsEditDataModalOpen] = useState(false);
   const [isProfilePictureUpdate, setISProfilePictureUpdate] = useState(false);
@@ -28,7 +28,7 @@ function MyShop() {
   const token = localStorage.getItem("token");
 
   useCheckBlockedStatus(token)
-  useCheckvarifiedStatus(token)
+  useCheckvarifiedStatus(user , token)
 
   const navigate = useNavigate();
   useEffect(() => {

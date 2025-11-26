@@ -2,11 +2,16 @@ import React,{useState} from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { useAppContext } from "../context/AppContext";
+import { useCheckBlockedStatus } from "../components/useCheckBlockedStatus";
+import { useCheckvarifiedStatus } from "../components/useCheckVerifiedStatus";
 const WorkersPage = () => {
   const {shopKepperWorkers, setShopKepperWorkers} = useAppContext();
+    const user = JSON.parse(localStorage.getItem("user"));
   const token = localStorage.getItem("token");
   const[deleteLoading, setDeleteLoading] = useState(null);
   const navigate = useNavigate();
+   useCheckBlockedStatus(token)
+    useCheckvarifiedStatus(user,token)
 
     const onDeleteWorker = async (workerId) => {
         setDeleteLoading(workerId);

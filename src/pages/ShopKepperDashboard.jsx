@@ -42,7 +42,7 @@ function ShopKepperDashboard() {
   const navigate = useNavigate();
 
   useCheckBlockedStatus(token);
-  useCheckvarifiedStatus(token)
+  useCheckvarifiedStatus(user,token)
 
   useEffect(() => {
     setKey("home");

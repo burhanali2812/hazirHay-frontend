@@ -1,11 +1,18 @@
 import React, { useState } from "react";
 import imageCompression from "browser-image-compression";
 import axios from "axios";
+import { useCheckBlockedStatus } from "../components/useCheckBlockedStatus";
+import { useCheckvarifiedStatus } from "../components/useCheckVerifiedStatus";
 function WorkerSignup({ setUpdateAppjs }) {
   const [profilePicture, setProfilePicture] = useState(null);
+    const user = JSON.parse(localStorage.getItem("user"));
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(false);
+    const token = localStorage.getItem("token");
+
+   useCheckBlockedStatus(token)
+    useCheckvarifiedStatus(user , token)
 
   const handleChange = async (e) => {
     const { name, files } = e.target;

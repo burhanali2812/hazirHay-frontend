@@ -3,10 +3,11 @@ import { useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
-export const useCheckvarifiedStatus = (token) => {
+export const useCheckvarifiedStatus = (user,token) => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    if (!user?.isShop) return;
     const fetchVarified = async () => {
       try {
         const res = await axios.get(

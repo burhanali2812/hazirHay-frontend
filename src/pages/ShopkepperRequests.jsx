@@ -39,7 +39,7 @@ function ShopkepperRequests() {
   const [routeInfo, setRouteInfo] = useState(null);
   const [declineOrder, setDeclineOrder] = useState(null);
   const token = localStorage.getItem("token");
-   useCheckvarifiedStatus(token)
+   useCheckvarifiedStatus(user,token)
   useCheckBlockedStatus(token);
   const role = localStorage.getItem("role");
   useEffect(() => {

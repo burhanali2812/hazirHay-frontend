@@ -309,7 +309,7 @@ if (!isAgrree) {
           />
           <label htmlFor="contactInput">Contact<span className="text-danger">*</span></label>
         </div>
-        {role === "service" ? (
+        {role === "shopKepper" ? (
           <div className="form-floating mb-3">
             <input
               type="tel"
