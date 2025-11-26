@@ -353,6 +353,11 @@ function ShopForm() {
     setIsVariablePricing(!isVariablePricing);
   };
 
+  const logOutAndGoMain =()=>{
+    localStorage.clear();
+    navigate("/")
+  }
+
   return (
     <div className="container ">
       <Toaster />
@@ -767,7 +772,7 @@ function ShopForm() {
             <button
               className="btn-close position-absolute"
               style={{ top: 15, right: 15 }}
-              onClick={() => navigate("/login")}
+              onClick={logOutAndGoMain}
             ></button>
 
             <DotLottieReact
@@ -786,7 +791,7 @@ function ShopForm() {
             </p>
 
             <button
-              onClick={() => navigate("/login")}
+              onClick={logOutAndGoMain}
               className="btn btn-outline-success mt-2 d-flex align-items-center gap-2"
             >
               <i className="fas fa-sign-in-alt"></i>

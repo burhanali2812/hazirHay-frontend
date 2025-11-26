@@ -196,6 +196,11 @@ setTotalOrdersEarnings(earning?.toFixed(0));
     console.log("Filter applied:", startDate, endDate);
     getShopkeeperOrders("filter");
   };
+  useEffect(()=>{
+    if(!user?.isShop){
+      setIsNoShopModal(true)
+    }
+  }, [user])
 const getShopData = async () => {
   try {
     const response = await axios.get(
@@ -212,11 +217,6 @@ const getShopData = async () => {
     }
   } catch (err) {
     console.error("Error fetching shop data:", err);
-
-    
-    if (err.response?.status === 404) {
-      setIsNoShopModal(true);
-    }
 
     return null;
   }

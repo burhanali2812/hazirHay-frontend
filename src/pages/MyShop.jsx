@@ -220,7 +220,7 @@ function MyShop() {
   </div>
 
    {
-    shop === null ? (
+    user?.isShop === false ? (
       <>
       <NoShop/>
       </>
