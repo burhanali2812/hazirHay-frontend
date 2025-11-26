@@ -8,6 +8,7 @@ function LocalShopSignup() {
     shopName: "",
     position: "",
     shopAddress: "",
+    description : "",
     email: "",
     password: "",
     phone: "",
@@ -306,6 +307,18 @@ const handleChange = async (e, index) => {
           <label htmlFor="shopAddress">Shop Address<b className="text-danger">*</b></label>
           
         </div>
+        <div className="form-floating mb-3">
+  <textarea
+    className="form-control"
+    id="description"
+    name="description"
+    placeholder="Area"
+    value={formData.description}
+    style={{ height: "110px" }}   
+    required
+  />
+  <label htmlFor="area">Describe Your Business Shortly</label>
+</div>
 
         <div className="form-floating mb-3">
           <input

@@ -29,7 +29,7 @@ const handleChange = (e) => {
     return;
   }
 
-  const data = localShopData?.filter((shop) => {
+  const data = localShopWithDistance?.filter((shop) => {
     // check shopName
     const nameMatch = shop.shopName?.toLowerCase().includes(value);
 
@@ -134,8 +134,11 @@ const handleChange = (e) => {
           </div>
         </div>
       </div>
-      <div className="mt-3">
-        <h6 className="fw-bold mx-2">Filtered shops</h6>
+      <div className="mt-4 mb-4">
+        <div className="d-flex justify-content-between mb-4">
+          <h6 className="fw-bold mx-2">Filtered shops</h6>
+        <i class="fa-solid fa-filter me-2 text-primary"></i>
+        </div>
               {
                 searchData?.length === 0 ? (
                   <>
@@ -167,11 +170,110 @@ const handleChange = (e) => {
           </div>
                   </>
                 ):(
-                  searchData?.map((shop,ind)=>(
-                    <div className="card bg-light" key={ind}>
-                      <p className="fw-bold">{shop?.shopName}</p>
-                    </div>
-                  ))
+                searchData?.map((shop, ind) => (
+  <div
+    className="card bg-light border-0 shadow-sm p-3 mb-3"
+    key={ind}
+    style={{ borderRadius: "15px" }}
+  >
+    <div className="d-flex">
+      
+      {/* LEFT: Picture */}
+      <div
+        style={{
+          width: "70px",
+          height: "70px",
+          borderRadius: "50%",
+          overflow: "hidden",
+          border: "2px solid #ddd",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          backgroundColor: "#f8f9fa",
+        }}
+      >
+        {shop?.shopPicture ? (
+          <img
+            src={shop?.shopPicture}
+            alt="Shop"
+            style={{
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+            }}
+          />
+        ) : (
+          <i className="fa-solid fa-shop" style={{ fontSize: "30px", color: "#aaa" }}></i>
+        )}
+      </div>
+
+      {/* RIGHT SIDE DETAILS */}
+      <div className="ms-3 flex-grow-1">
+        <h6 className="fw-bold mb-1">{shop?.shopName}</h6>
+
+        {/* Distance + EST */}
+        <div className="d-flex align-items-center text-secondary small gap-3">
+          <span>
+            <i className="fa-solid fa-location-dot text-danger me-1"></i>
+            {shop?.distance} km
+          </span>
+
+          <span>
+            <i className="fa-solid fa-clock text-primary me-1"></i>
+            {shop?.duration} mins
+          </span>
+        </div>
+
+        <hr className="mt-2 mb-2" />
+
+        {/* CTA BUTTONS */}
+        <div className="d-flex justify-content-between align-items-center">
+
+          {/* CALL */}
+          <a
+            href={`tel:${shop?.phone}`}
+            className="text-decoration-none"
+            style={{
+              background: "#eef5ff",
+              padding: "7px 10px",
+              borderRadius: "10px",
+            }}
+          >
+            <i className="fa-solid fa-phone text-primary"></i>
+          </a>
+
+          {/* WHATSAPP */}
+          <a
+            href={`https://wa.me/${shop?.phone}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-decoration-none"
+            style={{
+              background: "#e7fbe9",
+              padding: "7px 10px",
+              borderRadius: "10px",
+            }}
+          >
+            <i className="fa-brands fa-whatsapp text-success"></i>
+          </a>
+
+          {/* LOCATION BUTTON */}
+          <button
+            className="btn  "
+            style={{
+               background: "#e7fbe9",
+              padding: "7px 10px",
+              borderRadius: "10px",
+            }}
+          >
+            <i className="fas fa-map-marker-alt text-danger"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+))
+
                 )
               }
        
