@@ -44,7 +44,7 @@ function ShopKepperDashboard() {
 
  useEffect(()=>{
   if(!user.isShop){
-    return;
+      setIsNoShopModal(true)
   }
   else if(!user?.isVerified){
      navigate("/shopKepper/sh&un&Ve&ri&fi&ed@sh@op$");
@@ -204,11 +204,12 @@ setTotalOrdersEarnings(earning?.toFixed(0));
     console.log("Filter applied:", startDate, endDate);
     getShopkeeperOrders("filter");
   };
-  useEffect(()=>{
-    if(!user?.isShop){
-      setIsNoShopModal(true)
-    }
-  }, [user])
+  const logOut = () => {
+    toast.success("Successfully Logout!")
+        navigate("/");
+    localStorage.clear();
+
+  };
 const getShopData = async () => {
   try {
     const response = await axios.get(
@@ -705,6 +706,12 @@ const getShopData = async () => {
 >
   Get Registered
 </button>
+   <button
+          className="btn btn-danger  mt-2"
+          onClick={logOut}
+        >
+          Log Out
+        </button>
 
         </div>
       </div>

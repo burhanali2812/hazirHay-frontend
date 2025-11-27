@@ -6,7 +6,7 @@ import { useCheckBlockedStatus } from "../components/useCheckBlockedStatus";
 import axios from "axios";
 import imageCompression from "browser-image-compression";
 import toast from "react-hot-toast";
-import NoShop from "./NoShop";
+
 function MyShop() {
   const { setKey, shopKepperWorkers, shop, getShopData } = useAppContext();
   const user = JSON.parse(localStorage.getItem("user"));
@@ -228,7 +228,23 @@ function MyShop() {
    {
     user?.isShop === false ? (
       <>
-      <NoShop/>
+        <div className="modal-body text-center">
+          <i className="fa-solid fa-shop-slash fs-1 text-danger mb-3"></i>
+          <p className="fw-bold">
+            You have no shop registered yet.
+          </p>
+          <p className="text-secondary">
+            You cannot get any orders and your profile is not visible to users.
+            Kindly register your shop.
+          </p>
+
+      <button
+  className="btn btn-primary mt-2"
+  onClick={() => navigate("/shop", { state: { id: user._id } })}
+>
+  Get Registered
+</button>
+        </div>
       </>
     ): (
       <>
