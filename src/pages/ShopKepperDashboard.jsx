@@ -707,7 +707,7 @@ const getShopData = async () => {
   Get Registered
 </button>
    <button
-          className="btn btn-danger  mt-2"
+          className="btn btn-danger  mt-2 ms-3"
           onClick={logOut}
         >
           Log Out
