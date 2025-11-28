@@ -220,7 +220,7 @@ export const AppProvider = ({ children }) => {
     }
 
  useEffect(()=>{
-  if(role === "user"){
+  if(role === "user" && user !== null){
     if(selectedArea !== null && localShopData.length > 0){
      async function fetchDistances() {
       const result = await calculateDistances();
@@ -234,7 +234,7 @@ export const AppProvider = ({ children }) => {
     }
   }
 
- },[localShopData,selectedArea])
+ },[localShopData,selectedArea,user])
 
   
 

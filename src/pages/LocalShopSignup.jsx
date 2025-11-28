@@ -90,6 +90,7 @@ const handleChange = async (e, index) => {
       data.append("shopName", formData.shopName);
       data.append("position", formData.position);
       data.append("shopAddress", formData.shopAddress);
+      data.append("description", formData.description);
       data.append("email", formData.email);
       data.append("password", formData.password);
       data.append("phone", formData.phone);
@@ -123,6 +124,7 @@ const handleChange = async (e, index) => {
         position: "",
         shopAddress: "",
         email: "",
+        description : "",
         password: "",
         phone: "",
         area: "",
@@ -319,7 +321,7 @@ const handleChange = async (e, index) => {
     style={{ height: "110px" }}   
     required
   />
-  <label htmlFor="area">Describe Your Business Shortly</label>
+  <label htmlFor="area">Describe Your Business Shortly<b className="text-danger">*</b></label>
 </div>
 
         <div className="form-floating mb-3">

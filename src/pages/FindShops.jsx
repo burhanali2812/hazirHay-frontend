@@ -234,7 +234,7 @@ const handleChange = (e) => {
             href={`tel:${shop?.phone}`}
             className="text-decoration-none"
             style={{
-              background: "#eef5ff",
+              background: "#a7ffb0ff",
               padding: "7px 10px",
               borderRadius: "10px",
             }}
@@ -249,24 +249,34 @@ const handleChange = (e) => {
             rel="noopener noreferrer"
             className="text-decoration-none"
             style={{
-              background: "#e7fbe9",
-              padding: "7px 10px",
+              background: "#a7ffb0ff",
+              padding: "7px 8px",
               borderRadius: "10px",
             }}
           >
-            <i className="fa-brands fa-whatsapp text-success"></i>
+            <i className="fa-brands fa-whatsapp text-success fa-lg"></i>
           </a>
 
           {/* LOCATION BUTTON */}
           <button
             className="btn  "
             style={{
-               background: "#e7fbe9",
+               background: "#a7ffb0ff",
               padding: "7px 10px",
               borderRadius: "10px",
             }}
           >
             <i className="fas fa-map-marker-alt text-danger"></i>
+          </button>
+            <button
+            className="btn  "
+            style={{
+               background: "#a7ffb0ff",
+              padding: "7px 10px",
+              borderRadius: "10px",
+            }}
+          >
+            <i className="fa-solid fa-angle-right text-danger"></i>
           </button>
         </div>
       </div>
