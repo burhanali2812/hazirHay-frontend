@@ -283,6 +283,7 @@ const handleChange = async (e, index) => {
           >
             <option value="">Select Position</option>
             <option value="Basement">Basement</option>
+            <option value="Stall">Stall</option>
             <option value="Ground Floor">Ground Floor</option>
             <option value="1st Floor">1st Floor</option>
             <option value="2nd Floor">2nd Floor</option>
@@ -314,6 +315,7 @@ const handleChange = async (e, index) => {
     name="description"
     placeholder="Area"
     value={formData.description}
+    onChange={handleChange}
     style={{ height: "110px" }}   
     required
   />
