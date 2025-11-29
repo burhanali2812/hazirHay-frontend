@@ -3,8 +3,8 @@ import axios from "axios";
 import L from "leaflet";  
 export default function MyMap({ onLocationSelect, initialLocation }) {
   const mapContainerRef = useRef(null);
-  const mapRef = useRef(null); // store map instance
-  const markerRef = useRef(null); // store marker instance
+  const mapRef = useRef(null); 
+  const markerRef = useRef(null); 
 
   useEffect(() => {
     if (!window.mapboxgl) {
@@ -19,14 +19,15 @@ export default function MyMap({ onLocationSelect, initialLocation }) {
     const map = new mapboxgl.Map({
       container: mapContainerRef.current,
       style: "mapbox://styles/mapbox/streets-v11",
-      center: [73.0551, 33.6844], // default Islamabad
+      center: [73.0551, 33.6844], 
       zoom: 12,
     });
 
     map.addControl(new mapboxgl.NavigationControl());
     mapRef.current = map;
 
-    // ✅ Try Geolocation First
+if(initialLocation === null){
+  
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         async (pos) => {
@@ -45,27 +46,14 @@ export default function MyMap({ onLocationSelect, initialLocation }) {
           const location = { lat, lng, areaName };
 
           if (onLocationSelect) onLocationSelect(location);
-          localStorage.setItem("selectedLocation", JSON.stringify(location));
+                  
         },
-        async () => {
-          // ❌ If user denies or geolocation fails → fallback to localStorage
-          const saved = localStorage.getItem("selectedLocation");
-          if (saved) {
-            const { lat, lng, areaName } = JSON.parse(saved);
-
-            markerRef.current = new mapboxgl.Marker({ color: "blue" })
-              .setLngLat([lng, lat])
-              .addTo(map);
-
-            map.flyTo({ center: [lng, lat], zoom: 14 });
-
-            if (onLocationSelect) onLocationSelect({ lat, lng, areaName });
-          }
-        }
       );
+    } else {
+      console.error("Geolocation is not supported by this browser.");
     }
+}
 
-    // ✅ Allow manual picking
     map.on("click", async (e) => {
       const { lng, lat } = e.lngLat;
 
@@ -79,7 +67,6 @@ export default function MyMap({ onLocationSelect, initialLocation }) {
       const location = { lat, lng, areaName };
 
       if (onLocationSelect) onLocationSelect(location);
-      localStorage.setItem("selectedLocation", JSON.stringify(location));
     });
 
     return () => map.remove();
@@ -98,10 +85,7 @@ export default function MyMap({ onLocationSelect, initialLocation }) {
 
       mapRef.current.flyTo({ center: [lng, lat], zoom: 14 });
 
-      localStorage.setItem(
-        "selectedLocation",
-        JSON.stringify({ lat, lng, areaName })
-      );
+
     }
   }, [initialLocation]);
 

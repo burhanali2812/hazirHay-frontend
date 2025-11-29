@@ -747,6 +747,8 @@ setFilterModal(false)
     
   },[])
 
+  console.log("selectedArea", selectedArea);
+
   return (
     <div>
       <form onSubmit={(e) => e.preventDefault()}>
@@ -754,7 +756,7 @@ setFilterModal(false)
           <Suspense fallback={<h2>Loading...</h2>}>
             <MyMap
             onLocationSelect={setSelectedArea}
-            initialLocation={selectedArea}
+            initialLocation={selectedArea ? selectedArea : null}
           />
           </Suspense>
         </div>

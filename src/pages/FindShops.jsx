@@ -6,7 +6,7 @@ import processing from "../videos/processing.mp4";
 import { useAppContext } from "../context/AppContext";
 import { useNavigate } from "react-router-dom";
 function FindShops() {
-  const {areaName, localShopData, localShopWithDistance} = useAppContext();
+  const {selectedArea, localShopData, localShopWithDistance} = useAppContext();
   const [searchQuery, setSearchQuery] = useState("")
   const [searchData,setSearchData] = useState([])
   const navigate = useNavigate();
@@ -19,31 +19,70 @@ function FindShops() {
   ];
 
 const handleChange = (e) => {
-  const value = e.target.value.toLowerCase(); 
+  const value = e.target.value.toLowerCase();
   setSearchQuery(value);
-  console.log("words", value.length);
 
   if (value.length === 0) {
-     setSearchData([]);
-     setSearchQuery("")
+    setSearchData([]);
     return;
   }
 
-  const data = localShopWithDistance?.filter((shop) => {
-    // check shopName
+  let data = localShopData.filter((shop) => {
     const nameMatch = shop.shopName?.toLowerCase().includes(value);
-
-    // check services array
     const serviceMatch = shop.services?.some((service) =>
       service.name?.toLowerCase().includes(value)
     );
-
     return nameMatch || serviceMatch;
   });
 
-  console.log("search", data);
-   setSearchData(data);
+  
+  data = data.map((shop) => ({
+    ...shop,
+    fixedDistance:
+      shop.fixedDistance ??
+      calculateApproxDistance(shop.location.coordinates),
+  }));
+
+  setSearchData(data);
 };
+
+function getStraightLineDistance(lat1, lon1, lat2, lon2) {
+  const R = 6371; // Radius of Earth in KM
+  const dLat = (lat2 - lat1) * (Math.PI / 180);
+  const dLon = (lon2 - lon1) * (Math.PI / 180);
+
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * (Math.PI / 180)) *
+      Math.cos(lat2 * (Math.PI / 180)) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+  return R * c; 
+}
+function addVariation(distance) {
+  const variationPercent = 30 / 100; 
+  return distance + distance * variationPercent;
+}
+
+function calculateApproxDistance(shopCoords) {
+  const [userLon, userLat] = [selectedArea?.lng, selectedArea?.lat];
+  const [shopLon, shopLat] = shopCoords;
+
+  const straightLine = getStraightLineDistance(userLat, userLon, shopLat, shopLon);
+
+  const approxRoadDistance = addVariation(straightLine);
+
+  return approxRoadDistance.toFixed(2); // return km
+}
+  const openGoogleMaps = (shopCoords) => {
+    const url = `https://www.google.com/maps/dir/?api=1&origin=${selectedArea?.lat},${selectedArea?.lng}&destination=${shopCoords[1]},${shopCoords[0]}&travelmode=driving`;
+
+    window.open(url, "_blank");
+  };
+
 
   return (
 <>
@@ -68,7 +107,7 @@ const handleChange = (e) => {
               flex: 1,
             }}
           >
-         {areaName ? areaName : "Select Your Location"}
+         {selectedArea?.areaName ? selectedArea?.areaName : "Select Your Location"}
           </span>
         </div>
 </div>
@@ -215,12 +254,7 @@ const handleChange = (e) => {
         <div className="d-flex align-items-center text-secondary small gap-3">
           <span>
             <i className="fa-solid fa-location-dot text-danger me-1"></i>
-            {shop?.distance} km
-          </span>
-
-          <span>
-            <i className="fa-solid fa-clock text-primary me-1"></i>
-            {shop?.duration} mins
+            {shop?.fixedDistance} km away
           </span>
         </div>
 
@@ -265,6 +299,7 @@ const handleChange = (e) => {
               padding: "7px 10px",
               borderRadius: "10px",
             }}
+            onClick={()=>openGoogleMaps(shop?.location?.coordinates)}
           >
             <i className="fas fa-map-marker-alt text-danger"></i>
           </button>
