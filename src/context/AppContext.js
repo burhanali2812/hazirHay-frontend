@@ -15,7 +15,7 @@ export const AppProvider = ({ children }) => {
   const [totalLiveShopKepper, setTotalLiveShopKepper] = useState([]);
   const [shopKepperWorkers, setShopKepperWorkers] = useState([]);
   const [shopKepperStatus2, setShopKepperStatus2] = useState(null);
-  const [cartData, setCartData] = useState({});
+  const [cartData, setCartData] = useState([]);
     const [shop, setShop] = useState(null);
   const [notification, setNotification] = useState([]);
   const [unSeenNotification, setUnSeenNotification] = useState([]);
@@ -33,6 +33,7 @@ export const AppProvider = ({ children }) => {
   const [updateAppjs, setUpdateAppjs] = useState(false);
   const [statusUpdate, setStatusUpdate] = useState(false);
     const [selectedArea, setSelectedArea] = useState(null);
+      const [userLocations, setUserLocations] = useState([]);
 
   const [loading, setLoading] = useState(false);
 
@@ -154,7 +155,8 @@ export const AppProvider = ({ children }) => {
   const getCartData = async () => {
     try {
       const res = await api.get("/cart/getCartData");
-      setCartData(res.data.data?.[0] || {});
+      setCartData(res.data.data.items || []);
+
     } catch (err) {
       console.log("Cart err", err);
     }
@@ -168,6 +170,65 @@ export const AppProvider = ({ children }) => {
       console.log("local shop getting err", error);
     }
   }
+    const getUserLocations = async () => {
+      try {
+        const response = await api.get(
+          `/users/getUserById/${user._id}`
+        );
+        if (response.data.success) {
+          const locations = response.data.data.location || [];
+          setUserLocations(locations);
+  
+          const defaultLocation = locations.find((loc) => loc.isDefault);
+          if (defaultLocation) {
+            console.log("Default Location:", defaultLocation.area);
+            setSelectedArea({lat: defaultLocation?.coordinates[0], lng: defaultLocation?.coordinates[1], areaName: defaultLocation?.area});
+          }
+        } else {
+          console.error("Failed to fetch user locations");
+          setUserLocations([]);
+        }
+      } catch (error) {
+        console.error("Error fetching user locations:", error.message);
+        setUserLocations([]);
+      }
+    };
+
+      const fetchAreaName = async (lat, lon) => {
+    try {
+      const res = await axios.get(
+        "https://hazir-hay-backend.vercel.app/admin/reverse-geocode",
+        { params: { lat, lon } }
+      );
+      return (
+        res.data?.display_name ||
+        res.data.address?.city ||
+        res.data.address?.town ||
+        res.data.address?.village ||
+        res.data.address?.suburb ||
+        "Unknown Area"
+      );
+    } catch {
+      return "Unknown Area";
+    }
+  };
+    const chooseCurrentLocation = async () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        async (pos) => {
+          const lat = pos.coords.latitude;
+          const lng = pos.coords.longitude;
+          setCoordinates({ lat, lng });
+        },
+        (error) => {
+          console.error("Error getting location:", error);
+          alert("Unable to get your location. Please allow location access.");
+        }
+      );
+    } else {
+      alert("Geolocation is not supported by your browser.");
+    }
+  };
 
 
   
@@ -184,6 +245,8 @@ export const AppProvider = ({ children }) => {
     if (role === "user"){
       getCartData();
       getLocalVerifiedLiveShops();
+      chooseCurrentLocation();
+      getUserLocations();
       
     }
 
@@ -237,6 +300,8 @@ export const AppProvider = ({ children }) => {
         localShopData,
         method,
         setMethod,
+        setUserLocations,
+        userLocations,
 
         getShopData,
         getAllUser,
@@ -247,6 +312,8 @@ export const AppProvider = ({ children }) => {
         updateNotification,
         deleteNotification,
         getCartData,
+        fetchAreaName,
+        getUserLocations,
 
 
         loading,

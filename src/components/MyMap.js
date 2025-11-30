@@ -1,16 +1,15 @@
 import React, { useEffect, useRef } from "react";
-import axios from "axios";
-import L from "leaflet";  
-export default function MyMap({ onLocationSelect, initialLocation }) {
-  const mapContainerRef = useRef(null);
-  const mapRef = useRef(null); 
-  const markerRef = useRef(null); 
+import { useAppContext } from "../context/AppContext";
 
+export default function MyMap({ onLocationSelect }) {
+  const mapContainerRef = useRef(null);
+  const mapRef = useRef(null);
+  const markerRef = useRef(null);
+
+  const { fetchAreaName, coordinates, selectedArea, setSelectedArea } =
+    useAppContext();
   useEffect(() => {
-    if (!window.mapboxgl) {
-      console.error("Mapbox GL not loaded!");
-      return;
-    }
+    if (!window.mapboxgl) return;
 
     const mapboxgl = window.mapboxgl;
     mapboxgl.accessToken =
@@ -19,40 +18,12 @@ export default function MyMap({ onLocationSelect, initialLocation }) {
     const map = new mapboxgl.Map({
       container: mapContainerRef.current,
       style: "mapbox://styles/mapbox/streets-v11",
-      center: [73.0551, 33.6844], 
+      center: [73.0551, 33.6844],
       zoom: 12,
     });
 
     map.addControl(new mapboxgl.NavigationControl());
     mapRef.current = map;
-
-if(initialLocation === null){
-  
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        async (pos) => {
-          const lng = pos.coords.longitude;
-          const lat = pos.coords.latitude;
-
-          if (markerRef.current) markerRef.current.remove();
-
-          markerRef.current = new mapboxgl.Marker({ color: "blue" })
-            .setLngLat([lng, lat])
-            .addTo(map);
-
-          map.flyTo({ center: [lng, lat], zoom: 14 });
-
-          const areaName = await fetchAreaName(lat, lng);
-          const location = { lat, lng, areaName };
-
-          if (onLocationSelect) onLocationSelect(location);
-                  
-        },
-      );
-    } else {
-      console.error("Geolocation is not supported by this browser.");
-    }
-}
 
     map.on("click", async (e) => {
       const { lng, lat } = e.lngLat;
@@ -64,49 +35,47 @@ if(initialLocation === null){
         .addTo(map);
 
       const areaName = await fetchAreaName(lat, lng);
-      const location = { lat, lng, areaName };
 
-      if (onLocationSelect) onLocationSelect(location);
+      setSelectedArea({ lat, lng, areaName });
+      onLocationSelect({ lat, lng, areaName });
     });
 
     return () => map.remove();
-  }, []);
+  }, []); 
 
-  // ✅ Handle initialLocation from parent
+
+
+
   useEffect(() => {
-    if (initialLocation && mapRef.current) {
-      const { lat, lng, areaName } = initialLocation;
+    console.log("selected Area", selectedArea)
+    if (!mapRef.current) return;
 
-      if (markerRef.current) markerRef.current.remove();
+    let lat, lng;
 
-      markerRef.current = new window.mapboxgl.Marker({ color: "blue" })
-        .setLngLat([lng, lat])
-        .addTo(mapRef.current);
-
-      mapRef.current.flyTo({ center: [lng, lat], zoom: 14 });
-
-
+    if (selectedArea?.lat && selectedArea?.lng) {
+      lat = selectedArea.lat;
+      lng = selectedArea.lng;
+    } else if (coordinates.lat && coordinates.lng) {
+      lat = coordinates.lat;
+      lng = coordinates.lng;
+    } else {
+      return;
     }
-  }, [initialLocation]);
 
-  const fetchAreaName = async (lat, lon) => {
-    try {
-      const res = await axios.get(
-        "https://hazir-hay-backend.vercel.app/admin/reverse-geocode",
-        { params: { lat, lon } }
-      );
-      return (
-        res.data?.display_name ||
-        res.data.address?.city ||
-        res.data.address?.town ||
-        res.data.address?.village ||
-        res.data.address?.suburb ||
-        "Unknown Area"
-      );
-    } catch {
-      return "Unknown Area";
-    }
-  };
+    if (markerRef.current) markerRef.current.remove();
+
+ 
+    const color = selectedArea ? "red" : "blue";
+
+markerRef.current = new window.mapboxgl.Marker({ color })
+
+      .setLngLat([lng, lat])
+      .addTo(mapRef.current);
+
+    // Fly to location
+    mapRef.current.flyTo({ center: [lng, lat], zoom: 14 });
+  }, [selectedArea, coordinates]);
+  
 
   return (
     <div ref={mapContainerRef} style={{ width: "100%", height: "100%" }} />

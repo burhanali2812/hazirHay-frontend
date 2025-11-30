@@ -9,7 +9,7 @@ import jsPDF from "jspdf";
 import { useAppContext } from "../context/AppContext";
 
 function Cart() {
-  const {cartData,areaName,setCartData,setKey, getNotifications, getCartData} = useAppContext();
+  const {cartData,areaName,setCartData,setKey, getNotifications, getCartData, selectedArea} = useAppContext();
 
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
@@ -83,10 +83,9 @@ function Cart() {
 
     return acc;
   }, []);
-  const saved = JSON.parse(localStorage.getItem("selectedLocation"));
-  console.log("saved", saved);
 
-  const coordinates = [saved?.lat, saved?.lng];
+
+  const coordinates = [selectedArea?.lat, selectedArea?.lng];
 
   const downloadReceiptAsPDF = async () => {
     setLoading(true);
@@ -441,7 +440,7 @@ function Cart() {
         alert(response?.data?.message || "Request sent successfully!");
         setPostOrderModal(true);
         setOrderSummaryModal(false);
-        await getCartData();
+        await clearCart("update");
         await getNotifications();
       }
     } catch (error) {
@@ -462,46 +461,44 @@ function Cart() {
     }
   };
 
-  const clearCart = async (type) => {
-    if (type === "clear") {
-      const result = await Swal.fire({
-        title: "Are you sure?",
-        html: "Are you sure you want to clear the cart?",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#d33",
-        cancelButtonColor: "#3085d6",
-        confirmButtonText: "Yes, clear it!",
-      });
+const clearCart = async (type) => {
+  if (type === "clear") {
+    const result = await Swal.fire({
+      title: "Are you sure?",
+      html: "Are you sure you want to clear the cart?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Yes, clear it!",
+    });
 
-      if (!result.isConfirmed) return;
-    }
+    if (!result.isConfirmed) return;
+  }
 
-    try {
-      const response = await axios.delete(
-        "https://hazir-hay-backend.vercel.app/cart/deleteUserCart",
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-
-      if (response.data.success) {
-        if (type === "clear") {
-          
-          setCartData([]);
-          Swal.fire("Cleared!", "Cart has been cleared.", "success");
-        }
-        setCartData([]);
+  try {
+    const response = await axios.delete(
+      "https://hazir-hay-backend.vercel.app/cart/deleteUserCart",
+      {
+        headers: { Authorization: `Bearer ${token}` },
+         params: { t: Date.now() },
       }
-    } catch (error) {
-      console.error("Error clearing cart:", error);
-      Swal.fire(
-        "Error",
-        "Something went wrong while clearing the cart.",
-        "error"
-      );
+    );
+
+    if (response.data.success) {
+      getCartData();
+      setCartData([]);
+      
+      if (type === "clear") {
+        Swal.fire("Cleared!", "Cart has been cleared.", "success");
+      }
     }
-  };
+  } catch (error) {
+    console.error("Error clearing cart:", error);
+    Swal.fire("Error", "Something went wrong while clearing the cart.", "error");
+  }
+};
+
 
   return (
     <div style={{ paddingBottom: "120px", paddingTop: "70px" }}>
@@ -712,10 +709,10 @@ function Cart() {
                           <p className="text-muted ms-2 mb-0">{user.phone}</p>
                         </div>
                         <p className="small text-muted mt-1">
-                          {saved?.areaName
-                            ? saved?.areaName.length > 58
-                              ? saved?.areaName.slice(0, 58) + "..."
-                              : saved?.areaName
+                          {selectedArea?.areaName
+                            ? selectedArea?.areaName.length > 58
+                              ? selectedArea?.areaName.slice(0, 58) + "..."
+                              : selectedArea?.areaName
                             : "No location found! Please update your location."}
                         </p>
                       </div>
@@ -807,7 +804,7 @@ function Cart() {
 
               {/* FOOTER */}
               <div className="modal-footer border-0 d-flex justify-content-between align-items-center bg-light">
-                {saved?.areaName === "" ? (
+                {selectedArea?.areaName === "" ? (
                   <div className="w-100">
                     <p className="text-danger fw-bold mb-1 d-flex align-items-center">
                       <i className="fa-solid fa-triangle-exclamation me-2"></i>
@@ -920,7 +917,7 @@ function Cart() {
                           Billing Address
                         </h6>
                         <p className="text-muted small mb-0">
-                          {saved?.areaName || "No address available"}
+                          {selectedArea?.areaName || "No address available"}
                         </p>
                       </div>
                     </div>
@@ -983,10 +980,9 @@ function Cart() {
                   <button
                     type="button"
                     className="btn btn-danger px-4 rounded-pill shadow-sm"
-                    onClick={() => {
-                      clearCart("update");
-                      navigate("/admin/user/dashboard");
-                    }}
+                    onClick={() => 
+                      navigate("/admin/user/dashboard")
+                    }
                     disabled={groupedCart.length === 0}
                   >
                     Close
@@ -1132,7 +1128,6 @@ function Cart() {
                   className="btn btn-outline-secondary rounded-pill px-4"
                   onClick={() => {
                     setIsReciept(false);
-                    clearCart("update");
                     setPostOrderModal(false);
                     setOrderSummaryModal(false);
                     navigate("/admin/user/dashboard");

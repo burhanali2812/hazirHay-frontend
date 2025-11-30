@@ -12,14 +12,14 @@ import { services } from "../components/servicesData";
 import { useAppContext } from "../context/AppContext";
 const UserShopRoute = lazy(()=>import("../components/UserShopRoute"))
 function UserDashboard() {
-  const { cartData,setAreaName,setCoordinates,setKey,getCartData,selectedArea, setSelectedArea} = useAppContext();
+  const { cartData,setAreaName,setCoordinates,setKey,getCartData,selectedArea, setSelectedArea, setUserLocations, userLocations, fetchAreaName, getUserLocations} = useAppContext();
   const role = localStorage.getItem("role");
 
   const token = localStorage.getItem("token");
   const [shopAddressModal, setShopAddressModal] = useState(false);
   const [loading, setLoading] = useState(false);
   const [chooseLocationModal, setChooseLocationModal] = useState(false);
-  const [userLocations, setUserLocations] = useState([]);
+
   const [saveLocationsModal, setSaveLocationsModal] = useState(false);
   const [filterModal, setFilterModal] = useState(false);
   const [subCatModal, setSubCatModal] = useState(false);
@@ -424,43 +424,7 @@ setFilterModal(false)
 
 };
 
-
-
-  const getUserLocations = async () => {
-    try {
-      const response = await axios.get(
-        `https://hazir-hay-backend.vercel.app/users/getUserById/${user._id}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-          params: { t: Date.now() }, // to avoid cache
-        }
-      );
-
-      if (response.data.success) {
-        const locations = response.data.data.location || [];
-        setUserLocations(locations);
-
-        const defaultLocation = locations.find((loc) => loc.isDefault);
-        if (defaultLocation) {
-          console.log("Default Location:", defaultLocation.area);
-          setSelectedLocation(defaultLocation);
-        }
-      } else {
-        console.error("Failed to fetch user locations");
-        setUserLocations([]);
-      }
-    } catch (error) {
-      console.error("Error fetching user locations:", error.message);
-      setUserLocations([]);
-    }
-  };
-
-  useEffect(() => {
-    getUserLocations();
-  }, []);
   const setSelectedLocation = (location) => {
-    setAreaName(location.area);
-    setLocationName(location.name);
     setSelectedArea({
       lat: location.coordinates[0],
       lng: location.coordinates[1],
@@ -499,27 +463,6 @@ setFilterModal(false)
     }
   };
 
-  const fetchAreaName = async (lat, lon) => {
-    try {
-      const res = await axios.get(
-        "https://hazir-hay-backend.vercel.app/admin/reverse-geocode",
-        { params: { lat, lon } }
-      );
-
-      return (
-        res.data?.display_name ||
-        res.data?.address?.city ||
-        res.data?.address?.town ||
-        res.data?.address?.village ||
-        res.data?.address?.suburb ||
-        "Unknown Area"
-      );
-      
-    } catch (error) {
-      console.error("Error fetching area name:", error);
-      return "Unknown Area";
-    }
-  };
 
   const handleSaveLocation = async () => {
     setLoading(true);
