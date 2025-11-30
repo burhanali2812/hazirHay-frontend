@@ -55,7 +55,7 @@ export default function MyMap({ onLocationSelect }) {
     if (selectedArea?.lat && selectedArea?.lng) {
       lat = selectedArea.lat;
       lng = selectedArea.lng;
-    } else if (coordinates.lat && coordinates.lng) {
+    } else if (coordinates?.lat && coordinates?.lng) {
       lat = coordinates.lat;
       lng = coordinates.lng;
     } else {

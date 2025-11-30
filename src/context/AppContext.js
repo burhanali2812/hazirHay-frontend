@@ -302,6 +302,7 @@ export const AppProvider = ({ children }) => {
         setMethod,
         setUserLocations,
         userLocations,
+        setCartData,
 
         getShopData,
         getAllUser,

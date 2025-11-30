@@ -5,6 +5,7 @@ import cart from "../images/cart.png";
 import Swal from "sweetalert2";
 import stamp from "../images/stamp.png";
 import html2canvas from "html2canvas";
+import { Toaster, toast } from "react-hot-toast";
 import jsPDF from "jspdf";
 import { useAppContext } from "../context/AppContext";
 
@@ -68,7 +69,7 @@ function Cart() {
     document.body.removeChild(textarea);
   };
 
-  const groupedCart = (cartData?.items || []).reduce((acc, item) => {
+  const groupedCart = (cartData || []).reduce((acc, item) => {
     const shop = acc.find((s) => s.shopId === item.shopId);
 
     if (shop) {
@@ -95,12 +96,12 @@ function Cart() {
 
       // High-resolution canvas
       const canvas = await html2canvas(element, {
-        scale: 10, // higher scale = sharper
+        scale: 5, // higher scale = sharper
         useCORS: true,
         logging: false,
       });
 
-      const imgData = canvas.toDataURL("image/png", 1.0); // best quality
+      const imgData = canvas.toDataURL("image/png", 1.0); 
       const pdf = new jsPDF("p", "mm", "a4");
 
       const pageWidth = pdf.internal.pageSize.getWidth();
@@ -127,11 +128,13 @@ function Cart() {
       pdf.save(`Order-${checkoutId}.pdf`);
 
       setLoading(false);
-      alert("✅ PDF downloaded successfully!");
+      toast.success(" PDF downloaded successfully!");
+      clearCart("update");
+      navigate("/admin/user/dashboard");
     } catch (error) {
       console.error("Error generating PDF:", error);
       setLoading(false);
-      alert("❌ Failed to download PDF. Please try again.");
+      toast.error(" Failed to download PDF. Please try again.");
     }
   };
 
@@ -139,6 +142,7 @@ function Cart() {
     (acc, cart) => acc + cart.items.reduce((sum, item) => sum + item.price, 0),
     0
   );
+  console.log("groupedcart1", groupedCart)
   const getShopWithShopkeppers = async () => {
     try {
       const response = await axios.get(
@@ -173,7 +177,7 @@ function Cart() {
       );
 
       if (response.data.success) {
-        alert("Item removed successfully!");
+        toast.success("Item removed successfully!");
         await getCartData();
       }
     } catch (error) {
@@ -197,7 +201,7 @@ function Cart() {
 
     if (!res.data.routes || res.data.routes.length === 0) {
       console.warn("No route found for:", shopCoords);
-      alert("No route found for:", shopCoords);
+      toast.error("No route found for: " + shopCoords);
 
       return { distance: null, duration: null };
     }
@@ -262,7 +266,7 @@ function Cart() {
         setOrderSummaryModal(true);
         return;
       }
-      alert(" Failed to fetch distances. Please try again.");
+      toast.error(" Failed to fetch distances. Please try again.");
     } catch (err) {
       console.error("Error in handleNext:", err);
     } finally {
@@ -400,7 +404,7 @@ function Cart() {
     const newcheckoutId = generateCheckoutId();
     setCheckoutId(newcheckoutId);
 
-    const requests = cartData?.items?.map((shop) => ({
+    const requests = cartData?.map((shop) => ({
       checkoutId: newcheckoutId,
       shopId: shop.shopId,
       userId: user?._id,
@@ -437,10 +441,10 @@ function Cart() {
 
         await sendNotificationToUser(checkoutId || newcheckoutId);
         setLoading(false);
-        alert(response?.data?.message || "Request sent successfully!");
+        toast.success(response?.data?.message || "Request sent successfully!");
         setPostOrderModal(true);
         setOrderSummaryModal(false);
-        await clearCart("update");
+        await getCartData();
         await getNotifications();
       }
     } catch (error) {
@@ -448,15 +452,15 @@ function Cart() {
       setLoading(false);
 
       if (error.response) {
-        alert(
+        toast.error(
           `Failed: ${
             error.response.data?.message || "Server returned an error"
           }`
         );
       } else if (error.request) {
-        alert("Network error. Please check your internet connection.");
+        toast.error("Network error. Please check your internet connection.");
       } else {
-        alert("Unexpected error. Please try again.");
+        toast.error("Unexpected error. Please try again.");
       }
     }
   };
@@ -490,18 +494,19 @@ const clearCart = async (type) => {
       setCartData([]);
       
       if (type === "clear") {
-        Swal.fire("Cleared!", "Cart has been cleared.", "success");
+        toast.success("Cleared! Cart has been cleared.");
       }
     }
   } catch (error) {
     console.error("Error clearing cart:", error);
-    Swal.fire("Error", "Something went wrong while clearing the cart.", "error");
+    toast.error("Something went wrong while clearing the cart.");
   }
 };
 
 
   return (
     <div style={{ paddingBottom: "120px", paddingTop: "70px" }}>
+      <Toaster/>
       <div>
         <div>
           <div>
@@ -643,7 +648,7 @@ const clearCart = async (type) => {
                   </p>
                   <p className="mb-0 text-muted">
                     Total Items:{" "}
-                    <b className="text-dark">{cartData?.items?.length}</b>
+                    <b className="text-dark">{cartData?.length}</b>
                   </p>
                 </div>
 
@@ -981,7 +986,10 @@ const clearCart = async (type) => {
                     type="button"
                     className="btn btn-danger px-4 rounded-pill shadow-sm"
                     onClick={() => 
+                       {
+                            clearCart("update");
                       navigate("/admin/user/dashboard")
+                       }
                     }
                     disabled={groupedCart.length === 0}
                   >
@@ -991,6 +999,7 @@ const clearCart = async (type) => {
                     type="button"
                     className="btn btn-success px-4 rounded-pill shadow-sm"
                     onClick={() => {
+                    
                       setIsReciept(true);
                       setCopied(false);
                     }}
@@ -1127,6 +1136,7 @@ const clearCart = async (type) => {
                   type="button"
                   className="btn btn-outline-secondary rounded-pill px-4"
                   onClick={() => {
+                       clearCart("update");
                     setIsReciept(false);
                     setPostOrderModal(false);
                     setOrderSummaryModal(false);

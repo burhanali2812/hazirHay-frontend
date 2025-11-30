@@ -6,6 +6,7 @@ import { lazy,Suspense } from "react";
 import { useNavigate } from "react-router-dom";
 import notFound from "../videos/notFound.mp4";
 import Swal from "sweetalert2";
+import { Toaster, toast } from "react-hot-toast";
 import MyMap from "../components/MyMap";
 
 import { services } from "../components/servicesData";
@@ -108,9 +109,9 @@ const [allShopDistance, setAllShopDistance] = useState([]);
       const result = await Swal.fire({
         title: "This provider is offline",
         html: `<p class="mb-1">
-             The shop <strong>${
+             The shop <p>${
                shop.shopName || selectedShopWithShopkepper?.shop?.shopName
-             }</strong> is currently not live.
+             }</p> is currently not live.
            </p>
            <p class="text-muted">
              Don’t worry— your request will be sent, and when the provider comes online, 
@@ -146,7 +147,7 @@ const [allShopDistance, setAllShopDistance] = useState([]);
       );
 
       if (!selectedService) {
-        alert("Service not found in this shop");
+        toast.error("Service not found in this shop");
         setAddCartLoading(null);
         return;
       }
@@ -166,14 +167,14 @@ const [allShopDistance, setAllShopDistance] = useState([]);
       price: finalPrice,
     };
 
-    const exists = cartData?.items?.some(
+    const exists = cartData?.some(
       (item) =>
         item.shopId === payload.shopId &&
         item.subCategory === payload.subCategory
     );
 
     if (exists) {
-      alert("This item is already in the cart");
+      toast.error("This item is already in the cart");
       setAddCartLoading(null);
       return;
     }
@@ -191,14 +192,14 @@ const [allShopDistance, setAllShopDistance] = useState([]);
         console.log("Cart saved in DB:", response.data);
         setAddCartLoading(null);
         await getCartData();
-        alert("Item added to cart");
+        toast.success("Item added to cart");
       }
     } catch (error) {
       console.error(
         "Error saving to cart:",
         error.response?.data || error.message
       );
-      alert("Failed to save cart item. Please try again.");
+      toast.error("Failed to save cart item. Please try again.");
       setAddCartLoading(null);
     }
   };
@@ -298,17 +299,17 @@ const [allShopDistance, setAllShopDistance] = useState([]);
     setLoading(true);
 
     if (selectedCategory === null) {
-      alert("Please select a category");
+      toast.error("Please select a category");
       setLoading(false);
       return;
     }
     if (selectedSubCategory === null) {
-      alert("Please select a subCategory");
+      toast.error("Please select a subCategory");
       setLoading(false);
       return;
     }
     if (selectedArea === null) {
-      alert("Please select a Location");
+      toast.error("Please select a Location");
       setLoading(false);
       return;
     }
@@ -330,7 +331,7 @@ const [allShopDistance, setAllShopDistance] = useState([]);
         setLoading(false);
         console.log("Providers found:", response.data.data);
         setAvailableServices(response.data.data || []);
-        alert("Service Providers Found");
+        toast.success("Service Providers Found");
         setSubCatModal(true);
       } else {
         setLoading(false);
@@ -455,11 +456,11 @@ setFilterModal(false)
         },
         (error) => {
           console.error("Error getting location:", error);
-          alert("Unable to get your location. Please allow location access.");
+          toast.error("Unable to get your location. Please allow location access.");
         }
       );
     } else {
-      alert("Geolocation is not supported by your browser.");
+      toast.error("Geolocation is not supported by your browser.");
     }
   };
 
@@ -467,7 +468,7 @@ setFilterModal(false)
   const handleSaveLocation = async () => {
     setLoading(true);
     if (locationName === "") {
-      alert("Location Name Cannot be Empty");
+      toast.error("Location Name Cannot be Empty");
       return;
     }
 
@@ -488,7 +489,7 @@ setFilterModal(false)
       );
       if (response.data.success) {
         getUserLocations();
-        alert("Location saved successfully!");
+        toast.success("Location saved successfully!");
         setLocationName("");
         setCoordinates([]);
         setAreaName("");
@@ -496,12 +497,12 @@ setFilterModal(false)
 
         setSaveLocationsModal(false);
       } else {
-        alert(response.data.message || "Failed to save location.");
+        toast.error(response.data.message || "Failed to save location.");
         setLoading(false);
       }
     } catch (error) {
       console.error("Error saving location:", error);
-      alert("Something went wrong while saving location.");
+      toast.error("Something went wrong while saving location.");
       setLoading(false);
     } finally {
       setLoading(false);
@@ -521,18 +522,18 @@ setFilterModal(false)
       );
 
       if (response.data.success) {
-        alert("Location deleted successfully!");
+        toast.success("Location deleted successfully!");
         setLoadingDelandSet(false);
         setUserLocations((prev) =>
           prev.filter((loc) => loc._id !== location._id)
         );
       } else {
-        alert(response.data.message || "Failed to delete location.");
+        toast.error(response.data.message || "Failed to delete location.");
         setLoadingDelandSet(false);
       }
     } catch (error) {
       console.error("Error deleting location:", error);
-      alert("Server error. Please try again later.");
+      toast.error("Server error. Please try again later.");
       setLoadingDelandSet(false);
     }
   };
@@ -1186,7 +1187,7 @@ setFilterModal(false)
                     }}
                   ></i>
                   <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                    {cartData?.items?.length || 0}
+                    {cartData?.length || 0}
                     <span className="visually-hidden">unread messages</span>
                   </span>
                 </div>
@@ -1468,7 +1469,7 @@ setFilterModal(false)
                     }}
                   ></i>
                   <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                    {cartData?.items?.length || 0}
+                    {cartData?.length || 0}
                     <span className="visually-hidden">unread messages</span>
                   </span>
                 </div>
@@ -1928,7 +1929,7 @@ setFilterModal(false)
                   <button
                     className="btn btn-success w-100 mt-3"
                     onClick={() => {
-                      alert(
+                      toast.success(
                         "Request Send To Admin for",
                         selectedCategory,
                         "-->",

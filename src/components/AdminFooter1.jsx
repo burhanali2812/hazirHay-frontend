@@ -293,7 +293,7 @@ function AdminFooter() {
                     <div className="position-relative d-inline-block">
                       <i className={item.icon}></i>
                       <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                        {cartData?.items?.length || 0}
+                        {cartData?.length || 0}
                         <span className="visually-hidden">unread messages</span>
                       </span>
                     </div>
