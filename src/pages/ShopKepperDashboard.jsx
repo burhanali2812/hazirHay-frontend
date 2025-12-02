@@ -132,27 +132,33 @@ function ShopKepperDashboard() {
 
         setOrders(orders);
 
-     const earning = orders
+const earning = orders
   .filter(order => order.status === "completed")
   .reduce((acc, order) => {
-    const checkoutId = order.checkoutId;
+    const userId = order?.userId?._id;
+    const workerId = order?.orderAssignment?.workerId;
 
-    // Add service charges ONCE per checkoutId
-    if (!acc.addedCheckoutIds.has(checkoutId)) {
-      const serviceCharge =
-        (order.serviceCharges?.rate || 0) * (order.serviceCharges?.distance || 0);
+    // Unique group key = user + worker
+    const groupKey = `${userId}-${workerId}`;
 
-      acc.total += serviceCharge;
-      acc.addedCheckoutIds.add(checkoutId);
+    // Add service charges ONCE per (user + worker)
+    if (!acc.addedGroups.has(groupKey)) {
+      const rate = order.serviceCharges?.rate || 0;
+      const distance = order.serviceCharges?.distance || 0;
+
+      acc.total += rate * distance;
+      acc.addedGroups.add(groupKey);
     }
 
-    // Add cost ALWAYS for every completed order
+    // Always add order cost
     acc.total += (order.cost || 0);
 
     return acc;
-  }, { total: 0, addedCheckoutIds: new Set() }).total;
+  }, { total: 0, addedGroups: new Set() }).total;
 
-setTotalOrdersEarnings(earning?.toFixed(0));
+setTotalOrdersEarnings(earning.toFixed(0));
+
+
 
 
         setPendingOrders(orders.filter((o) => o.status === "pending"));

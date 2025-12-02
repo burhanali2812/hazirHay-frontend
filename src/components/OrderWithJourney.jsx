@@ -7,7 +7,9 @@ import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import successAudio from "../sounds/success.mp3";
 import Swal from "sweetalert2";
 import { useCheckBlockedStatus } from "./useCheckBlockedStatus";
-function OrderWithJourney({ setStausUpdate }) {
+import { useAppContext } from "../context/AppContext";
+function OrderWithJourney() {
+  const { getShopKepperWorkers } = useAppContext();
   const user = JSON.parse(localStorage.getItem("user"));
   const [routeInfo, setRouteInfo] = useState(null);
   const [shopKepperCords, setShopKepperCords] = useState([]);
@@ -17,8 +19,9 @@ function OrderWithJourney({ setStausUpdate }) {
   const [cancelLoading, setCalcelLoading] = useState(false);
   const [isContentShow, setIsContentShow] = useState(true);
   const role = localStorage.getItem("role");
+  const tempRole = localStorage.getItem("tempRole");
   useEffect(() => {
-    if (role !== "worker") {
+    if (role !== "worker" && tempRole !== "ShopKepperWithWorkerAccess") {
       navigate("/unauthorized/user", { replace: true });
     }
   }, [role]);
@@ -121,6 +124,7 @@ function OrderWithJourney({ setStausUpdate }) {
         await postTransaction();
         alert(res.data.message);
         setOrderCompleteModal(true);
+        getShopKepperWorkers();
       }
     } catch (error) {
       setLoading(false);
@@ -169,6 +173,7 @@ function OrderWithJourney({ setStausUpdate }) {
         if (res.data.warning) {
           setCalcelLoading(false);
           alert(res.data.message);
+          getShopKepperWorkers();
           Swal.fire({
             title: "Cancelled!",
             text: "Orders have been cancelled successfully.",

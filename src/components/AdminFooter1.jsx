@@ -1,5 +1,5 @@
 import axios from "axios";
-import React, { useEffect, useState } from "react";
+import React, { act, useEffect, useState } from "react";
 import { useNavigate, Outlet } from "react-router-dom";
 import "./adminFooter.css";
 import { useAppContext } from "../context/AppContext";
@@ -196,7 +196,7 @@ function AdminFooter() {
         key: "switch",
         icon: "fa-solid fa-shuffle",
         label: "Worker Mode",
-        path: "/admin/shopKepper/transactions",
+        path: "/worker/dashboard",
       },
 
       {
@@ -232,6 +232,8 @@ function AdminFooter() {
   // Handle navigation or action
   const handleClick = (actionOrPath) => {
     console.log("key fro footer", pageKey ? pageKey : "loading....");
+    
+ 
 
     if (typeof actionOrPath === "string") {
       navigate(actionOrPath);
@@ -252,7 +254,7 @@ function AdminFooter() {
     <>
      <Toaster />
       {/* Bottom Navigation */}
-      {role === "worker" ? (
+      {role === "worker" || (role === "shopKepper" && localStorage.getItem("tempRole") === "ShopKepperWithWorkerAccess") ? (
         ""
       ) : (
         <div
@@ -424,6 +426,9 @@ function AdminFooter() {
                         cursor: "pointer",
                       }}
                       onClick={() => {
+                        if (item.path === "/worker/dashboard") {
+                          localStorage.setItem("tempRole", "ShopKepperWithWorkerAccess");
+                        }
                         navigate(item.path);
                         setShowOffcanvas(false);
                       }}

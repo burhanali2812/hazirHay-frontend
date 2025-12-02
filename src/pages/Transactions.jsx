@@ -136,7 +136,7 @@ const Transactions = () => {
                     flexShrink: 0,
                   }}
                 >
-                  {transaction.workerId?.name?.slice(0, 1).toUpperCase() || "W"}
+                  {transaction.workerId?.name?.slice(0, 1).toUpperCase() || "M"}
                 </div>
                 <div>
                   <div className="d-flex align-items-center mb-1">
@@ -226,13 +226,13 @@ const Transactions = () => {
                             }}
                           >
                             {selectedTransaction.workerId?.name?.[0]?.toUpperCase() ||
-                              "W"}
+                              "M"}
                           </div>
                           <p
                             className="fw-semibold mb-1 text-dark"
                             style={{ fontSize: "14px" }}
                           >
-                            {selectedTransaction.workerId?.name || "Unknown"}
+                            {selectedTransaction.workerId?.name || "My Self"}
                           </p>
                           <span className="badge bg-primary text-light mb-2 small">
                             Worker

@@ -2,8 +2,10 @@ import React, { useState, useEffect } from "react";
 import imageCompression from "browser-image-compression";
 import axios from "axios";
 import { useCheckBlockedStatus } from "../components/useCheckBlockedStatus";
+import { useAppContext } from "../context/AppContext";
 import { useNavigate } from "react-router-dom";
-function WorkerSignup({ setUpdateAppjs }) {
+function WorkerSignup() {
+  const { getShopKepperWorkers } = useAppContext();
   const [profilePicture, setProfilePicture] = useState(null);
   const navigate = useNavigate();
     const user = JSON.parse(localStorage.getItem("user"));
@@ -66,7 +68,7 @@ function WorkerSignup({ setUpdateAppjs }) {
       );
 
       if (res.data.success) {
-        setUpdateAppjs(true);
+        getShopKepperWorkers();
         alert(res.data.message || "Worker created successfully!");
         setName("");
         setPhone("");

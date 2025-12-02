@@ -1,7 +1,9 @@
 import axios from "axios";
 import React, { use, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAppContext } from "../context/AppContext";
 function WorkerDashboard() {
+  const {getShopKepperWorkers, fetchAreaName} = useAppContext();
   const user = JSON.parse(localStorage.getItem("user"));
   const token = localStorage.getItem("token");
   const [distances, setDistances] = useState({});
@@ -17,8 +19,10 @@ function WorkerDashboard() {
   const [progressUserId, setProgressUserId] = useState(null);
   const [isDataLoading, setIsDataLoading] = useState(false);
   const role = localStorage.getItem("role");
+  const tempRole = localStorage.getItem("tempRole");
   useEffect(() => {
-    if (role !== "worker" || role !== "shopKepper") {
+    console.log("tempRole", tempRole);
+    if (role !== "worker" && tempRole !== "ShopKepperWithWorkerAccess") {
       navigate("/unauthorized/user", { replace: true });
     }
   }, [role]);
@@ -29,6 +33,7 @@ function WorkerDashboard() {
   };
   const backToShopkeepr = () => {
     navigate("/admin/shopKepper/dashboard");
+    localStorage.removeItem("tempRole");
   };
 
   const handlegetAssignedOrder = async () => {
@@ -134,26 +139,7 @@ function WorkerDashboard() {
     }
   }
 
-  const fetchAreaName = async (lat, lon) => {
-    try {
-      const res = await axios.get(
-        "https://hazir-hay-backend.vercel.app/admin/reverse-geocode",
-        { params: { lat, lon } }
-      );
 
-      return (
-        res.data?.display_name ||
-        res.data?.address?.city ||
-        res.data?.address?.town ||
-        res.data?.address?.village ||
-        res.data?.address?.suburb ||
-        "Unknown Area"
-      );
-    } catch (error) {
-      console.error("Error fetching area name:", error);
-      return "Unknown Area";
-    }
-  };
   useEffect(() => {
     const fetchAllDistances = async () => {
       if (!currentLocation || assignedOrders.length === 0) return;
@@ -217,6 +203,8 @@ function WorkerDashboard() {
 
       if (res.data.success) {
         alert(res.data.message);
+        getShopKepperWorkers();
+        
       }
     } catch (error) {
       console.error("Error completing orders:", error);
@@ -464,7 +452,7 @@ function WorkerDashboard() {
             const user = group.user;
             const firstOrder = group.orders[0];
             const area =
-              firstOrder?.location?.[0]?.area?.split(",")[0] || "Unknown Area";
+              firstOrder?.location?.area?.split(",")[0] || "Unknown Area";
             const totalOrders = group?.orders?.length;
             const totalCost = group?.orders?.reduce(
               (sum, req) => sum + (req.cost || 0),
@@ -525,12 +513,7 @@ function WorkerDashboard() {
                   <div className="d-flex align-items-center mb-2">
                     <i className="fa-solid fa-location-dot text-danger me-2"></i>
                     <span className="fw-semibold">{area}</span>{" "}
-                    <p
-                      className="text-primary fw-bold"
-                      onClick={() => setShowMapModal(true)}
-                    >
-                      View on map
-                    </p>
+                   
                   </div>
 
                   <div className="d-flex align-items-center justify-content-between flex-wrap">
