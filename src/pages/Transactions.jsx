@@ -70,6 +70,10 @@ const Transactions = () => {
     setSelectedTransaction(transaction);
     setTransactionModal(true);
   };
+  const totalAmount = transactions.reduce(
+    (sum, t) => sum + (t.totalPayable || 0),
+    0
+  );
   return (
     <div className="container my-2">
       <div
@@ -107,6 +111,13 @@ const Transactions = () => {
           }
         </button>
       </div>
+      <div className="mb-3">
+        <h6 className="fw-bold d-flex justify-content-between align-items-center mx-3">
+          Total Earnings:{" "}
+          <span className="text-success">Rs. {totalAmount.toFixed(0)}/-</span>
+        </h6>
+      </div>
+
 
       {transactions?.length === 0 ? (
         <p className="text-muted">No transactions found.</p>

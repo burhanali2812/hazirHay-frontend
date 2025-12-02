@@ -486,6 +486,27 @@ function LocalShopSignup() {
             />
           </div>
         </div>
+         <div className="d-flex align-items-center my-3">
+          <hr
+            className="flex-grow-1"
+            style={{
+              borderTop: "3px solid black",
+              borderRadius: "5px",
+              margin: 0,
+            }}
+          />
+          <span className="fw-bold mx-3" style={{ color: "#ff6600" }}>
+            OR
+          </span>
+          <hr
+            className="flex-grow-1"
+            style={{
+              borderTop: "3px solid black",
+              borderRadius: "5px",
+              margin: 0,
+            }}
+          />
+        </div>
         <div>
           <button
             type="button"

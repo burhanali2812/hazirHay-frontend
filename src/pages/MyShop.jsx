@@ -6,6 +6,8 @@ import { useCheckBlockedStatus } from "../components/useCheckBlockedStatus";
 import axios from "axios";
 import imageCompression from "browser-image-compression";
 import toast from "react-hot-toast";
+import { lazy, Suspense } from "react";
+const MyMap = lazy(() => import("../components/MyMap"));
 
 function MyShop() {
   const { setKey, shopKepperWorkers, shop, getShopData } = useAppContext();
@@ -25,6 +27,9 @@ function MyShop() {
   const [currentLocation, setCurrentLOcation] = useState("");
   const [page, setPage] = useState(0);
   const token = localStorage.getItem("token");
+    const [mapModal, setMapModal] = useState(false);
+  
+    const [selectedArea, setSelectedArea] = useState(null);
 
   useCheckBlockedStatus(token)
  useEffect(()=>{
@@ -38,6 +43,7 @@ function MyShop() {
 
   const navigate = useNavigate();
   useEffect(() => {
+    setSelectedArea({lat: shop?.location?.coordinates[0], lng: shop?.location?.coordinates[1], areaName: shop?.location?.area})
     getShopData();
     setKey("shop");
   }, []);
@@ -198,6 +204,7 @@ function MyShop() {
       if (res.data.success) {
         await getShopData();
         setUpdatingLoading(false);
+        setISEditCurrentLocation(false);
         setIsEditDataModalOpen(false);
         toast.success(res.data.message);
       }
@@ -206,6 +213,15 @@ function MyShop() {
       console.log(error);
       toast.error(error);
     }
+  };
+  const handleSetLocation = () => {
+    if (selectedArea) {
+      const { lat, lng, areaName } = selectedArea;
+      setPosition([lat, lng]);
+      setAreaName(areaName);
+      setCurrentLOcation(`${lat}, ${lng}, ${areaName}`);
+    }
+    setMapModal(false);
   };
 
   return (
@@ -622,6 +638,43 @@ function MyShop() {
                         <span className="text-danger">*</span>
                       </label>
                     </div>
+                    {
+                      isEditCurrentLocation && (
+                        <>
+                           <div className="d-flex align-items-center my-3">
+          <hr
+            className="flex-grow-1"
+            style={{
+              borderTop: "3px solid black",
+              borderRadius: "5px",
+              margin: 0,
+            }}
+          />
+          <span className="fw-bold mx-3" style={{ color: "#ff6600" }}>
+            OR
+          </span>
+          <hr
+            className="flex-grow-1"
+            style={{
+              borderTop: "3px solid black",
+              borderRadius: "5px",
+              margin: 0,
+            }}
+          />
+        </div>
+        <div>
+          <button
+            type="button"
+            className="btn btn-primary mb-3 w-100"
+            onClick={() => setMapModal(true)}
+          >
+            <i class="fa-solid fa-map-location-dot me-2"></i>
+            Select Location on Map
+          </button>
+        </div>
+                        </>
+                      )
+                    }
                     {!isEditCurrentLocation && (
                       <div className="mt-3">
                         <div
@@ -726,6 +779,65 @@ function MyShop() {
           </div>
         </div>
       )}
+
+         {mapModal && (
+              <div
+                className="modal fade show d-block "
+                tabIndex="-1"
+                style={{
+                  backgroundColor: "rgba(0, 0, 0, 0.6)",
+                  backdropFilter: "blur(2px)",
+                }}
+              >
+                <div className="modal-dialog modal-sm modal-dialog-centered">
+                  <div
+                    className="modal-content shadow"
+                    style={{ borderRadius: "10px" }}
+                  >
+                    {/* Header */}
+                    <div
+                      className="modal-header text-light py-2 px-3"
+                      style={{ backgroundColor: "#1e1e2f" }}
+                    >
+                      <h6 className="modal-title m-0">Select Your Location</h6>
+                    </div>
+      
+                    {/* Body */}
+                    <div className="modal-body">
+                       <div className="form-floating mb-3">
+                <textarea
+                  className="form-control"
+                  id="area"
+                  name="area"
+                  placeholder="Area"
+                  value={selectedArea?.areaName || currentLocation || shop?.location?.area}
+                  style={{ height: "110px" }}
+                  disabled={true}
+                  required
+                />
+                <label htmlFor="area">Current Location (Auto Fetched)</label>
+              </div>
+                        <div style={{ height: "420px", width: "100%" }} >
+                                <Suspense fallback={<h2>Loading...</h2>}>
+                                  <MyMap
+                                  onLocationSelect={setSelectedArea}
+                                  initialLocation={selectedArea ? selectedArea : null}
+                                />
+                                </Suspense>
+                              </div>
+                      
+      
+                      <button
+                        className="btn btn-primary w-100  mt-3"
+                        onClick={handleSetLocation}
+                      >
+                         Save Location
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
     </div>
   );
 }
