@@ -63,7 +63,7 @@ function getStraightLineDistance(lat1, lon1, lat2, lon2) {
   return R * c; 
 }
 function addVariation(distance) {
-  const variationPercent = 30 / 100; 
+  const variationPercent = 40 / 100; 
   return distance + distance * variationPercent;
 }
 
@@ -75,7 +75,7 @@ function calculateApproxDistance(shopCoords) {
 
   const approxRoadDistance = addVariation(straightLine);
 
-  return approxRoadDistance.toFixed(2); // return km
+  return approxRoadDistance.toFixed(2); 
 }
   const openGoogleMaps = (shopCoords) => {
     const url = `https://www.google.com/maps/dir/?api=1&origin=${selectedArea?.lat},${selectedArea?.lng}&destination=${shopCoords[1]},${shopCoords[0]}&travelmode=driving`;
@@ -288,7 +288,7 @@ function calculateApproxDistance(shopCoords) {
               borderRadius: "10px",
             }}
           >
-            <i className="fa-brands fa-whatsapp text-success fa-lg"></i>
+            <i className="fa-brands fa-whatsapp text-success fa-lg"></i> 
           </a>
 
           {/* LOCATION BUTTON */}

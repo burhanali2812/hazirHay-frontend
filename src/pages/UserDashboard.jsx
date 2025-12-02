@@ -13,7 +13,7 @@ import { services } from "../components/servicesData";
 import { useAppContext } from "../context/AppContext";
 const UserShopRoute = lazy(()=>import("../components/UserShopRoute"))
 function UserDashboard() {
-  const { cartData,setAreaName,setCoordinates,setKey,getCartData,selectedArea, setSelectedArea, setUserLocations, userLocations, fetchAreaName, getUserLocations} = useAppContext();
+  const { cartData,setAreaName,setCoordinates,coordinates,setKey,getCartData,selectedArea, setSelectedArea, setUserLocations, userLocations, fetchAreaName, getUserLocations} = useAppContext();
   const role = localStorage.getItem("role");
 
   const token = localStorage.getItem("token");
@@ -90,7 +90,7 @@ const [allShopDistance, setAllShopDistance] = useState([]);
     setKey("home");
     setTimeout(() => {
       setIsDataLoading(false)
-    }, 2000);
+    }, 2700);
   }, []);
 
   const handleOpenFilter = (e, filterType) => {
@@ -354,16 +354,13 @@ const [allShopDistance, setAllShopDistance] = useState([]);
   };
 
 const applyFilters = () => {
-  if(copyShopData.length === 0){
-    setCopyShopData(shopData)
-  }
-  console.log("copy", copyShopData);
+
   
   
   setIsFilter(false)
 
 if (filters.distance === "Low-to-High" ) {
-  const data = copyShopData.sort((a, b) => 
+  const data = shopData.sort((a, b) => 
     Number(a.distance) - Number(b.distance)
   );
   setIsFilter(true)
@@ -371,7 +368,7 @@ if (filters.distance === "Low-to-High" ) {
   setFilterServices(data);
 }
 if (filters.distance === "High-to-Low" ) {
-  const data = copyShopData.sort((a, b) => 
+  const data = shopData.sort((a, b) => 
     Number(b.distance) - Number(a.distance)
   );
   setIsFilter(true)
@@ -387,7 +384,7 @@ if (filters.price === "Low-to-High") {
     return Math.min.apply(null, prices);
   }
 
-  const sorted = copyShopData.slice().sort((a, b) => {
+  const sorted = shopData.slice().sort((a, b) => {
     return getMinPrice(a) - getMinPrice(b);
   });
 
@@ -399,13 +396,13 @@ if (filters.price === "Low-to-High") {
 
 
 if(filters.status === "Online" ){
-    const online  = copyShopData?.filter((shop)=> shop.isLive === true)
+    const online  = shopData?.filter((shop)=> shop.isLive === true)
         setIsFilter(true)
     setFilterServices(online)
 
 }
 if(filters.status === "Offline" ){
-    const offline  = copyShopData?.filter((shop)=> shop.isLive === false)
+    const offline  = shopData?.filter((shop)=> shop.isLive === false)
         setIsFilter(true)
     setFilterServices(offline)
 
@@ -435,32 +432,24 @@ setFilterModal(false)
 
   const chooseCurrentLocation = async () => {
     setLoadingDelandSet(true);
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        async (pos) => {
-          const lat = pos.coords.latitude;
-          const lng = pos.coords.longitude;
+    if (coordinates !== null) {
+ 
 
-          // Get area name using reverse geocode API
-          const areaName = await fetchAreaName(lat, lng);
+          const areaName = await fetchAreaName(coordinates?.lat, coordinates?.lng);
           setAreaName(areaName);
 
           const location = {
             area: areaName,
             name: "Current Location",
-            coordinates: [lat, lng],
+            coordinates: [coordinates?.lat, coordinates?.lng],
           };
           setSelectedLocation(location);
           setLoadingDelandSet(false);
           setChooseLocationModal(false);
-        },
-        (error) => {
-          console.error("Error getting location:", error);
-          toast.error("Unable to get your location. Please allow location access.");
-        }
-      );
+     
+        
     } else {
-      toast.error("Geolocation is not supported by your browser.");
+      toast.error("Coordinates not found. Please allow location access.");
     }
   };
 
@@ -517,7 +506,7 @@ setFilterModal(false)
         `https://hazir-hay-backend.vercel.app/users/deleteUserLocation/${location._id}`,
         {
           headers: { Authorization: `Bearer ${token}` },
-          params: { t: Date.now() }, // Prevent caching
+          params: { t: Date.now() },
         }
       );
 
@@ -563,8 +552,8 @@ setFilterModal(false)
     }
 
     return {
-      distance: (route.distance / 1000).toFixed(2), // km
-      duration: (route.duration / 60).toFixed(0), // minutes
+      distance: (route.distance / 1000).toFixed(2), 
+      duration: (route.duration / 60).toFixed(0), 
     };
   }
 
