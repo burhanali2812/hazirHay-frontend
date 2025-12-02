@@ -1,14 +1,16 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import {toast, Toaster} from "react-hot-toast";
+import { toast, Toaster } from "react-hot-toast";
 import imageCompression from "browser-image-compression";
+import { lazy, Suspense } from "react";
+const MyMap = lazy(() => import("../components/MyMap"));
 function LocalShopSignup() {
   const [formData, setFormData] = useState({
     shopName: "",
     position: "",
     shopAddress: "",
-    description : "",
+    description: "",
     email: "",
     password: "",
     phone: "",
@@ -23,46 +25,58 @@ function LocalShopSignup() {
   const [loading, setLoading] = useState(false);
   const [isShowPassword, setIsShowPassword] = useState(false);
   const navigate = useNavigate();
+  const [mapModal, setMapModal] = useState(false);
 
- 
-const handleChange = async (e, index) => {
-  const { name, value, files } = e.target;
-
-  if (name === "services") {
-    const updatedServices = [...formData.services];
-    updatedServices[index].name = value;
-    setFormData({ ...formData, services: updatedServices });
-    return;
-  }
-
-
-  if (name === "shopPicture" || name === "paymentPic") {
-    if (files && files[0]) {
-      try {
-        const options = {
-          maxSizeMB: 0.6,          
-          maxWidthOrHeight: 800, 
-          useWebWorker: true,
-        };
-
-        const compressedFile = await imageCompression(files[0], options);
-
-        if (name === "shopPicture") {
-          setShopPicture(compressedFile);
-        } else if (name === "paymentPic") {
-          setPaymentPic(compressedFile);
-        }
-      } catch (error) {
-        console.error("Image compression failed:", error);
-      }
+  const [selectedArea, setSelectedArea] = useState(null);
+  const handleSetLocation = () => {
+    if (selectedArea) {
+      setFormData({
+        ...formData,
+        area: selectedArea.areaName,
+        latitude: selectedArea.lat,
+        longitude: selectedArea.lng,
+      });
     }
-    return;
+    setMapModal(false);
+
   }
 
-  setFormData({ ...formData, [name]: value });
-};
+  const handleChange = async (e, index) => {
+    const { name, value, files } = e.target;
 
-  
+    if (name === "services") {
+      const updatedServices = [...formData.services];
+      updatedServices[index].name = value;
+      setFormData({ ...formData, services: updatedServices });
+      return;
+    }
+
+    if (name === "shopPicture" || name === "paymentPic") {
+      if (files && files[0]) {
+        try {
+          const options = {
+            maxSizeMB: 0.6,
+            maxWidthOrHeight: 800,
+            useWebWorker: true,
+          };
+
+          const compressedFile = await imageCompression(files[0], options);
+
+          if (name === "shopPicture") {
+            setShopPicture(compressedFile);
+          } else if (name === "paymentPic") {
+            setPaymentPic(compressedFile);
+          }
+        } catch (error) {
+          console.error("Image compression failed:", error);
+        }
+      }
+      return;
+    }
+
+    setFormData({ ...formData, [name]: value });
+  };
+
   const addService = () => {
     setFormData({
       ...formData,
@@ -70,17 +84,15 @@ const handleChange = async (e, index) => {
     });
   };
 
-  
   const removeService = (index) => {
     const newServices = formData.services.filter((_, i) => i !== index);
     setFormData({ ...formData, services: newServices });
   };
 
- 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    if(paymentPic === null){
+    if (paymentPic === null) {
       toast.error("Please upload payment screenshot!");
       return;
     }
@@ -124,7 +136,7 @@ const handleChange = async (e, index) => {
         position: "",
         shopAddress: "",
         email: "",
-        description : "",
+        description: "",
         password: "",
         phone: "",
         area: "",
@@ -181,6 +193,7 @@ const handleChange = async (e, index) => {
             longitude: lon,
             area: areaName,
           });
+          setSelectedArea({ lat, lng: lon, areaName });
         } catch (error) {
           console.error("Reverse geocoding failed:", error);
           alert("Failed to fetch area name from coordinates.");
@@ -198,7 +211,7 @@ const handleChange = async (e, index) => {
 
   return (
     <div className="container ">
-        <Toaster/>
+      <Toaster />
       <i
         className="fa-solid fa-arrow-left-long mt-3 mx-1"
         style={{ fontSize: "1.6rem", cursor: "pointer" }}
@@ -215,8 +228,7 @@ const handleChange = async (e, index) => {
       </p>
 
       <form onSubmit={handleSubmit} className="shadow-lg p-4 rounded bg-light">
-
-         <div className="mb-3 text-center">
+        <div className="mb-3 text-center">
           <label htmlFor="profilePicture" className="form-label fw-bold">
             Shop Picture
           </label>
@@ -234,7 +246,7 @@ const handleChange = async (e, index) => {
                 backgroundColor: "#f8f9fa",
               }}
             >
-              {shopPicture !== null ?  (
+              {shopPicture !== null ? (
                 <img
                   src={URL.createObjectURL(shopPicture)}
                   alt="Profile Preview"
@@ -271,7 +283,9 @@ const handleChange = async (e, index) => {
             onChange={handleChange}
             required
           />
-          <label htmlFor="shopName">Shop Name<b className="text-danger">*</b></label>
+          <label htmlFor="shopName">
+            Shop Name<b className="text-danger">*</b>
+          </label>
         </div>
 
         <div className="form-floating mb-3">
@@ -293,9 +307,14 @@ const handleChange = async (e, index) => {
             <option value="4th Floor">4th Floor</option>
             <option value="5th Floor">5th Floor</option>
           </select>
-          <label htmlFor="position">Shop Floor<b className="text-danger">*</b></label>
+          <label htmlFor="position">
+            Shop Floor<b className="text-danger">*</b>
+          </label>
         </div>
- <p className="text-muted">Enter Shop Address like near kalma chowck or new mobile market, Enter clear address of your shop</p>
+        <p className="text-muted">
+          Enter Shop Address like near kalma chowck or new mobile market, Enter
+          clear address of your shop
+        </p>
         <div className="form-floating mb-3">
           <input
             type="text"
@@ -307,22 +326,25 @@ const handleChange = async (e, index) => {
             onChange={handleChange}
             required
           />
-          <label htmlFor="shopAddress">Shop Address<b className="text-danger">*</b></label>
-          
+          <label htmlFor="shopAddress">
+            Shop Address<b className="text-danger">*</b>
+          </label>
         </div>
         <div className="form-floating mb-3">
-  <textarea
-    className="form-control"
-    id="description"
-    name="description"
-    placeholder="Area"
-    value={formData.description}
-    onChange={handleChange}
-    style={{ height: "110px" }}   
-    required
-  />
-  <label htmlFor="area">Describe Your Business Shortly<b className="text-danger">*</b></label>
-</div>
+          <textarea
+            className="form-control"
+            id="description"
+            name="description"
+            placeholder="Area"
+            value={formData.description}
+            onChange={handleChange}
+            style={{ height: "110px" }}
+            required
+          />
+          <label htmlFor="area">
+            Describe Your Business Shortly<b className="text-danger">*</b>
+          </label>
+        </div>
 
         <div className="form-floating mb-3">
           <input
@@ -335,10 +357,10 @@ const handleChange = async (e, index) => {
             onChange={handleChange}
             required
           />
-          <label htmlFor="email">Email<b className="text-danger">*</b></label>
+          <label htmlFor="email">
+            Email<b className="text-danger">*</b>
+          </label>
         </div>
-
-    
 
         <div className="form-floating mb-3">
           <input
@@ -350,13 +372,15 @@ const handleChange = async (e, index) => {
             value={formData.phone}
             onChange={handleChange}
             required
-            length = {11}
+            length={11}
           />
-          <label htmlFor="phone">Phone Number<b className="text-danger">*</b></label>
+          <label htmlFor="phone">
+            Phone Number<b className="text-danger">*</b>
+          </label>
         </div>
-            <div className="form-floating mb-3">
+        <div className="form-floating mb-3">
           <input
-            type= {isShowPassword ? "text" : "password"}
+            type={isShowPassword ? "text" : "password"}
             className="form-control"
             id="password"
             name="password"
@@ -365,9 +389,11 @@ const handleChange = async (e, index) => {
             onChange={handleChange}
             required
           />
-          <label htmlFor="password">Password<b className="text-danger">*</b></label>
+          <label htmlFor="password">
+            Password<b className="text-danger">*</b>
+          </label>
         </div>
-          <div className="form-check mb-3 mx-1">
+        <div className="form-check mb-3 mx-1">
           <input
             type="checkbox"
             className="form-check-input"
@@ -381,8 +407,13 @@ const handleChange = async (e, index) => {
         </div>
 
         {/* Services */}
-        <label className="form-label mt-3">Services Offered<b className="text-danger">*</b></label>
-        <p className="text-muted">Enter your any 5 main services like for food (Biryani, Pulao, Qorma, Zarda, Beef)</p>
+        <label className="form-label mt-3">
+          Services Offered<b className="text-danger">*</b>
+        </label>
+        <p className="text-muted">
+          Enter your any 5 main services like for food (Biryani, Pulao, Qorma,
+          Zarda, Beef)
+        </p>
         {formData.services.map((service, index) => (
           <div className="input-group mb-2" key={index}>
             <input
@@ -409,26 +440,25 @@ const handleChange = async (e, index) => {
           type="button"
           className="btn btn-primary mb-3 w-100"
           onClick={addService}
-          disabled = {formData.services.length === 5}
+          disabled={formData.services.length === 5}
         >
           Add Service
         </button>
 
         {/* Location */}
-<div className="form-floating mb-3">
-  <textarea
-    className="form-control"
-    id="area"
-    name="area"
-    placeholder="Area"
-    value={formData.area}
-    style={{ height: "110px" }}   
-    disabled= {true}
-    required
-  />
-  <label htmlFor="area">Current Location (Auto Fetched)</label>
-</div>
-
+        <div className="form-floating mb-3">
+          <textarea
+            className="form-control"
+            id="area"
+            name="area"
+            placeholder="Area"
+            value={formData.area}
+            style={{ height: "110px" }}
+            disabled={true}
+            required
+          />
+          <label htmlFor="area">Current Location (Auto Fetched)</label>
+        </div>
 
         <div className="row mb-3">
           <div className="col">
@@ -456,15 +486,26 @@ const handleChange = async (e, index) => {
             />
           </div>
         </div>
+        <div>
+          <button
+            type="button"
+            className="btn btn-primary mb-3 w-100"
+            onClick={() => setMapModal(true)}
+          >
+            <i class="fa-solid fa-map-location-dot me-2"></i>
+            Select Location on Map
+          </button>
+        </div>
 
-<div className=" mt-4">
+        <div className=" mt-4">
           <h5 className="fw-bold mb-3 text-primary">
             Registration Fee: Rs. 500/-
           </h5>
 
           <p className="text-secondary mb-3">
             To activate your shop on Hazir Hay, please send the one-time
-            registration fee (Valid for 1 Year) and upload the payment screenshot below.
+            registration fee (Valid for 1 Year) and upload the payment
+            screenshot below.
           </p>
 
           <div className="p-3 rounded" style={{ background: "#f8f9fa" }}>
@@ -490,9 +531,6 @@ const handleChange = async (e, index) => {
           </p>
         </div>
 
-
-
-
         <div className="mb-3 mt-3">
           <label className="form-label">Payment Screenshot</label>
           <input
@@ -505,7 +543,7 @@ const handleChange = async (e, index) => {
             required
           />
         </div>
-          {paymentPic && (
+        {paymentPic && (
           <img
             src={URL.createObjectURL(paymentPic)}
             alt="Payment Picture"
@@ -521,6 +559,65 @@ const handleChange = async (e, index) => {
           {loading ? "Submitting..." : "Register Shop"}
         </button>
       </form>
+
+        {mapModal && (
+        <div
+          className="modal fade show d-block "
+          tabIndex="-1"
+          style={{
+            backgroundColor: "rgba(0, 0, 0, 0.6)",
+            backdropFilter: "blur(2px)",
+          }}
+        >
+          <div className="modal-dialog modal-sm modal-dialog-centered">
+            <div
+              className="modal-content shadow"
+              style={{ borderRadius: "10px" }}
+            >
+              {/* Header */}
+              <div
+                className="modal-header text-light py-2 px-3"
+                style={{ backgroundColor: "#1e1e2f" }}
+              >
+                <h6 className="modal-title m-0">Select Your Location</h6>
+              </div>
+
+              {/* Body */}
+              <div className="modal-body">
+                 <div className="form-floating mb-3">
+          <textarea
+            className="form-control"
+            id="area"
+            name="area"
+            placeholder="Area"
+            value={selectedArea?.areaName || formData?.area}
+            style={{ height: "110px" }}
+            disabled={true}
+            required
+          />
+          <label htmlFor="area">Current Location (Auto Fetched)</label>
+        </div>
+                  <div style={{ height: "420px", width: "100%" }} >
+                          <Suspense fallback={<h2>Loading...</h2>}>
+                            <MyMap
+                            onLocationSelect={setSelectedArea}
+                            initialLocation={selectedArea ? selectedArea : null}
+                          />
+                          </Suspense>
+                        </div>
+                
+
+                <button
+                  className="btn btn-primary w-100  mt-3"
+                  onClick={handleSetLocation}
+                >
+                   Save Location
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

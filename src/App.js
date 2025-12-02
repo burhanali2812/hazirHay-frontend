@@ -34,6 +34,8 @@ const WorkerDashboard = lazy(() => import("./pages/WorkerDashboard"));
 const Transactions = lazy(() => import("./pages/Transactions"));
 const UnauthorizedPage = lazy(() => import("./pages/UnauthorizedPage"));
 const WorkersPage = lazy(() => import("./pages/WorkersPage"));
+const LocalShopDashboard = lazy(() => import("./pages/Local_Shop_Dashboard"));
+
 
 // Components
 const Cart = lazy(() => import("./components/Cart"));

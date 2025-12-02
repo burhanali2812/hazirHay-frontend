@@ -7,11 +7,11 @@ import { useNavigate } from "react-router-dom";
 import notFound from "../videos/notFound.mp4";
 import Swal from "sweetalert2";
 import { Toaster, toast } from "react-hot-toast";
-import MyMap from "../components/MyMap";
 
 import { services } from "../components/servicesData";
 import { useAppContext } from "../context/AppContext";
 const UserShopRoute = lazy(()=>import("../components/UserShopRoute"))
+const MyMap = lazy(()=>import("../components/MyMap"))
 function UserDashboard() {
   const { cartData,setAreaName,setCoordinates,coordinates,setKey,getCartData,selectedArea, setSelectedArea, setUserLocations, userLocations, fetchAreaName, getUserLocations} = useAppContext();
   const role = localStorage.getItem("role");

@@ -18,7 +18,7 @@ function WorkerDashboard() {
   const [isDataLoading, setIsDataLoading] = useState(false);
   const role = localStorage.getItem("role");
   useEffect(() => {
-    if (role !== "worker") {
+    if (role !== "worker" || role !== "shopKepper") {
       navigate("/unauthorized/user", { replace: true });
     }
   }, [role]);
@@ -26,6 +26,9 @@ function WorkerDashboard() {
   const handleLogout = () => {
     localStorage.clear();
     navigate("/");
+  };
+  const backToShopkeepr = () => {
+    navigate("/admin/shopKepper/dashboard");
   };
 
   const handlegetAssignedOrder = async () => {
@@ -385,7 +388,7 @@ function WorkerDashboard() {
             className="fas fa-sign-out-alt  text-danger"
             title="Logout"
             style={{ cursor: "pointer" }}
-            onClick={handleLogout}
+            onClick={role === "shopKepper" ? backToShopkeepr : handleLogout}
           ></i>
         </div>
       </header>
