@@ -877,7 +877,7 @@ setFilterModal(false)
                   className="modal-body"
                   style={{ maxHeight: "550px", overflowY: "auto" }}
                 >
-                  {userLocations.length > 0 ? (
+                  {userLocations?.length > 0 ? (
                     <>
                       {/* Header */}
                       <div className="text-center mb-3">
@@ -935,7 +935,7 @@ setFilterModal(false)
 
                       {/* Address Cards */}
                       <div className="row g-3">
-                        {userLocations.map((location, index) => (
+                        {userLocations?.map((location, index) => (
                           <div className="col-12" key={index}>
                             <div
                               className={`card shadow-sm rounded-3 locationCard hover-card ${
