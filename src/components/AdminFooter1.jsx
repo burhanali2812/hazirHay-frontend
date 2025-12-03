@@ -6,7 +6,7 @@ import { useAppContext } from "../context/AppContext";
 import{toast, Toaster} from "react-hot-toast"
 function AdminFooter() {
   const navigate = useNavigate();
-  const {unSeenNotification, cartData,shopKepperStatus2,pageKey, updateNotification} = useAppContext();
+  const {unSeenNotification, cartData,shopKepperStatus2,pageKey, updateNotification, shopKepperOrdersLength} = useAppContext();
 
   const [showOffcanvas, setShowOffcanvas] = useState(false);
   const currentUser = JSON.parse(localStorage.getItem("user"));
@@ -301,7 +301,18 @@ function AdminFooter() {
                     </div>
                     <small className="d-block">{item.label}</small>
                   </>
-                ) : (
+                ) : item.key === "requests" ? (
+                  <>
+                    <div className="position-relative d-inline-block">
+                      <i className={item.icon}></i>
+                      <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                        {shopKepperOrdersLength || 0}
+                        <span className="visually-hidden">unread messages</span>
+                      </span>
+                    </div>
+                    <small className="d-block">{item.label}</small>
+                  </>
+                ):(
                   <>
                     <i className={item.icon}></i>
                     <small className="d-block">{item.label}</small>

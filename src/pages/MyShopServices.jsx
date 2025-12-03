@@ -17,6 +17,7 @@ function MyShopServices() {
   const [isFindingRecomendedPrice, setIsRecomendedPriceFinding] =
     useState(false);
   const [price, setPrice] = useState(null);
+  const [isVariablePricing, setIsVariablePricing] = useState(false);
   const [description, setDescription] = useState("");
 
   const getRecomendedPrice = async (selectedCategory, selectedSubCategory) => {
@@ -54,6 +55,8 @@ useEffect(() => {
     });
 
     if (alreadyExist && alreadyExist.length > 0) {
+      console.log("already");
+      
         setIsAlreadyFound(true)
       toast.error("Service Already Present!");
       return;
@@ -77,6 +80,7 @@ useEffect(() => {
         name: service.subCategory.name,
         price: price !== null ? price : service.subCategory.price,
         description: service.subCategory.description,
+        isVariablePricing: service.subCategory.isVariablePricing,
       },
     };
    }
@@ -103,6 +107,7 @@ useEffect(() => {
         toast.success(res.data.message);
         resetValues();
         setDeleteServiceID(null)
+        setIsVariablePricing(false);
         setIsEditServiceModal(false)
         setServiceAddLoading(false);
       }
@@ -129,6 +134,7 @@ useEffect(() => {
         name: selectedSubCategory,
         price: price,
         description: description,
+        isVariablePricing: isVariablePricing,
       },
     };
 
@@ -168,6 +174,21 @@ useEffect(() => {
     setSelectedService(service);
      getRecomendedPrice(service.category,service.subCategory.name);
     setIsEditServiceModal(true)
+  }
+  const toggleVariable = (mode)=>{
+    if(mode === "add"){
+      setIsVariablePricing((prev)=>!prev)
+      return;
+    }
+ else if(mode === "edit"){
+      setSelectedService((prev)=>({
+        ...prev,
+        subCategory:{
+          ...prev.subCategory,
+          isVariablePricing: !prev.subCategory.isVariablePricing
+        }
+      }))
+    }
   }
 
   return (
@@ -209,6 +230,7 @@ useEffect(() => {
           <th>Category</th>
           <th>Sub-Category</th>
           <th>Price</th>
+          <th>Variable Price</th>
           <th className="text-center">Action</th>
         </tr>
       </thead>
@@ -221,7 +243,8 @@ useEffect(() => {
               <td>{service.category}</td>
               <td>{service.subCategory.name}</td>
               <td className="fw-semibold">Rs.{service.subCategory.price}/-</td>
-
+              <td className="text-center"><input type="checkbox" className="form-check-input" disabled={true}  checked= {service.subCategory.isVariablePricing}/></td>
+            
               <td className="text-center">
                 <i
                   className="fa-solid fa-pen-to-square text-primary me-2 cursor-pointer"
@@ -379,6 +402,16 @@ useEffect(() => {
                         </>
                       )}
 
+                       <label className="mt-2 mb-2">
+                  <input
+                    type="checkbox"
+                    className="form-check-input me-2"
+                    checked={isVariablePricing}
+                    onChange={() => toggleVariable("add")}
+                  />
+                  Variable Pricing (Depends on work)
+                </label>
+
                       {/* Description Input */}
                       <label className="form-label fw-semibold small mb-1">
                         Description
@@ -509,6 +542,16 @@ useEffect(() => {
                           </p>
                         </>
                       )}
+
+                        <label className="mt-2 mb-2">
+                  <input
+                    type="checkbox"
+                    className="form-check-input me-2"
+                    checked={selectedService?.subCategory.isVariablePricing === true}
+                    onChange={()=>toggleVariable("edit")}
+                  />
+                  Variable Pricing (Depends on work)
+                </label>
 
                     </>
                   )}

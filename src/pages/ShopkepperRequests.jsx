@@ -10,10 +10,11 @@ import { FaWifi } from "react-icons/fa";
 import { MdWifiOff } from "react-icons/md";
 import { useCheckBlockedStatus } from "../components/useCheckBlockedStatus";
 import { useAppContext } from "../context/AppContext";
+import { set } from "mongoose";
 
 const UserShopRoute = lazy(() => import("../components/UserShopRoute"));
 function ShopkepperRequests() {
-  const {shopKepperWorkers, setKey} = useAppContext();
+  const {shopKepperWorkers, setKey, setShopKepperOrdersLength} = useAppContext();
   const user = JSON.parse(localStorage.getItem("user"));
   const [requests, setRequests] = useState([]);
   const [shopKepperCords, setShopKepperCords] = useState([]);
@@ -148,8 +149,12 @@ function ShopkepperRequests() {
       );
 
       if (response.data.success) {
-        setRequests(response.data.data || []);
-        console.log("request fetch", response.data.data);
+        const req = response.data.data || [];
+        const pendingRequests = req.filter((r) => r.status === "pending");
+        const unassign = req.filter((o) => o.orderAssignment.status === "unAssigned")
+        setShopKepperOrdersLength(pendingRequests?.length === 0 ? unassign?.length : pendingRequests?.length);
+        setRequests(req);
+        console.log("request fetch", req);
         setStatusLoading(false);
 
    
@@ -164,6 +169,7 @@ function ShopkepperRequests() {
         error.response?.data?.message || error.message
       );
       setStatusLoading(false);
+      setShopKepperOrdersLength(0);
       setRequests([]);
     }
   };

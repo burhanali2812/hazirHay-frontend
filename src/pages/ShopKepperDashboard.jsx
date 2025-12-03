@@ -5,7 +5,7 @@ import { useAppContext } from "../context/AppContext";
 import {toast, Toaster} from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 function ShopKepperDashboard() {
-  const {setKey}=useAppContext();
+  const {setKey, getNotifications, setShopKepperOrdersLength}=useAppContext();
   const user = JSON.parse(localStorage.getItem("user"));
   const token = localStorage.getItem("token");
   const [orders, setOrders] = useState([]);
@@ -54,6 +54,7 @@ function ShopKepperDashboard() {
 
   useEffect(() => {
     setKey("home");
+    getNotifications();
   }, []);
   useEffect(() => {
     if (!orders) return;
@@ -94,7 +95,7 @@ function ShopKepperDashboard() {
   const getShopkeeperOrders = async (type) => {
     setIsDataLoading(true)
     try {
-      // 🔹 Validate date range only if filtering
+
       if (type === "filter") {
         setFilterLoading(true);
         if (!startDate || !endDate) {
@@ -160,8 +161,9 @@ setTotalOrdersEarnings(earning.toFixed(0));
 
 
 
-
-        setPendingOrders(orders.filter((o) => o.status === "pending"));
+        const pendingOrders = orders.filter((o) => o.status === "pending");
+        setPendingOrders(pendingOrders);
+        
         setRejectedOrders(
           orders.filter(
             (o) => o.status === "rejected" || o.status === "deleted"
@@ -170,9 +172,9 @@ setTotalOrdersEarnings(earning.toFixed(0));
         setCompletedOrders(orders.filter((o) => o.status === "completed"));
         setInprogressOrder(orders.filter((o) => o.status === "inProgress"));
         setAssignedOrders(orders.filter((o) => o.status === "assigned"));
-        setUnAssignedOrders(
-          orders.filter((o) => o.orderAssignment.status === "unAssigned")
-        );
+        const unAssigned = orders.filter((o) => o.orderAssignment.status === "unAssigned");
+        setUnAssignedOrders(unAssigned);
+        setShopKepperOrdersLength(pendingOrders?.length ===0 ? unAssigned?.length : pendingOrders?.length);
 
         if (type === "filter") {
           setFilterLoading(false);
@@ -203,6 +205,7 @@ setTotalOrdersEarnings(earning.toFixed(0));
 }
 
   };
+
   useEffect(() => {
     getShopkeeperOrders("auto");
   }, [token]);

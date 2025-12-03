@@ -10,7 +10,7 @@ import { lazy, Suspense } from "react";
 const MyMap = lazy(() => import("../components/MyMap"));
 
 function MyShop() {
-  const { setKey, shopKepperWorkers, shop, getShopData } = useAppContext();
+  const { setKey, shopKepperWorkers, shop, getShopData, getShopKepperWorkers } = useAppContext();
   const user = JSON.parse(localStorage.getItem("user"));
   const [isViewFull, setIsViewFull] = useState(false);
   const [isEditDataModalOpen, setIsEditDataModalOpen] = useState(false);
@@ -34,6 +34,7 @@ function MyShop() {
   useCheckBlockedStatus(token)
  useEffect(()=>{
   if(!user.isShop){
+  
     return;
   }
   else if(!user?.isVerified){
@@ -45,6 +46,7 @@ function MyShop() {
   useEffect(() => {
     setSelectedArea({lat: shop?.location?.coordinates[0], lng: shop?.location?.coordinates[1], areaName: shop?.location?.area})
     getShopData();
+      getShopKepperWorkers();
     setKey("shop");
   }, []);
 

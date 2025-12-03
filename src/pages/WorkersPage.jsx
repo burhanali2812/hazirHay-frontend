@@ -86,7 +86,7 @@ return (
         shopKepperWorkers.map((worker) => (
           <div key={worker._id} className="col-12 col-md-6 col-lg-4">
             <div
-              className="card border-0 shadow-sm h-100"
+              className="card border-0 shadow-sm  bg-light h-100"
               style={{ borderRadius: "14px" }}
             >
               <div className="card-body d-flex align-items-center gap-3">

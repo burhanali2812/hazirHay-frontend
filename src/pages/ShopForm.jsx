@@ -579,8 +579,8 @@ function ShopForm() {
                       <input
                         type="checkbox"
                         className="form-checkbox"
-                        disabled={true} // prevents editing
-                        checked={sub.subCategory.isVariablePricing || false} // ensures boolean
+                        disabled={true} 
+                        checked={sub.subCategory.isVariablePricing || false}
                       />
                     </td>
                   </tr>

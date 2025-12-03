@@ -152,7 +152,7 @@ const Transactions = () => {
                 <div>
                   <div className="d-flex align-items-center mb-1">
                     <p className="mb-0 fw-bold me-2">
-                      {transaction.workerId?.name}
+                      {transaction.workerId?.name || "My Self"}
                     </p>
                     <span
                       className="badge text-bg-secondary d-inline-flex justify-content-center align-items-center"

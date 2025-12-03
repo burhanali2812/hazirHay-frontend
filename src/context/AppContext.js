@@ -33,6 +33,7 @@ export const AppProvider = ({ children }) => {
   const [updateAppjs, setUpdateAppjs] = useState(false);
   const [statusUpdate, setStatusUpdate] = useState(false);
     const [selectedArea, setSelectedArea] = useState(null);
+    const [shopKepperOrdersLength, setShopKepperOrdersLength] = useState(0);
       const [userLocations, setUserLocations] = useState([]);
 
   const [loading, setLoading] = useState(false);
@@ -87,16 +88,27 @@ export const AppProvider = ({ children }) => {
     }
   };
 
-  const getShopKepperWorkers = async () => {
-    try {
-      const res = await api.get("/worker/getWorkersByShop", {
-        params: { t: Date.now() },
-      });
-      setShopKepperWorkers(res.data.workers || []);
-    } catch (err) {
-      console.log("worker err", err);
+ const getShopKepperWorkers = async () => {
+  try {
+    const res = await api.get("/worker/getWorkersByShop", {
+      params: { t: Date.now() },
+    });
+
+
+    setShopKepperWorkers(res.data.workers || []);
+    console.log("workers", res.data.workers || []);
+
+  } catch (err) {
+    console.log("worker err", err);
+    if (err.response?.status === 404) {
+ 
+    } else {
+  
+      setShopKepperWorkers([]);  
     }
-  };
+  }
+};
+
 
   const getUserStatus = async () => {
     try {
@@ -303,6 +315,9 @@ export const AppProvider = ({ children }) => {
         setUserLocations,
         userLocations,
         setCartData,
+        shopKepperOrdersLength,
+        setShopKepperOrdersLength,
+
 
         getShopData,
         getAllUser,
