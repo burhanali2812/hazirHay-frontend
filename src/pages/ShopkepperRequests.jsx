@@ -23,7 +23,6 @@ function ShopkepperRequests() {
   const [detailsModal, setDetailsModal] = useState(false);
   const [detailsModalLoading, setDetailsModalLoading] = useState(null);
   const [declinedModal, setDEclinedModal] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [statusLoading, setStatusLoading] = useState(false);
   const [shop, setShop] = useState(null);
   const [isOnline, setIsOnline] = useState(false);

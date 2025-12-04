@@ -35,6 +35,7 @@ export const AppProvider = ({ children }) => {
     const [selectedArea, setSelectedArea] = useState(null);
     const [shopKepperOrdersLength, setShopKepperOrdersLength] = useState(0);
       const [userLocations, setUserLocations] = useState([]);
+      const [selectedViewLocalShop, setSelectedViewLocalShop] = useState(null);
 
   const [loading, setLoading] = useState(false);
 
@@ -317,6 +318,8 @@ export const AppProvider = ({ children }) => {
         setCartData,
         shopKepperOrdersLength,
         setShopKepperOrdersLength,
+        selectedViewLocalShop,
+        setSelectedViewLocalShop,
 
 
         getShopData,

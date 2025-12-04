@@ -34,6 +34,7 @@ const WorkerDashboard = lazy(() => import("./pages/WorkerDashboard"));
 const Transactions = lazy(() => import("./pages/Transactions"));
 const UnauthorizedPage = lazy(() => import("./pages/UnauthorizedPage"));
 const WorkersPage = lazy(() => import("./pages/WorkersPage"));
+const ViewLocalShop = lazy(() => import("./pages/ViewLocalShop"));
 const LocalShopDashboard = lazy(() => import("./pages/Local_Shop_Dashboard"));
 
 
@@ -126,6 +127,7 @@ function App() {
             <Route path="user/dashboard" element={<UserDashboard />} />
 
             <Route path="user/cart" element={<Cart />} />
+            <Route path="user/localShop/viewLocalShop" element={<ViewLocalShop />} />
             <Route path="user/tracking" element={<Tracking />} />
             <Route path="user/findShops" element={<FindShops />} />
             <Route path="user/notification" element={<Notification />} />
