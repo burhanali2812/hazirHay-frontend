@@ -4,6 +4,7 @@ import axios from "axios";
 import { toast, Toaster } from "react-hot-toast";
 import imageCompression from "browser-image-compression";
 import { lazy, Suspense } from "react";
+import { ShopServices } from "../components/ShopServices";
 const MyMap = lazy(() => import("../components/MyMap"));
 function LocalShopSignup() {
   const [formData, setFormData] = useState({
@@ -12,6 +13,7 @@ function LocalShopSignup() {
     shopAddress: "",
     description: "",
     email: "",
+    category: "",
     password: "",
     phone: "",
     area: "",
@@ -26,6 +28,11 @@ function LocalShopSignup() {
   const [isShowPassword, setIsShowPassword] = useState(false);
   const navigate = useNavigate();
   const [mapModal, setMapModal] = useState(false);
+  const [categorySearch, setCategorySearch] = useState("");
+const [selectedCategory, setSelectedCategory] = useState("");
+const handleSelectCategory = (cat) => {
+  setSelectedCategory(cat);
+};
 
   const [selectedArea, setSelectedArea] = useState(null);
   const handleSetLocation = () => {
@@ -106,6 +113,7 @@ function LocalShopSignup() {
       data.append("email", formData.email);
       data.append("password", formData.password);
       data.append("phone", formData.phone);
+      data.append("category", selectedCategory);
       data.append("services", JSON.stringify(formData.services));
       data.append(
         "location",
@@ -287,30 +295,71 @@ function LocalShopSignup() {
             Shop Name<b className="text-danger">*</b>
           </label>
         </div>
+<div className="d-flex gap-3 mb-3">
 
-        <div className="form-floating mb-3">
-          <select
-            className="form-select"
-            id="position"
-            name="position"
-            value={formData.position}
-            onChange={handleChange}
-            required
+  {/* 1. Shop Floor Dropdown */}
+  <div className="dropdown flex-grow-1">
+    <button
+      className="btn btn-primary w-100 dropdown-toggle btn-sm"
+      data-bs-toggle="dropdown"
+      style={{ height: "calc(3rem + 2px)" }}
+    >
+      {formData.position === "" ? "Select Shop Floor" : formData.position}
+    </button>
+
+    <ul className="dropdown-menu w-100">
+      {["Basement", "Stall", "Ground Floor", "1st Floor", "2nd Floor", "3rd Floor", "4th Floor", "5th Floor"].map((floor, i) => (
+        <li key={i}>
+          <button
+            className="dropdown-item"
+            onClick={() => setFormData({ ...formData, position: floor })}
           >
-            <option value="">Select Position</option>
-            <option value="Basement">Basement</option>
-            <option value="Stall">Stall</option>
-            <option value="Ground Floor">Ground Floor</option>
-            <option value="1st Floor">1st Floor</option>
-            <option value="2nd Floor">2nd Floor</option>
-            <option value="3rd Floor">3rd Floor</option>
-            <option value="4th Floor">4th Floor</option>
-            <option value="5th Floor">5th Floor</option>
-          </select>
-          <label htmlFor="position">
-            Shop Floor<b className="text-danger">*</b>
-          </label>
-        </div>
+            {floor}
+          </button>
+        </li>
+      ))}
+    </ul>
+  </div>
+
+  {/* 2. Category Dropdown */}
+  <div className="dropdown flex-grow-1">
+    <button
+      className="btn btn-primary w-100 dropdown-toggle btn-sm"
+      data-bs-toggle="dropdown"
+      style={{ height: "calc(3rem + 2px)" }}
+    >
+      {selectedCategory === "" ? "Select Category" : selectedCategory}
+    </button>
+
+    <div className="dropdown-menu p-2 w-100">
+      {/* Search Input */}
+      <input
+        type="text"
+        className="form-control form-control-sm mb-2"
+        placeholder="Search category..."
+        onChange={(e) => setCategorySearch(e.target.value)}
+      />
+
+      {/* List */}
+      <ul className="list-unstyled mb-0" style={{ maxHeight: "250px", overflowY: "auto" }}>
+        {ShopServices.filter((item) =>
+          item.toLowerCase().includes(categorySearch.toLowerCase())
+        ).map((item, i) => (
+          <li key={i}>
+            <button
+              className="dropdown-item"
+              onClick={() => handleSelectCategory(item)}
+            >
+              {item}
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </div>
+
+</div>
+
         <p className="text-muted">
           Enter Shop Address like near kalma chowck or new mobile market, Enter
           clear address of your shop
@@ -345,107 +394,7 @@ function LocalShopSignup() {
             Describe Your Business Shortly<b className="text-danger">*</b>
           </label>
         </div>
-
-        <div className="form-floating mb-3">
-          <input
-            type="email"
-            className="form-control"
-            id="email"
-            name="email"
-            placeholder="Email"
-            value={formData.email}
-            onChange={handleChange}
-            required
-          />
-          <label htmlFor="email">
-            Email<b className="text-danger">*</b>
-          </label>
-        </div>
-
-        <div className="form-floating mb-3">
-          <input
-            type="tel"
-            className="form-control"
-            id="phone"
-            name="phone"
-            placeholder="Phone Number"
-            value={formData.phone}
-            onChange={handleChange}
-            required
-            length={11}
-          />
-          <label htmlFor="phone">
-            Phone Number<b className="text-danger">*</b>
-          </label>
-        </div>
-        <div className="form-floating mb-3">
-          <input
-            type={isShowPassword ? "text" : "password"}
-            className="form-control"
-            id="password"
-            name="password"
-            placeholder="Password"
-            value={formData.password}
-            onChange={handleChange}
-            required
-          />
-          <label htmlFor="password">
-            Password<b className="text-danger">*</b>
-          </label>
-        </div>
-        <div className="form-check mb-3 mx-1">
-          <input
-            type="checkbox"
-            className="form-check-input"
-            id="exampleCheck"
-            checked={isShowPassword}
-            onChange={(e) => setIsShowPassword(e.target.checked)}
-          />
-          <label className="form-check-label" htmlFor="exampleCheck">
-            Show Password
-          </label>
-        </div>
-
-        {/* Services */}
-        <label className="form-label mt-3">
-          Services Offered<b className="text-danger">*</b>
-        </label>
-        <p className="text-muted">
-          Enter your any 5 main services like for food (Biryani, Pulao, Qorma,
-          Zarda, Beef)
-        </p>
-        {formData.services.map((service, index) => (
-          <div className="input-group mb-2" key={index}>
-            <input
-              type="text"
-              className="form-control"
-              name="services"
-              placeholder="Service Name"
-              value={service.name}
-              onChange={(e) => handleChange(e, index)}
-              required
-            />
-            {formData.services.length > 1 && (
-              <button
-                type="button"
-                className="btn btn-danger"
-                onClick={() => removeService(index)}
-              >
-                Remove
-              </button>
-            )}
-          </div>
-        ))}
-        <button
-          type="button"
-          className="btn btn-primary mb-3 w-100"
-          onClick={addService}
-          disabled={formData.services.length === 5}
-        >
-          Add Service
-        </button>
-
-        {/* Location */}
+                {/* Location */}
         <div className="form-floating mb-3">
           <textarea
             className="form-control"
@@ -516,6 +465,111 @@ function LocalShopSignup() {
             <i class="fa-solid fa-map-location-dot me-2"></i>
             Select Location on Map
           </button>
+        </div>
+
+        
+
+    
+
+        {/* Services */}
+        <label className="form-label mt-3">
+          Services Offered<b className="text-danger">*</b>
+        </label>
+        <p className="text-muted">
+          Enter your any 5 main services like for food (Biryani, Pulao, Qorma,
+          Zarda, Beef)
+        </p>
+        {formData.services.map((service, index) => (
+          <div className="input-group mb-2" key={index}>
+            <input
+              type="text"
+              className="form-control"
+              name="services"
+              placeholder="Service Name"
+              value={service.name}
+              onChange={(e) => handleChange(e, index)}
+              required
+            />
+            {formData.services.length > 1 && (
+              <button
+                type="button"
+                className="btn btn-danger"
+                onClick={() => removeService(index)}
+              >
+                Remove
+              </button>
+            )}
+          </div>
+        ))}
+        <button
+          type="button"
+          className="btn btn-primary mb-3 w-100"
+          onClick={addService}
+          disabled={formData.services.length === 5}
+        >
+          Add Service
+        </button>
+
+
+
+            <div className="form-floating mb-3">
+          <input
+            type="email"
+            className="form-control"
+            id="email"
+            name="email"
+            placeholder="Email"
+            value={formData.email}
+            onChange={handleChange}
+            required
+          />
+          <label htmlFor="email">
+            Email<b className="text-danger">*</b>
+          </label>
+        </div>
+
+        <div className="form-floating mb-3">
+          <input
+            type="tel"
+            className="form-control"
+            id="phone"
+            name="phone"
+            placeholder="Phone Number"
+            value={formData.phone}
+            onChange={handleChange}
+            required
+            length={11}
+          />
+          <label htmlFor="phone">
+            Phone Number<b className="text-danger">*</b>
+          </label>
+        </div>
+        <div className="form-floating mb-3">
+          <input
+            type={isShowPassword ? "text" : "password"}
+            className="form-control"
+            id="password"
+            name="password"
+            placeholder="Password"
+            value={formData.password}
+            onChange={handleChange}
+            required
+          />
+          <label htmlFor="password">
+            Password<b className="text-danger">*</b>
+          </label>
+        </div>
+        <div className="form-check mb-3 mx-1">
+          <input
+            type="checkbox"
+            className="form-check-input"
+            id="exampleCheck"
+            checked={isShowPassword}
+            onChange={(e) => setIsShowPassword(e.target.checked)}
+          />
+          <label className="form-check-label" htmlFor="exampleCheck">
+            Show Password
+          </label>
         </div>
 
         <div className=" mt-4">

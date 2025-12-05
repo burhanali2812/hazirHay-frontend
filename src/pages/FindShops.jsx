@@ -5,6 +5,7 @@ import mechanic from "../images/mechanic.png";
 import processing from "../videos/processing.mp4";
 import { useAppContext } from "../context/AppContext";
 import { useNavigate } from "react-router-dom";
+import { ShopServices } from "../components/ShopServices";
 function FindShops() {
   const { selectedArea, localShopData, localShopWithDistance , selectedViewLocalShop, setSelectedViewLocalShop} =
     useAppContext();
@@ -13,6 +14,16 @@ function FindShops() {
   const [filterModal, setFilterModal] = useState(false);
   const [filterLoading, setFilterLoading] = useState(false);
   const [sortOrder, setSortOrder] = useState("low-to-high");
+  const [categorySearch, setCategorySearch] = useState("");
+const [selectedCategory, setSelectedCategory] = useState("");
+const [searchType, setSearchType] = useState("");
+
+const handleSelectCategory = (cat) => {
+  setSelectedCategory(cat);
+  console.log("Selected Category:", cat);
+};
+
+
 
   const navigate = useNavigate();
   console.log("localWithDistance", localShopWithDistance);
@@ -148,24 +159,8 @@ function FindShops() {
       </div>
 
       <div className="container" style={{marginBottom : "55px"}}>
-        <form className="d-flex " role="search" style={{ width: "auto" }}>
-          <div className="position-relative w-100 mt-4">
-            <input
-              type="search"
-              className="form-control bg-light rounded-pill ps-5 pe-5"
-              placeholder="Eg:- Puncture, Mechanic"
-              aria-label="Search"
-              //disabled={localShopWithDistance?.length === 0}
-              value={searchQuery}
-              onChange={handleChange}
-            />
 
-            {/* Search Icon (left inside input) */}
-            <span className="position-absolute top-50 start-0 translate-middle-y ps-3 text-muted">
-              <i className="fa-solid fa-magnifying-glass"></i>
-            </span>
-          </div>
-        </form>
+
         <div className="mt-3">
           <h6 className="fw-bold mx-2">Quick Access</h6>
 
@@ -208,6 +203,89 @@ function FindShops() {
             </div>
           </div>
         </div>
+
+            <div className="d-flex justify-content-between align-items-center mt-4 mx-1">
+
+  {/* 1. SEARCHABLE CATEGORY DROPDOWN */}
+  <div className="dropdown">
+    <button
+      className="btn btn-outline-primary btn-sm px-2 rounded-pill dropdown-toggle"
+      data-bs-toggle="dropdown"
+    >
+      <i class="fa-solid fa-list me-1"></i>
+     {selectedCategory === "" ? "Select Category" : selectedCategory}
+    </button>
+
+    <div className="dropdown-menu p-2" style={{ width: "250px" }}>
+      {/* Search Input */}
+      <input
+        type="text"
+        className="form-control form-control-sm mb-2"
+        placeholder="Search category..."
+        onChange={(e) => setCategorySearch(e.target.value)}
+      />
+
+      {/* List */}
+      <div style={{ maxHeight: "220px", overflowY: "auto" }}>
+        {ShopServices.filter((item) =>
+          item.toLowerCase().includes(categorySearch.toLowerCase())
+        ).map((item, i) => (
+          <button
+            key={i}
+            className="dropdown-item"
+            onClick={() => handleSelectCategory(item)}
+          >
+            {item}
+          </button>
+        ))}
+      </div>
+    </div>
+  </div>
+
+  {/* 2. SIMPLE SEARCH TYPE DROPDOWN */}
+  <div className="dropdown">
+    <button
+      className="btn btn-outline-primary btn-sm px-2 rounded-pill dropdown-toggle"
+      data-bs-toggle="dropdown"
+    >
+      <i class="fa-brands fa-searchengin me-1"></i>
+      {searchType === "" ? "Search By" : searchType === "shopName" ? "Shop Name" : "Services"}
+    </button>
+
+    <ul className="dropdown-menu">
+      <li>
+        <button className="dropdown-item" onClick={() => setSearchType("shopName")}>
+          Shop Name
+        </button>
+      </li>
+      <li>
+        <button className="dropdown-item" onClick={() => setSearchType("services")}>
+          Services
+        </button>
+      </li>
+    </ul>
+  </div>
+
+</div>
+
+        <form className="d-flex " role="search" style={{ width: "auto" }}>
+          <div className="position-relative w-100 mt-3">
+            <input
+              type="search"
+              className={`form-control rounded-pill ps-5 ${!(selectedCategory && searchType) ? "bg-light" : ""}`}
+              placeholder={`Search ${selectedCategory ? selectedCategory : "shops/services"}... of ${searchType === "shopName" ? "Shop Name" : searchType === "services" ? "Services" : "..." }`}
+              aria-label="Search"
+              disabled={!(selectedCategory && searchType)}
+              value={searchQuery}
+              onChange={handleChange}
+            />
+
+            {/* Search Icon (left inside input) */}
+            <span className="position-absolute top-50 start-0 translate-middle-y ps-3 text-muted">
+              <i className="fa-solid fa-magnifying-glass"></i>
+            </span>
+          </div>
+        </form>
         <div className="mt-4 mb-4">
           <div className="d-flex justify-content-between mb-4">
             <h6 className="fw-bold mx-2">Filtered shops</h6>

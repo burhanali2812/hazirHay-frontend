@@ -352,57 +352,154 @@ const [allShopDistance, setAllShopDistance] = useState([]);
       setLoading(false);
     }
   };
-
-const applyFilters = () => {
-
-  
-  
-  setIsFilter(false)
-
-if (filters.distance === "Low-to-High" ) {
-  const data = shopData.sort((a, b) => 
-    Number(a.distance) - Number(b.distance)
-  );
-  setIsFilter(true)
-
-  setFilterServices(data);
-}
-if (filters.distance === "High-to-Low" ) {
-  const data = shopData.sort((a, b) => 
-    Number(b.distance) - Number(a.distance)
-  );
-  setIsFilter(true)
-
-  setFilterServices(data);
-}
-if (filters.price === "Low-to-High") {
-
-  function getMinPrice(shop) {
+    function getMinPrice(shop) {
     const prices = shop.servicesOffered.map(service => {
       return service.subCategory?.price || service.price || Infinity;
     });
     return Math.min.apply(null, prices);
   }
 
-  const sorted = shopData.slice().sort((a, b) => {
+  function getMaxPrice(shop) {
+    const prices = shop.servicesOffered.map(service => {
+      return service.subCategory?.price || service.price || -Infinity;
+    });
+    return Math.max.apply(null, prices);
+  }
+
+const applyFilters = () => {
+  if(copyShopData.length ===0){
+    setCopyShopData(shopData);
+  }
+  const finalShopData = copyShopData?.length > 0 ? copyShopData : shopData;
+
+    const low_to_high_dis = finalShopData.sort((a, b) => 
+    Number(a.distance) - Number(b.distance)
+  );
+    const high_to_low_dis = finalShopData.sort((a, b) => 
+    Number(b.distance) - Number(a.distance)
+  );
+    const online  = finalShopData?.filter((shop)=> shop.isLive === true);
+    const offline  = finalShopData?.filter((shop)=> shop.isLive === false);
+
+if (filters.distance === "Low-to-High" && filters.status === "Online") {
+  setIsFilter(true)
+  setFilterServices(low_to_high_dis.filter((shop)=> shop.isLive === true));
+}
+if (filters.distance === "Low-to-High" && filters.status === "Offline") {
+  setIsFilter(true)
+  setFilterServices(low_to_high_dis.filter((shop)=> shop.isLive === false));
+}
+if (filters.distance === "High-to-Low" && filters.status === "Online") {
+  setIsFilter(true)
+  setFilterServices(high_to_low_dis.filter((shop)=> shop.isLive === true));
+}
+if (filters.distance === "High-to-Low" && filters.status === "Offline") {
+  setIsFilter(true)
+  setFilterServices(high_to_low_dis.filter((shop)=> shop.isLive === false));
+}
+if(filters.distance === "Low-to-High" && filters.status === "All" && filters.price === "All" && filters.rating === "All") {
+  setIsFilter(true);
+  setFilterServices(low_to_high_dis);
+}
+if(filters.distance === "High-to-Low" && filters.status === "All" && filters.price === "All" && filters.rating === "All") {
+  setIsFilter(true);
+  setFilterServices(high_to_low_dis);
+}
+if(filters.distance === "Low-to-High" && filters.status === "All" && filters.price === "Low-to-High") {
+  const sorted = low_to_high_dis.slice().sort((a, b) => {
     return getMinPrice(a) - getMinPrice(b);
   });
-
   setIsFilter(true);
   setFilterServices(sorted);
+}
+if(filters.distance === "High-to-Low" && filters.status === "All" && filters.price === "Low-to-High") {
+  const sorted = high_to_low_dis.slice().sort((a, b) => {
+    return getMinPrice(a) - getMinPrice(b);
+  });
+  setIsFilter(true);
+  setFilterServices(sorted);
+}
+if(filters.distance === "Low-to-High" && filters.status === "All" && filters.price === "High-to-Low") {
+  const sorted = low_to_high_dis.slice().sort((a, b) => {
+    return getMaxPrice(b) - getMaxPrice(a);
+  });
+  setIsFilter(true);
+  setFilterServices(sorted);
+}
+if(filters.distance === "High-to-Low" && filters.status === "All" && filters.price === "High-to-Low") {
+  const sorted = high_to_low_dis.slice().sort((a, b) => {
+    return getMaxPrice(b) - getMaxPrice(a);
+  });
+  setIsFilter(true);
+  setFilterServices(sorted);
+}
+if(filters.distance === "High-to-Low" && filters.status === "Online" && filters.price === "High-to-Low") {
+  const sorted = high_to_low_dis.slice().sort((a, b) => {
+    return getMaxPrice(b) - getMaxPrice(a);
+  });
+  setIsFilter(true);
+  setFilterServices(sorted.filter((shop)=> shop.isLive === true));
+}
+if(filters.distance === "High-to-Low" && filters.status === "Online" && filters.price === "Low-to-High") {
+  const sorted = high_to_low_dis.slice().sort((a, b) => {
+    return getMinPrice(a) - getMinPrice(b);
+  });
+  setIsFilter(true);
+  setFilterServices(sorted.filter((shop)=> shop.isLive === true));
+}
+if(filters.distance === "Low-to-High" && filters.status === "Online" && filters.price === "High-to-Low") {
+  const sorted = low_to_high_dis.slice().sort((a, b) => {
+    return getMaxPrice(b) - getMaxPrice(a);
+  });
+  setIsFilter(true);
+  setFilterServices(sorted.filter((shop)=> shop.isLive === true));
+}
+if(filters.distance === "Low-to-High" && filters.status === "Online" && filters.price === "Low-to-High") {
+  const sorted = low_to_high_dis.slice().sort((a, b) => {
+    return getMinPrice(a) - getMinPrice(b);
+  }); 
+  setIsFilter(true);
+  setFilterServices(sorted.filter((shop)=> shop.isLive === true));
+}
+if(filters.distance === "High-to-Low" && filters.status === "Offline" && filters.price === "High-to-Low") {
+  const sorted = high_to_low_dis.slice().sort((a, b) => {
+    return getMaxPrice(b) - getMaxPrice(a);
+  });
+  setIsFilter(true);
+  setFilterServices(sorted.filter((shop)=> shop.isLive === false));
+}
+if(filters.distance === "High-to-Low" && filters.status === "Offline" && filters.price === "Low-to-High") {
+  const sorted = high_to_low_dis.slice().sort((a, b) => {
+    return getMinPrice(a) - getMinPrice(b);
+  });
+  setIsFilter(true);
+  setFilterServices(sorted.filter((shop)=> shop.isLive === false));
+}
+if(filters.distance === "Low-to-High" && filters.status === "Offline" && filters.price === "High-to-Low") {
+  const sorted = low_to_high_dis.slice().sort((a, b) => {
+    return getMaxPrice(b) - getMaxPrice(a);
+  });
+  setIsFilter(true);
+  setFilterServices(sorted.filter((shop)=> shop.isLive === false));
+}
+if(filters.distance === "Low-to-High" && filters.status === "Offline" && filters.price === "Low-to-High") {
+  const sorted = low_to_high_dis.slice().sort((a, b) => {
+    return getMinPrice(a) - getMinPrice(b);
+  }); 
+  setIsFilter(true);
+  setFilterServices(sorted.filter((shop)=> shop.isLive === false));
 }
 
 
 
-
-if(filters.status === "Online" ){
-    const online  = shopData?.filter((shop)=> shop.isLive === true)
+if(filters.status === "Online" && filters.distance === "All" && filters.price === "All"){
+ 
         setIsFilter(true)
     setFilterServices(online)
 
 }
-if(filters.status === "Offline" ){
-    const offline  = shopData?.filter((shop)=> shop.isLive === false)
+if(filters.status === "Offline"  && filters.distance === "All" && filters.price === "All"){
+   
         setIsFilter(true)
     setFilterServices(offline)
 
@@ -411,15 +508,7 @@ if(filters.status === "All" && filters.distance === "All" && filters.price === "
   setIsFilter(false)
   setFilterServices([])
 }
-
-
-
-
-
-
 setFilterModal(false)
-
-
 };
 
   const setSelectedLocation = (location) => {
