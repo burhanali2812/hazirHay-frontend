@@ -166,24 +166,76 @@ export const AppProvider = ({ children }) => {
     }
   };
 
- const getLocalVerifiedLiveShops = async () => {
+    function getStraightLineDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371; // Radius of Earth in KM
+    const dLat = (lat2 - lat1) * (Math.PI / 180);
+    const dLon = (lon2 - lon1) * (Math.PI / 180);
+
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * (Math.PI / 180)) *
+        Math.cos(lat2 * (Math.PI / 180)) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+    return R * c;
+  }
+  function addVariation(distance) {
+    const variationPercent = 40 / 100;
+    return distance + distance * variationPercent;
+  }
+
+  function calculateApproxDistance(shopCoords) {
+    const [userLon, userLat] = [selectedArea?.lng, selectedArea?.lat];
+    const [shopLon, shopLat] = shopCoords;
+
+    const straightLine = getStraightLineDistance(
+      userLat,
+      userLon,
+      shopLat,
+      shopLon
+    );
+
+    const approxRoadDistance = addVariation(straightLine);
+
+    return approxRoadDistance.toFixed(2);
+  }
+
+const getLocalVerifiedLiveShops = async () => {
   try {
     const res = await api.get(
       `/localShop/getAllVerifiedLiveLocalShops/${selectedCategory}`,
       {
         params: {
-          type: searchType,     
-          name: finalSearchData,    
-          t: Date.now(),      
+          type: searchType,
+          name: finalSearchData,
+          t: Date.now(),
         },
       }
     );
 
-    setLocalShopData(res.data.shops);
+    const shopsWithDistance = res.data.shops.map((shop) => {
+      const shopCoords = shop.location?.coordinates; // [lng, lat]
+      if (shopCoords && selectedArea?.lat && selectedArea?.lng) {
+        return {
+          ...shop,
+          fixedDistance: calculateApproxDistance(shopCoords),
+        };
+      }
+      return {
+        ...shop,
+        fixedDistance: "N/A", // fallback if coordinates missing
+      };
+    });
+
+    setLocalShopData(shopsWithDistance);
   } catch (error) {
     console.log("local shop getting err", error);
   }
 };
+
 
   const getUserLocations = async () => {
     try {

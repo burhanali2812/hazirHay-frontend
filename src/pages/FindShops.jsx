@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import puncture from "../images/puncture.png";
 import petrol from "../images/petrol.png";
 import mechanic from "../images/mechanic.png";
+import pharmacy from "../images/pharmacy.png";
 import processing from "../videos/processing.mp4";
 import { useAppContext } from "../context/AppContext";
 import { useNavigate } from "react-router-dom";
@@ -33,6 +34,7 @@ const handleSelectCategory = (cat) => {
     { img: puncture, label: "Puncture" },
     { img: petrol, label: "Petrol Pump" },
     { img: mechanic, label: "Mechanic" },
+    { img: pharmacy, label: "Pharmacy" },
   ];
 
 
@@ -65,42 +67,7 @@ const handleSelectCategory = (cat) => {
     setSuggestionLoading(false);
   };
 
-  function getStraightLineDistance(lat1, lon1, lat2, lon2) {
-    const R = 6371; // Radius of Earth in KM
-    const dLat = (lat2 - lat1) * (Math.PI / 180);
-    const dLon = (lon2 - lon1) * (Math.PI / 180);
 
-    const a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(lat1 * (Math.PI / 180)) *
-        Math.cos(lat2 * (Math.PI / 180)) *
-        Math.sin(dLon / 2) *
-        Math.sin(dLon / 2);
-
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-    return R * c;
-  }
-  function addVariation(distance) {
-    const variationPercent = 40 / 100;
-    return distance + distance * variationPercent;
-  }
-
-  function calculateApproxDistance(shopCoords) {
-    const [userLon, userLat] = [selectedArea?.lng, selectedArea?.lat];
-    const [shopLon, shopLat] = shopCoords;
-
-    const straightLine = getStraightLineDistance(
-      userLat,
-      userLon,
-      shopLat,
-      shopLon
-    );
-
-    const approxRoadDistance = addVariation(straightLine);
-
-    return approxRoadDistance.toFixed(2);
-  }
   const openGoogleMaps = (shopCoords) => {
     const url = `https://www.google.com/maps/dir/?api=1&origin=${selectedArea?.lat},${selectedArea?.lng}&destination=${shopCoords[1]},${shopCoords[0]}&travelmode=driving`;
 
@@ -183,8 +150,8 @@ const handleSelectCategory = (cat) => {
                       className="card bg-light  shadow-sm"
                       key={ind}
                       style={{
-                        width: "120px",
-                        height: "100px",
+                        width: "100px",
+                        height: "120px",
                         display: "flex",
                         flexDirection: "column",
                         justifyContent: "center",
@@ -196,8 +163,8 @@ const handleSelectCategory = (cat) => {
                         src={data.img}
                         alt={data.label}
                         style={{
-                          width: "120px",
-                          height: "80px",
+                          width: "80px",
+                          height: "100px",
                           objectFit: "contain",
                         }}
                       />
@@ -233,7 +200,7 @@ const handleSelectCategory = (cat) => {
       />
 
       {/* List */}
-      <div style={{ maxHeight: "220px", overflowY: "auto" }}>
+      <div style={{ maxHeight: "250px", overflowY: "auto" }}>
         {ShopServices.filter((item) =>
           item.toLowerCase().includes(categorySearch.toLowerCase())
         ).map((item, i) => (
