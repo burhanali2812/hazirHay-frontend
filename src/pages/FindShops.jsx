@@ -7,15 +7,16 @@ import { useAppContext } from "../context/AppContext";
 import { useNavigate } from "react-router-dom";
 import { ShopServices } from "../components/ShopServices";
 function FindShops() {
-  const { selectedArea, localShopData, localShopWithDistance , setSelectedViewLocalShop, selectedCategory,setSelectedCategory } =
+  const { selectedArea, localShopData, localShopWithDistance , setSelectedViewLocalShop,
+     selectedCategory,setSelectedCategory ,searchType, setSearchType,searchQuery, setSearchQuery,
+      searchData, setSearchData,sortOrder, setSortOrder} =
     useAppContext();
-  const [searchQuery, setSearchQuery] = useState("");
-  const [searchData, setSearchData] = useState([]);
+
+
   const [filterModal, setFilterModal] = useState(false);
   const [filterLoading, setFilterLoading] = useState(false);
-  const [sortOrder, setSortOrder] = useState("low-to-high");
   const [categorySearch, setCategorySearch] = useState("");
-const [searchType, setSearchType] = useState("");
+
 
 const handleSelectCategory = (cat) => {
   setSelectedCategory(cat);
@@ -47,7 +48,12 @@ const handleSelectCategory = (cat) => {
       const serviceMatch = shop.services?.some((service) =>
         service.name?.toLowerCase().includes(value)
       );
-      return nameMatch || serviceMatch;
+      if(searchType === "shopName"){
+        return nameMatch;
+      }
+      else{
+        return serviceMatch;
+      }
     });
 
     data = data.map((shop) => ({
@@ -115,6 +121,9 @@ const handleSelectCategory = (cat) => {
       sortedData.sort(
         (a, b) => parseFloat(b.fixedDistance) - parseFloat(a.fixedDistance)
       );
+    }
+    else if(sortOrder === "all"){
+      sortedData = [...searchData];
     }
     setSearchData(sortedData);
     setFilterLoading(false);
@@ -212,7 +221,7 @@ const handleSelectCategory = (cat) => {
       data-bs-toggle="dropdown"
     >
       <i class="fa-solid fa-list me-1"></i>
-     {selectedCategory === "" ? "Select Category" : selectedCategory}
+     {selectedCategory === null ? "Select Category" : selectedCategory}
     </button>
 
     <div className="dropdown-menu p-2" style={{ width: "250px" }}>
@@ -272,7 +281,7 @@ const handleSelectCategory = (cat) => {
             <input
               type="search"
               className={`form-control rounded-pill ps-5 ${!(selectedCategory && searchType) ? "bg-light" : ""}`}
-              placeholder={`Search ${selectedCategory ? selectedCategory : "shops/services"}... of ${searchType === "shopName" ? "Shop Name" : searchType === "services" ? "Services" : "..." }`}
+              placeholder={`Search ${selectedCategory ? selectedCategory : "shops/services"} by ${searchType === "shopName" ? "Shop Name" : searchType === "services" ? "Services" : "..." }`}
               aria-label="Search"
               disabled={!(selectedCategory && searchType)}
               value={searchQuery}
@@ -494,8 +503,10 @@ const handleSelectCategory = (cat) => {
                   <label className="form-label fw-semibold">Sort by Distance</label>
 
                   <div className="d-flex gap-2 text-center justify-content-center">
-                  <button className="btn btn-outline-primary btn-sm rounded-pill px-4" onClick={() => setSortOrder("low-to-high")}><i class="fa-solid fa-arrow-up-wide-short me-2"></i>low-to-high</button>
-                   <button className="btn btn-outline-primary btn-sm rounded-pill px-4" onClick={() => setSortOrder("high-to-low")}><i class="fa-solid fa-arrow-down-wide-short me-2"></i>high-to-low</button>
+                                      <button className="btn btn-outline-primary btn-sm rounded-pill px-4" onClick={() => setSortOrder("all")}>All</button>
+
+                  <button className="btn btn-outline-primary btn-sm rounded-pill px-2" onClick={() => setSortOrder("low-to-high")}><i class="fa-solid fa-arrow-up-wide-short me-2"></i>low-to-high</button>
+                   <button className="btn btn-outline-primary btn-sm rounded-pill px-2" onClick={() => setSortOrder("high-to-low")}><i class="fa-solid fa-arrow-down-wide-short me-2"></i>high-to-low</button>
                 </div>
                 </div>
                 <button

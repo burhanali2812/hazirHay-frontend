@@ -35,6 +35,10 @@ export const AppProvider = ({ children }) => {
   const [userLocations, setUserLocations] = useState([]);
   const [selectedViewLocalShop, setSelectedViewLocalShop] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const [searchType, setSearchType] = useState("");
+    const [searchQuery, setSearchQuery] = useState("");
+      const [sortOrder, setSortOrder] = useState("all");
+      const [searchData, setSearchData] = useState([]);
 
   const [loading, setLoading] = useState(false);
 
@@ -304,6 +308,14 @@ export const AppProvider = ({ children }) => {
         setSelectedViewLocalShop,
         selectedCategory,
         setSelectedCategory,
+        searchType, 
+        setSearchType,
+        searchQuery, 
+        setSearchQuery,
+        searchData, 
+        setSearchData,
+        sortOrder,
+         setSortOrder,
 
         getShopData,
         getAllUser,
