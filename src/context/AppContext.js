@@ -1,5 +1,4 @@
-
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useState, useEffect, use } from "react";
 import axios from "axios";
 
 export const AppContext = createContext();
@@ -16,36 +15,33 @@ export const AppProvider = ({ children }) => {
   const [shopKepperWorkers, setShopKepperWorkers] = useState([]);
   const [shopKepperStatus2, setShopKepperStatus2] = useState(null);
   const [cartData, setCartData] = useState([]);
-    const [shop, setShop] = useState(null);
+  const [shop, setShop] = useState(null);
   const [notification, setNotification] = useState([]);
   const [unSeenNotification, setUnSeenNotification] = useState([]);
   const [localShopData, setLocalShopData] = useState([]);
-  const [localShopWithDistance, setLocalShopWithDistance] = useState([]);
 
   const [topText, setTopText] = useState("");
   const [pageKey, setKey] = useState(null);
   const [shopKepperStatus, setShopKepperStatus] = useState(null);
-   const [method, setMethod] = useState("");
+  const [method, setMethod] = useState("");
   const [areaName, setAreaName] = useState("");
   const [coordinates, setCoordinates] = useState(null);
   const [refreshFlag, setRefreshFlag] = useState(false);
   const [update, setUpdate] = useState(false);
   const [updateAppjs, setUpdateAppjs] = useState(false);
   const [statusUpdate, setStatusUpdate] = useState(false);
-    const [selectedArea, setSelectedArea] = useState(null);
-    const [shopKepperOrdersLength, setShopKepperOrdersLength] = useState(0);
-      const [userLocations, setUserLocations] = useState([]);
-      const [selectedViewLocalShop, setSelectedViewLocalShop] = useState(null);
+  const [selectedArea, setSelectedArea] = useState(null);
+  const [shopKepperOrdersLength, setShopKepperOrdersLength] = useState(0);
+  const [userLocations, setUserLocations] = useState([]);
+  const [selectedViewLocalShop, setSelectedViewLocalShop] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState(null);
 
   const [loading, setLoading] = useState(false);
-
 
   const api = axios.create({
     baseURL: "https://hazir-hay-backend.vercel.app",
     headers: { Authorization: `Bearer ${token}` },
   });
-
-
 
   const getAllUser = async () => {
     try {
@@ -58,19 +54,15 @@ export const AppProvider = ({ children }) => {
       setTotalUser([]);
     }
   };
-    const getShopData = async () => {
+  const getShopData = async () => {
     try {
-      const response = await api.get(
-        `/shops/shopData/${user._id}`,
-        {
-          params: { t: Date.now() },
-        }
-      );
-        setShop(response.data.shop);
-
+      const response = await api.get(`/shops/shopData/${user._id}`, {
+        params: { t: Date.now() },
+      });
+      setShop(response.data.shop);
     } catch (err) {
       console.error("Error fetching shop data:", err);
-      setShop(null)
+      setShop(null);
     }
   };
 
@@ -89,34 +81,28 @@ export const AppProvider = ({ children }) => {
     }
   };
 
- const getShopKepperWorkers = async () => {
-  try {
-    const res = await api.get("/worker/getWorkersByShop", {
-      params: { t: Date.now() },
-    });
+  const getShopKepperWorkers = async () => {
+    try {
+      const res = await api.get("/worker/getWorkersByShop", {
+        params: { t: Date.now() },
+      });
 
-
-    setShopKepperWorkers(res.data.workers || []);
-    console.log("workers", res.data.workers || []);
-
-  } catch (err) {
-    console.log("worker err", err);
-    if (err.response?.status === 404) {
- 
-    } else {
-  
-      setShopKepperWorkers([]);  
+      setShopKepperWorkers(res.data.workers || []);
+      console.log("workers", res.data.workers || []);
+    } catch (err) {
+      console.log("worker err", err);
+      if (err.response?.status === 404) {
+      } else {
+        setShopKepperWorkers([]);
+      }
     }
-  }
-};
-
+  };
 
   const getUserStatus = async () => {
     try {
-      const res = await api.get(
-        `/shopKeppers/getBusyStatus/${user?._id}`,
-        { params: { t: Date.now() } }
-      );
+      const res = await api.get(`/shopKeppers/getBusyStatus/${user?._id}`, {
+        params: { t: Date.now() },
+      });
       setShopKepperStatus2(res.data.data);
     } catch (err) {
       console.log("status err", err);
@@ -155,10 +141,9 @@ export const AppProvider = ({ children }) => {
     setNotification((prev) => prev.filter((n) => n._id !== id));
 
     try {
-      await api.delete(
-        `/notification/deleteNotification/${id}`,
-        { params: { t: Date.now() } }
-      );
+      await api.delete(`/notification/deleteNotification/${id}`, {
+        params: { t: Date.now() },
+      });
       getNotifications();
     } catch (err) {
       console.log(err);
@@ -169,45 +154,48 @@ export const AppProvider = ({ children }) => {
     try {
       const res = await api.get("/cart/getCartData");
       setCartData(res.data.data.items || []);
-
     } catch (err) {
       console.log("Cart err", err);
     }
   };
 
-  const getLocalVerifiedLiveShops = async()=>{
+  const getLocalVerifiedLiveShops = async () => {
     try {
-      const res = await api.get("/localShop/getAllVerifiedLiveLocalShops");
-      setLocalShopData(res.data.shops)
+      const res = await api.get(`/localShop/getAllVerifiedLiveLocalShops/${selectedCategory}`, {
+        params: {  t: Date.now() },
+      });
+      setLocalShopData(res.data.shops);
     } catch (error) {
       console.log("local shop getting err", error);
     }
-  }
-    const getUserLocations = async () => {
-      try {
-        const response = await api.get(
-          `/users/getUserById/${user._id}`
-        );
-        if (response.data.success) {
-          const locations = response.data.data.location || [];
-          setUserLocations(locations);
-  
-          const defaultLocation = locations.find((loc) => loc.isDefault);
-          if (defaultLocation) {
-            console.log("Default Location:", defaultLocation.area);
-            setSelectedArea({lat: defaultLocation?.coordinates[0], lng: defaultLocation?.coordinates[1], areaName: defaultLocation?.area});
-          }
-        } else {
-          console.error("Failed to fetch user locations");
-          setUserLocations([]);
+  };
+  const getUserLocations = async () => {
+    try {
+      const response = await api.get(`/users/getUserById/${user._id}`);
+      if (response.data.success) {
+        const locations = response.data.data.location || [];
+        setUserLocations(locations);
+
+        const defaultLocation = locations.find((loc) => loc.isDefault);
+        if (defaultLocation) {
+          console.log("Default Location:", defaultLocation.area);
+          setSelectedArea({
+            lat: defaultLocation?.coordinates[0],
+            lng: defaultLocation?.coordinates[1],
+            areaName: defaultLocation?.area,
+          });
         }
-      } catch (error) {
-        console.error("Error fetching user locations:", error.message);
+      } else {
+        console.error("Failed to fetch user locations");
         setUserLocations([]);
       }
-    };
+    } catch (error) {
+      console.error("Error fetching user locations:", error.message);
+      setUserLocations([]);
+    }
+  };
 
-      const fetchAreaName = async (lat, lon) => {
+  const fetchAreaName = async (lat, lon) => {
     try {
       const res = await axios.get(
         "https://hazir-hay-backend.vercel.app/admin/reverse-geocode",
@@ -225,7 +213,7 @@ export const AppProvider = ({ children }) => {
       return "Unknown Area";
     }
   };
-    const chooseCurrentLocation = async () => {
+  const chooseCurrentLocation = async () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         async (pos) => {
@@ -243,24 +231,18 @@ export const AppProvider = ({ children }) => {
     }
   };
 
-
-  
-
-
   useEffect(() => {
- 
- if (!role) return;
+    if (!role) return;
 
     getAllUser();
     getAllShopKepper();
     getNotifications();
 
-    if (role === "user"){
+    if (role === "user") {
       getCartData();
       getLocalVerifiedLiveShops();
       chooseCurrentLocation();
       getUserLocations();
-      
     }
 
     if (role === "shopKepper") {
@@ -268,14 +250,16 @@ export const AppProvider = ({ children }) => {
       getUserStatus();
       getShopData();
     }
-
   }, [role]);
+  useEffect(() => {
+    if (!selectedCategory) return;
+   getLocalVerifiedLiveShops();
 
+  }, [selectedCategory]);
 
   return (
     <AppContext.Provider
       value={{
-      
         totalUser,
         totalShopKepper,
         totalActiveShopKepper,
@@ -286,14 +270,12 @@ export const AppProvider = ({ children }) => {
         notification,
         unSeenNotification,
 
-   
         topText,
         setTopText,
         pageKey,
         setKey,
         selectedArea,
         setSelectedArea,
-        localShopWithDistance,
         shopKepperStatus,
         setShopKepperStatus,
         areaName,
@@ -320,7 +302,8 @@ export const AppProvider = ({ children }) => {
         setShopKepperOrdersLength,
         selectedViewLocalShop,
         setSelectedViewLocalShop,
-
+        selectedCategory,
+        setSelectedCategory,
 
         getShopData,
         getAllUser,
@@ -333,7 +316,6 @@ export const AppProvider = ({ children }) => {
         getCartData,
         fetchAreaName,
         getUserLocations,
-
 
         loading,
         setLoading,

@@ -7,7 +7,7 @@ import { useAppContext } from "../context/AppContext";
 import { useNavigate } from "react-router-dom";
 import { ShopServices } from "../components/ShopServices";
 function FindShops() {
-  const { selectedArea, localShopData, localShopWithDistance , selectedViewLocalShop, setSelectedViewLocalShop} =
+  const { selectedArea, localShopData, localShopWithDistance , setSelectedViewLocalShop, selectedCategory,setSelectedCategory } =
     useAppContext();
   const [searchQuery, setSearchQuery] = useState("");
   const [searchData, setSearchData] = useState([]);
@@ -15,7 +15,6 @@ function FindShops() {
   const [filterLoading, setFilterLoading] = useState(false);
   const [sortOrder, setSortOrder] = useState("low-to-high");
   const [categorySearch, setCategorySearch] = useState("");
-const [selectedCategory, setSelectedCategory] = useState("");
 const [searchType, setSearchType] = useState("");
 
 const handleSelectCategory = (cat) => {
