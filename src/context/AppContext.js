@@ -38,7 +38,10 @@ export const AppProvider = ({ children }) => {
   const [searchType, setSearchType] = useState("");
     const [searchQuery, setSearchQuery] = useState("");
       const [sortOrder, setSortOrder] = useState("all");
-      const [searchData, setSearchData] = useState([]);
+      const [searchData, setSearchData] = useState("");
+      const [finalSearchData, setFinalSearchData] = useState("");
+      const [localShopNames, setLocalShopNames] = useState([]);
+      const [localShopServices, setLocalShopServices] = useState([]);
 
   const [loading, setLoading] = useState(false);
 
@@ -163,16 +166,25 @@ export const AppProvider = ({ children }) => {
     }
   };
 
-  const getLocalVerifiedLiveShops = async () => {
-    try {
-      const res = await api.get(`/localShop/getAllVerifiedLiveLocalShops/${selectedCategory}`, {
-        params: {  t: Date.now() },
-      });
-      setLocalShopData(res.data.shops);
-    } catch (error) {
-      console.log("local shop getting err", error);
-    }
-  };
+ const getLocalVerifiedLiveShops = async () => {
+  try {
+    const res = await api.get(
+      `/localShop/getAllVerifiedLiveLocalShops/${selectedCategory}`,
+      {
+        params: {
+          type: searchType,     
+          name: finalSearchData,    
+          t: Date.now(),      
+        },
+      }
+    );
+
+    setLocalShopData(res.data.shops);
+  } catch (error) {
+    console.log("local shop getting err", error);
+  }
+};
+
   const getUserLocations = async () => {
     try {
       const response = await api.get(`/users/getUserById/${user._id}`);
@@ -234,6 +246,29 @@ export const AppProvider = ({ children }) => {
       alert("Geolocation is not supported by your browser.");
     }
   };
+  const getLocalShopsName = async()=>{
+    try {
+      const res = await api.get(`/localShop/unique-shopnames/${selectedCategory}`,{
+        params: {  t: Date.now() },
+      })
+      setLocalShopNames(res.data.shopNames || []);
+    } catch (error) {
+      console.log("local shop names getting err", error);
+      setLocalShopNames([]);
+    }
+  }
+  const getLocalShopServices = async()=>{
+    try {
+      const res = await api.get(`/localShop/unique-services/${selectedCategory}`,{
+        params: {  t: Date.now() },
+      })
+      setLocalShopServices(res.data.services || []);
+    } catch (error) {
+      console.log("local shop services getting err", error);
+      setLocalShopServices([]);
+      
+    }
+  }
 
   useEffect(() => {
     if (!role) return;
@@ -257,9 +292,15 @@ export const AppProvider = ({ children }) => {
   }, [role]);
   useEffect(() => {
     if (!selectedCategory) return;
-   getLocalVerifiedLiveShops();
+  // getLocalVerifiedLiveShops();
+    getLocalShopsName();
+    getLocalShopServices();
 
   }, [selectedCategory]);
+  useEffect(() => {
+    if (role !== "user") return;
+    getLocalVerifiedLiveShops();
+  }, [searchType, finalSearchData, selectedCategory]);
 
   return (
     <AppContext.Provider
@@ -316,6 +357,9 @@ export const AppProvider = ({ children }) => {
         setSearchData,
         sortOrder,
          setSortOrder,
+         localShopNames,
+         localShopServices,
+         setFinalSearchData,
 
         getShopData,
         getAllUser,
