@@ -87,6 +87,11 @@ if (!isEmail && !isPhone) {
             navigate("/worker/dashboard");
           }, 800);
         }
+        else if (role === "shop") {
+          setTimeout(() => {
+            navigate("/localShop/dashboard");
+          }, 800);
+        }
       }
     } catch (error) {
       if (error.response) {

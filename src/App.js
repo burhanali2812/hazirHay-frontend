@@ -99,9 +99,11 @@ function App() {
             element={<Blocked />}
           />
            <Route
+
             path="/shopKepper/sh&un&Ve&ri&fi&ed@sh@op$"
             element={<UnVarifiedShop />}
           />
+          <Route path="/localShop/dashboard" element={<LocalShopDashboard />} />
           <Route path="worker/dashboard" element={<WorkerDashboard />} />
           <Route path="unauthorized/user" element={<UnauthorizedPage />} />
           <Route path="/admin/*" element={<AdminFooter1 />}>

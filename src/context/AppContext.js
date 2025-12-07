@@ -412,6 +412,7 @@ const getLocalVerifiedLiveShops = async () => {
          localShopNames,
          localShopServices,
          setFinalSearchData,
+         token,
 
         getShopData,
         getAllUser,
