@@ -13,6 +13,7 @@ import PrivacyPolicies from "./pages/PrivacyPolicies";
 import LocalShopSignup from "./pages/LocalShopSignup";
 import UnVarifiedShop from "./pages/UnVarifiedShop";
 import Roles from "./pages/Roles";
+import FAQS from "./pages/FAQS";
 
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Login = lazy(() => import("./pages/Login"));
@@ -110,6 +111,7 @@ function App() {
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="requests" element={<Requests />} />
             <Route path="users" element={<Users />} />
+            <Route path="faqs" element={<FAQS />} />
 
             <Route
               path="shopKepper/dashboard"

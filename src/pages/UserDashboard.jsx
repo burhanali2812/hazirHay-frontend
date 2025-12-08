@@ -844,6 +844,19 @@ function UserDashboard() {
   }, []);
 
   console.log("selectedArea", selectedArea);
+  const shopLat = selectedShopWithShopkepper?.shop?.location?.coordinates[0];
+  const shopLng = selectedShopWithShopkepper?.shop?.location?.coordinates[1];
+
+    const getGoogleMapsUrl = () => {
+    if (selectedArea?.lat && selectedArea?.lng && shopLat && shopLng) {
+      return `https://www.google.com/maps/dir/?api=1&origin=${selectedArea.lat},${selectedArea.lng}&destination=${shopLat},${shopLng}&travelmode=driving`;
+    }
+    return `https://www.google.com/maps/search/?api=1&query=${shopLat},${shopLng}`;
+  };
+
+  const viewOnGoogleMaps = () => {
+    window.open(getGoogleMapsUrl(), "_blank");
+  };
 
   return (
     <div>
@@ -1758,10 +1771,10 @@ function UserDashboard() {
                   <button
                     className="btn btn-primary text-light btn-sm rounded-pill"
                     style={{ width: "313px" }}
-                    onClick={() => setShopAddressModal(true)}
+                    onClick={viewOnGoogleMaps}
                   >
-                    <i class="fa-solid fa-map-location-dot me-2"></i> Shop
-                    Address
+                     <i className="fas fa-directions me-2"></i>
+              Get Directions on Google Maps
                   </button>
                 </di>
                 <hr />
@@ -2107,75 +2120,7 @@ function UserDashboard() {
           </div>
         </div>
       )}
-      {shopAddressModal && (
-        <div
-          className="modal fade show d-block"
-          tabIndex="-1"
-          style={{ backgroundColor: "rgba(0,0,0,0.6)" }}
-        >
-          <div className="modal-dialog modal-fullscreen modal-dialog-centered">
-            <div className="modal-content border-0 shadow-lg  overflow-hidden">
-              {/* Header */}
-              <div className="modal-header  p-3 d-flex align-items-center">
-                <i
-                  className="fa-solid fa-circle-chevron-left text-primary me-2"
-                  style={{ fontSize: "24px", cursor: "pointer" }}
-                  onClick={() => setShopAddressModal(false)}
-                ></i>
-                <h5 className="fw-bold text-dark mb-0">Available Services</h5>
-              </div>
 
-              {/* Body */}
-              <div className="modal-body p-2">
-                {/* Shop Information Card */}
-                <div className="p-4 bg-light rounded-1 shadow-sm mb-2">
-                  <h6 className="fw-bold text-dark mb-3">
-                    <i className="fa-solid fa-store text-success me-2"></i>
-                    Shop Details
-                  </h6>
-
-                  <p className="mb-3">
-                    <i className="fa-solid fa-location-dot text-danger me-2"></i>
-                    <span className="fw-semibold">Address:</span>{" "}
-                    {selectedShopWithShopkepper?.shop?.location?.area}
-                  </p>
-
-                  <div className="d-flex justify-content-between">
-                    <p className="mb-0">
-                      <i className="fa-solid fa-clock text-primary me-2"></i>
-                      <span className="fw-semibold">Est. Time:</span>{" "}
-                      {routeInfo?.duration} mins
-                    </p>
-                    <p className="mb-0">
-                      <i className="fa-solid fa-route text-warning me-2"></i>
-                      <span className="fw-semibold">Distance:</span>{" "}
-                      {routeInfo?.distance} km
-                    </p>
-                  </div>
-                </div>
-
-                {/* Map Container */}
-                <div
-                  className="rounded-1 overflow-hidden shadow-sm border"
-                  style={{ height: "380px", width: "100%" }}
-                >
-                  <UserShopRoute
-                    userCoords={[selectedArea.lng, selectedArea.lat]}
-                    shopCoords={[
-                      selectedShopWithShopkepper?.shop?.location
-                        ?.coordinates[1],
-                      selectedShopWithShopkepper?.shop?.location
-                        ?.coordinates[0],
-                    ]}
-                    onRouteInfo={(info) => setRouteInfo(info)}
-                    type={"shop"}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

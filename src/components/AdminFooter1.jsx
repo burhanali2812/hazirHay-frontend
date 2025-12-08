@@ -157,7 +157,7 @@ function AdminFooter() {
         key: "faq",
         icon: "fa-solid fa-file-circle-question",
         label: "FAQs",
-        path: "/admin/user/tracking",
+        path: "/admin/faqs",
       },
       {
         key: "setting",
