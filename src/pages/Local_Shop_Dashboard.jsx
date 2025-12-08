@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { useAppContext } from "../context/AppContext";
+import imageCompression from "browser-image-compression";
 
 function Local_Shop_Dashboard() {
   const { user, logout } = useAppContext();
@@ -136,7 +137,9 @@ function Local_Shop_Dashboard() {
   };
 
   const addService = () => {
-    const alreadyExists = services.some((s) => s.name.toLowerCase() === newService.trim().toLowerCase());
+    const alreadyExists = services.some(
+      (s) => s.name.toLowerCase() === newService.trim().toLowerCase()
+    );
     if (alreadyExists) {
       toast.error("Service already added");
       return;
@@ -213,12 +216,23 @@ function Local_Shop_Dashboard() {
     }
   };
 
+  // helper: compress images before upload
+  const compressImage = async (file) => {
+    const options = {
+      maxSizeMB: 0.6,
+      maxWidthOrHeight: 800,
+      useWebWorker: true,
+    };
+    return imageCompression(file, options);
+  };
+
   const uploadImage = async () => {
     if (!selectedImage) return toast.error("Select an image first");
     setIsDataLoading(true);
     try {
+      const compressed = await compressImage(selectedImage);
       const form = new FormData();
-      form.append("image", selectedImage);
+      form.append("image", compressed, compressed.name || selectedImage.name);
       form.append("imageType", imageType);
       const res = await axios.put(
         "https://hazir-hay-backend.vercel.app/localShop/updateImage",
@@ -248,12 +262,17 @@ function Local_Shop_Dashboard() {
   const handleMenuCardsSelect = (e) =>
     setNewMenuCards(Array.from(e.target.files));
 
+// ...existing code...
   const addMenuCards = async () => {
     if (!newMenuCards.length) return toast.error("Select menu images");
     setIsDataLoading(true);
     try {
       const form = new FormData();
-      newMenuCards.forEach((f) => form.append("menuCards", f));
+      // compress every menu image before upload
+      for (const file of newMenuCards) {
+        const compressed = await compressImage(file);
+        form.append("menuCards", compressed, compressed.name || file.name);
+      }
       const res = await axios.post(
         "https://hazir-hay-backend.vercel.app/localShop/addMenuCards",
         form,
@@ -277,6 +296,7 @@ function Local_Shop_Dashboard() {
       setIsDataLoading(false);
     }
   };
+// ...existing code...
 
   const deleteMenuCard = async (url) => {
     if (!window.confirm("Delete this menu card?")) return;
@@ -460,7 +480,6 @@ function Local_Shop_Dashboard() {
                   ["services", "fa-concierge-bell", "Services"],
                   ["location", "fa-map-marker-alt", "Location"],
                   ["menu", "fa-utensils", "Menu"],
-               
                 ].map(([key, icon, label]) => (
                   <button
                     key={key}
@@ -831,8 +850,6 @@ function Local_Shop_Dashboard() {
               </div>
             </div>
           )}
-
-         
         </div>
       </div>
 
@@ -1113,8 +1130,6 @@ function Local_Shop_Dashboard() {
           </div>
         </div>
       </div>
-
-     
 
       {/* Menu Modal */}
       <div

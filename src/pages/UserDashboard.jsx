@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import location from "../images/location.png";
 import "./style.css";
-import { lazy,Suspense } from "react";
+import { lazy, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
 import notFound from "../videos/notFound.mp4";
 import Swal from "sweetalert2";
@@ -10,10 +10,23 @@ import { Toaster, toast } from "react-hot-toast";
 
 import { services } from "../components/servicesData";
 import { useAppContext } from "../context/AppContext";
-const UserShopRoute = lazy(()=>import("../components/UserShopRoute"))
-const MyMap = lazy(()=>import("../components/MyMap"))
+const UserShopRoute = lazy(() => import("../components/UserShopRoute"));
+const MyMap = lazy(() => import("../components/MyMap"));
 function UserDashboard() {
-  const { cartData,setAreaName,setCoordinates,coordinates,setKey,getCartData,selectedArea, setSelectedArea, setUserLocations, userLocations, fetchAreaName, getUserLocations} = useAppContext();
+  const {
+    cartData,
+    setAreaName,
+    setCoordinates,
+    coordinates,
+    setKey,
+    getCartData,
+    selectedArea,
+    setSelectedArea,
+    setUserLocations,
+    userLocations,
+    fetchAreaName,
+    getUserLocations,
+  } = useAppContext();
   const role = localStorage.getItem("role");
 
   const token = localStorage.getItem("token");
@@ -27,7 +40,7 @@ function UserDashboard() {
   const [locationName, setLocationName] = useState("");
   const [selectedSubCategory, setSelectedSubCategory] = useState(null);
   const [shopDistance, setShopDistance] = useState(null);
-const [allShopDistance, setAllShopDistance] = useState([]);
+  const [allShopDistance, setAllShopDistance] = useState([]);
   const [routeInfo, setRouteInfo] = useState(null);
 
   const [selectedCategory, setSelectedCategory] = useState(null);
@@ -65,7 +78,7 @@ const [allShopDistance, setAllShopDistance] = useState([]);
 
   const handleFilterChange = (type, value) => {
     console.log("type", type, "option", value);
-    setFilterServices([])
+    setFilterServices([]);
     setFilters((prev) => ({ ...prev, [type.toLowerCase()]: value }));
   };
 
@@ -89,14 +102,14 @@ const [allShopDistance, setAllShopDistance] = useState([]);
   useEffect(() => {
     setKey("home");
     setTimeout(() => {
-      setIsDataLoading(false)
+      setIsDataLoading(false);
     }, 2700);
   }, []);
 
   const handleOpenFilter = (e, filterType) => {
     e.preventDefault();
     setFilterModal(true);
-  
+
     setFilterText(filterType);
   };
 
@@ -341,7 +354,7 @@ const [allShopDistance, setAllShopDistance] = useState([]);
       setLoading(false);
 
       if (error.response && error.response.status === 404) {
-        setNotFoundModal(true); 
+        setNotFoundModal(true);
       } else {
         console.error(
           "Error fetching providers:",
@@ -352,164 +365,232 @@ const [allShopDistance, setAllShopDistance] = useState([]);
       setLoading(false);
     }
   };
-    function getMinPrice(shop) {
-    const prices = shop.servicesOffered.map(service => {
+  function getMinPrice(shop) {
+    const prices = shop.servicesOffered.map((service) => {
       return service.subCategory?.price || service.price || Infinity;
     });
     return Math.min.apply(null, prices);
   }
 
   function getMaxPrice(shop) {
-    const prices = shop.servicesOffered.map(service => {
+    const prices = shop.servicesOffered.map((service) => {
       return service.subCategory?.price || service.price || -Infinity;
     });
     return Math.max.apply(null, prices);
   }
 
-const applyFilters = () => {
-  if(copyShopData.length ===0){
-    setCopyShopData(shopData);
-  }
-  const finalShopData = copyShopData?.length > 0 ? copyShopData : shopData;
+  const applyFilters = () => {
+    if (copyShopData.length === 0) {
+      setCopyShopData(shopData);
+    }
+    const finalShopData = copyShopData?.length > 0 ? copyShopData : shopData;
 
-    const low_to_high_dis = finalShopData.sort((a, b) => 
-    Number(a.distance) - Number(b.distance)
-  );
-    const high_to_low_dis = finalShopData.sort((a, b) => 
-    Number(b.distance) - Number(a.distance)
-  );
-    const online  = finalShopData?.filter((shop)=> shop.isLive === true);
-    const offline  = finalShopData?.filter((shop)=> shop.isLive === false);
+    const low_to_high_dis = finalShopData.sort(
+      (a, b) => Number(a.distance) - Number(b.distance)
+    );
+    const high_to_low_dis = finalShopData.sort(
+      (a, b) => Number(b.distance) - Number(a.distance)
+    );
+    const online = finalShopData?.filter((shop) => shop.isLive === true);
+    const offline = finalShopData?.filter((shop) => shop.isLive === false);
 
-if (filters.distance === "Low-to-High" && filters.status === "Online") {
-  setIsFilter(true)
-  setFilterServices(low_to_high_dis.filter((shop)=> shop.isLive === true));
-}
-if (filters.distance === "Low-to-High" && filters.status === "Offline") {
-  setIsFilter(true)
-  setFilterServices(low_to_high_dis.filter((shop)=> shop.isLive === false));
-}
-if (filters.distance === "High-to-Low" && filters.status === "Online") {
-  setIsFilter(true)
-  setFilterServices(high_to_low_dis.filter((shop)=> shop.isLive === true));
-}
-if (filters.distance === "High-to-Low" && filters.status === "Offline") {
-  setIsFilter(true)
-  setFilterServices(high_to_low_dis.filter((shop)=> shop.isLive === false));
-}
-if(filters.distance === "Low-to-High" && filters.status === "All" && filters.price === "All" && filters.rating === "All") {
-  setIsFilter(true);
-  setFilterServices(low_to_high_dis);
-}
-if(filters.distance === "High-to-Low" && filters.status === "All" && filters.price === "All" && filters.rating === "All") {
-  setIsFilter(true);
-  setFilterServices(high_to_low_dis);
-}
-if(filters.distance === "Low-to-High" && filters.status === "All" && filters.price === "Low-to-High") {
-  const sorted = low_to_high_dis.slice().sort((a, b) => {
-    return getMinPrice(a) - getMinPrice(b);
-  });
-  setIsFilter(true);
-  setFilterServices(sorted);
-}
-if(filters.distance === "High-to-Low" && filters.status === "All" && filters.price === "Low-to-High") {
-  const sorted = high_to_low_dis.slice().sort((a, b) => {
-    return getMinPrice(a) - getMinPrice(b);
-  });
-  setIsFilter(true);
-  setFilterServices(sorted);
-}
-if(filters.distance === "Low-to-High" && filters.status === "All" && filters.price === "High-to-Low") {
-  const sorted = low_to_high_dis.slice().sort((a, b) => {
-    return getMaxPrice(b) - getMaxPrice(a);
-  });
-  setIsFilter(true);
-  setFilterServices(sorted);
-}
-if(filters.distance === "High-to-Low" && filters.status === "All" && filters.price === "High-to-Low") {
-  const sorted = high_to_low_dis.slice().sort((a, b) => {
-    return getMaxPrice(b) - getMaxPrice(a);
-  });
-  setIsFilter(true);
-  setFilterServices(sorted);
-}
-if(filters.distance === "High-to-Low" && filters.status === "Online" && filters.price === "High-to-Low") {
-  const sorted = high_to_low_dis.slice().sort((a, b) => {
-    return getMaxPrice(b) - getMaxPrice(a);
-  });
-  setIsFilter(true);
-  setFilterServices(sorted.filter((shop)=> shop.isLive === true));
-}
-if(filters.distance === "High-to-Low" && filters.status === "Online" && filters.price === "Low-to-High") {
-  const sorted = high_to_low_dis.slice().sort((a, b) => {
-    return getMinPrice(a) - getMinPrice(b);
-  });
-  setIsFilter(true);
-  setFilterServices(sorted.filter((shop)=> shop.isLive === true));
-}
-if(filters.distance === "Low-to-High" && filters.status === "Online" && filters.price === "High-to-Low") {
-  const sorted = low_to_high_dis.slice().sort((a, b) => {
-    return getMaxPrice(b) - getMaxPrice(a);
-  });
-  setIsFilter(true);
-  setFilterServices(sorted.filter((shop)=> shop.isLive === true));
-}
-if(filters.distance === "Low-to-High" && filters.status === "Online" && filters.price === "Low-to-High") {
-  const sorted = low_to_high_dis.slice().sort((a, b) => {
-    return getMinPrice(a) - getMinPrice(b);
-  }); 
-  setIsFilter(true);
-  setFilterServices(sorted.filter((shop)=> shop.isLive === true));
-}
-if(filters.distance === "High-to-Low" && filters.status === "Offline" && filters.price === "High-to-Low") {
-  const sorted = high_to_low_dis.slice().sort((a, b) => {
-    return getMaxPrice(b) - getMaxPrice(a);
-  });
-  setIsFilter(true);
-  setFilterServices(sorted.filter((shop)=> shop.isLive === false));
-}
-if(filters.distance === "High-to-Low" && filters.status === "Offline" && filters.price === "Low-to-High") {
-  const sorted = high_to_low_dis.slice().sort((a, b) => {
-    return getMinPrice(a) - getMinPrice(b);
-  });
-  setIsFilter(true);
-  setFilterServices(sorted.filter((shop)=> shop.isLive === false));
-}
-if(filters.distance === "Low-to-High" && filters.status === "Offline" && filters.price === "High-to-Low") {
-  const sorted = low_to_high_dis.slice().sort((a, b) => {
-    return getMaxPrice(b) - getMaxPrice(a);
-  });
-  setIsFilter(true);
-  setFilterServices(sorted.filter((shop)=> shop.isLive === false));
-}
-if(filters.distance === "Low-to-High" && filters.status === "Offline" && filters.price === "Low-to-High") {
-  const sorted = low_to_high_dis.slice().sort((a, b) => {
-    return getMinPrice(a) - getMinPrice(b);
-  }); 
-  setIsFilter(true);
-  setFilterServices(sorted.filter((shop)=> shop.isLive === false));
-}
+    if (filters.distance === "Low-to-High" && filters.status === "Online") {
+      setIsFilter(true);
+      setFilterServices(low_to_high_dis.filter((shop) => shop.isLive === true));
+    }
+    if (filters.distance === "Low-to-High" && filters.status === "Offline") {
+      setIsFilter(true);
+      setFilterServices(
+        low_to_high_dis.filter((shop) => shop.isLive === false)
+      );
+    }
+    if (filters.distance === "High-to-Low" && filters.status === "Online") {
+      setIsFilter(true);
+      setFilterServices(high_to_low_dis.filter((shop) => shop.isLive === true));
+    }
+    if (filters.distance === "High-to-Low" && filters.status === "Offline") {
+      setIsFilter(true);
+      setFilterServices(
+        high_to_low_dis.filter((shop) => shop.isLive === false)
+      );
+    }
+    if (
+      filters.distance === "Low-to-High" &&
+      filters.status === "All" &&
+      filters.price === "All" &&
+      filters.rating === "All"
+    ) {
+      setIsFilter(true);
+      setFilterServices(low_to_high_dis);
+    }
+    if (
+      filters.distance === "High-to-Low" &&
+      filters.status === "All" &&
+      filters.price === "All" &&
+      filters.rating === "All"
+    ) {
+      setIsFilter(true);
+      setFilterServices(high_to_low_dis);
+    }
+    if (
+      filters.distance === "Low-to-High" &&
+      filters.status === "All" &&
+      filters.price === "Low-to-High"
+    ) {
+      const sorted = low_to_high_dis.slice().sort((a, b) => {
+        return getMinPrice(a) - getMinPrice(b);
+      });
+      setIsFilter(true);
+      setFilterServices(sorted);
+    }
+    if (
+      filters.distance === "High-to-Low" &&
+      filters.status === "All" &&
+      filters.price === "Low-to-High"
+    ) {
+      const sorted = high_to_low_dis.slice().sort((a, b) => {
+        return getMinPrice(a) - getMinPrice(b);
+      });
+      setIsFilter(true);
+      setFilterServices(sorted);
+    }
+    if (
+      filters.distance === "Low-to-High" &&
+      filters.status === "All" &&
+      filters.price === "High-to-Low"
+    ) {
+      const sorted = low_to_high_dis.slice().sort((a, b) => {
+        return getMaxPrice(b) - getMaxPrice(a);
+      });
+      setIsFilter(true);
+      setFilterServices(sorted);
+    }
+    if (
+      filters.distance === "High-to-Low" &&
+      filters.status === "All" &&
+      filters.price === "High-to-Low"
+    ) {
+      const sorted = high_to_low_dis.slice().sort((a, b) => {
+        return getMaxPrice(b) - getMaxPrice(a);
+      });
+      setIsFilter(true);
+      setFilterServices(sorted);
+    }
+    if (
+      filters.distance === "High-to-Low" &&
+      filters.status === "Online" &&
+      filters.price === "High-to-Low"
+    ) {
+      const sorted = high_to_low_dis.slice().sort((a, b) => {
+        return getMaxPrice(b) - getMaxPrice(a);
+      });
+      setIsFilter(true);
+      setFilterServices(sorted.filter((shop) => shop.isLive === true));
+    }
+    if (
+      filters.distance === "High-to-Low" &&
+      filters.status === "Online" &&
+      filters.price === "Low-to-High"
+    ) {
+      const sorted = high_to_low_dis.slice().sort((a, b) => {
+        return getMinPrice(a) - getMinPrice(b);
+      });
+      setIsFilter(true);
+      setFilterServices(sorted.filter((shop) => shop.isLive === true));
+    }
+    if (
+      filters.distance === "Low-to-High" &&
+      filters.status === "Online" &&
+      filters.price === "High-to-Low"
+    ) {
+      const sorted = low_to_high_dis.slice().sort((a, b) => {
+        return getMaxPrice(b) - getMaxPrice(a);
+      });
+      setIsFilter(true);
+      setFilterServices(sorted.filter((shop) => shop.isLive === true));
+    }
+    if (
+      filters.distance === "Low-to-High" &&
+      filters.status === "Online" &&
+      filters.price === "Low-to-High"
+    ) {
+      const sorted = low_to_high_dis.slice().sort((a, b) => {
+        return getMinPrice(a) - getMinPrice(b);
+      });
+      setIsFilter(true);
+      setFilterServices(sorted.filter((shop) => shop.isLive === true));
+    }
+    if (
+      filters.distance === "High-to-Low" &&
+      filters.status === "Offline" &&
+      filters.price === "High-to-Low"
+    ) {
+      const sorted = high_to_low_dis.slice().sort((a, b) => {
+        return getMaxPrice(b) - getMaxPrice(a);
+      });
+      setIsFilter(true);
+      setFilterServices(sorted.filter((shop) => shop.isLive === false));
+    }
+    if (
+      filters.distance === "High-to-Low" &&
+      filters.status === "Offline" &&
+      filters.price === "Low-to-High"
+    ) {
+      const sorted = high_to_low_dis.slice().sort((a, b) => {
+        return getMinPrice(a) - getMinPrice(b);
+      });
+      setIsFilter(true);
+      setFilterServices(sorted.filter((shop) => shop.isLive === false));
+    }
+    if (
+      filters.distance === "Low-to-High" &&
+      filters.status === "Offline" &&
+      filters.price === "High-to-Low"
+    ) {
+      const sorted = low_to_high_dis.slice().sort((a, b) => {
+        return getMaxPrice(b) - getMaxPrice(a);
+      });
+      setIsFilter(true);
+      setFilterServices(sorted.filter((shop) => shop.isLive === false));
+    }
+    if (
+      filters.distance === "Low-to-High" &&
+      filters.status === "Offline" &&
+      filters.price === "Low-to-High"
+    ) {
+      const sorted = low_to_high_dis.slice().sort((a, b) => {
+        return getMinPrice(a) - getMinPrice(b);
+      });
+      setIsFilter(true);
+      setFilterServices(sorted.filter((shop) => shop.isLive === false));
+    }
 
-
-
-if(filters.status === "Online" && filters.distance === "All" && filters.price === "All"){
- 
-        setIsFilter(true)
-    setFilterServices(online)
-
-}
-if(filters.status === "Offline"  && filters.distance === "All" && filters.price === "All"){
-   
-        setIsFilter(true)
-    setFilterServices(offline)
-
-}
-if(filters.status === "All" && filters.distance === "All" && filters.price === "All"){
-  setIsFilter(false)
-  setFilterServices([])
-}
-setFilterModal(false)
-};
+    if (
+      filters.status === "Online" &&
+      filters.distance === "All" &&
+      filters.price === "All"
+    ) {
+      setIsFilter(true);
+      setFilterServices(online);
+    }
+    if (
+      filters.status === "Offline" &&
+      filters.distance === "All" &&
+      filters.price === "All"
+    ) {
+      setIsFilter(true);
+      setFilterServices(offline);
+    }
+    if (
+      filters.status === "All" &&
+      filters.distance === "All" &&
+      filters.price === "All"
+    ) {
+      setIsFilter(false);
+      setFilterServices([]);
+    }
+    setFilterModal(false);
+  };
 
   const setSelectedLocation = (location) => {
     setSelectedArea({
@@ -522,26 +603,21 @@ setFilterModal(false)
   const chooseCurrentLocation = async () => {
     setLoadingDelandSet(true);
     if (coordinates !== null) {
- 
+      const areaName = await fetchAreaName(coordinates?.lat, coordinates?.lng);
+      setAreaName(areaName);
 
-          const areaName = await fetchAreaName(coordinates?.lat, coordinates?.lng);
-          setAreaName(areaName);
-
-          const location = {
-            area: areaName,
-            name: "Current Location",
-            coordinates: [coordinates?.lat, coordinates?.lng],
-          };
-          setSelectedLocation(location);
-          setLoadingDelandSet(false);
-          setChooseLocationModal(false);
-     
-        
+      const location = {
+        area: areaName,
+        name: "Current Location",
+        coordinates: [coordinates?.lat, coordinates?.lng],
+      };
+      setSelectedLocation(location);
+      setLoadingDelandSet(false);
+      setChooseLocationModal(false);
     } else {
       toast.error("Coordinates not found. Please allow location access.");
     }
   };
-
 
   const handleSaveLocation = async () => {
     setLoading(true);
@@ -616,7 +692,6 @@ setFilterModal(false)
     }
   };
 
-
   const handleCategoryChange = (e) => {
     setSelectedCategory(e.target.value);
     setSelectedSubCategory("");
@@ -641,8 +716,8 @@ setFilterModal(false)
     }
 
     return {
-      distance: (route.distance / 1000).toFixed(2), 
-      duration: (route.duration / 60).toFixed(0), 
+      distance: (route.distance / 1000).toFixed(2),
+      duration: (route.duration / 60).toFixed(0),
     };
   }
 
@@ -764,155 +839,163 @@ setFilterModal(false)
       console.error("Error setting default location:", error);
     }
   };
-  useEffect(()=>{
+  useEffect(() => {
     console.log("allShopDistance", allShopDistance);
-    
-  },[])
+  }, []);
 
   console.log("selectedArea", selectedArea);
 
   return (
     <div>
       <form onSubmit={(e) => e.preventDefault()}>
-        <div style={{ height: "420px", width: "100%" }} >
-          <Suspense fallback={<h2>Loading...</h2>}>
-            <MyMap
-            onLocationSelect={setSelectedArea}
-            initialLocation={selectedArea ? selectedArea : null}
-          />
-          </Suspense>
+        <div>
+          <iframe
+            src={`https://maps.google.com/maps?q=${selectedArea?.lat},${selectedArea?.lng}&z=15&output=embed`}
+            width="100%"
+            height="400"
+            style={{ border: 0 }}
+            loading="lazy"
+            title="map"
+          ></iframe>
         </div>
       </form>
-     {
-      isDataLoading ? (
-                            <div className="d-flex flex-column justify-content-center align-items-center mt-4" style={{ minHeight: "150px" }}>
-      
-      {/* Spinner */}
-      <div className="spinner-border text-primary mb-3" role="status" style={{ width: "3rem", height: "3rem" }}>
-        <span className="visually-hidden">Loading...</span>
-      </div>
-
-      {/* Beautiful animated message */}
-      <p className="fw-semibold fs-5 text-primary" style={{ transition: "opacity 0.5s ease-in-out" }}>
-        Please Wait Fetch Your Location...
-      </p>
-    </div>
-      ):(
-         <div
-        className="card bg-light container shadow-sm"
-        style={{
-          marginTop: "-35px",
-          height: "400px",
-          borderTopLeftRadius: "25px",
-          borderTopRightRadius: "20px",
-          border: "1px solid #ddd",
-          padding: "20px",
-        }}
-      >
-        {" "}
-        <span
-          className="mt-4"
-          style={{
-            backgroundColor: "#FFE4E1",
-            color: "#010101ff",
-            padding: "8px 12px",
-            borderRadius: "6px",
-            fontSize: "14px",
-          }}
-        >
-          <strong>Note:</strong> You can change your address from the map or
-          click on the address below.
-        </span>
+      {isDataLoading ? (
         <div
-          className="d-flex align-items-center mt-2"
-          onClick={() => setChooseLocationModal(true)}
+          className="d-flex flex-column justify-content-center align-items-center mt-4"
+          style={{ minHeight: "150px"}}
         >
-          <i
-            className="fa-solid fa-street-view text-success me-3"
-            style={{ fontSize: "25px" }}
-          ></i>
-          <p style={{ fontSize: "16px", marginBottom: "-10px" }}>
-            {selectedArea?.areaName
-              ? selectedArea.areaName.length > 58
-                ? selectedArea.areaName.slice(0, 58) + "..."
-                : selectedArea.areaName
-              : "No location found! please click on me to update your location"}
+          {/* Spinner */}
+          <div
+            className="spinner-border text-primary mb-3"
+            role="status"
+            style={{ width: "3rem", height: "3rem" }}
+          >
+            <span className="visually-hidden">Loading...</span>
+          </div>
+
+          {/* Beautiful animated message */}
+          <p
+            className="fw-semibold fs-5 text-primary"
+            style={{ transition: "opacity 0.5s ease-in-out" }}
+          >
+            Please Wait Fetch Your Location...
           </p>
         </div>
-        <div style={{ marginTop: "17px" }}>
-          <div>
-            <select
-              style={{ background: "#FFE4E1" }}
-              className="form-select mb-2"
-              value={selectedCategory}
-              onChange={handleCategoryChange}
-            >
-              <option value="">Select Category</option>
-              {services.map((cat, index) => (
-                <option key={index} value={cat.category}>
-                  {cat.category}
-                </option>
-              ))}
-            </select>
-            <select
-              style={{ background: "#FFE4E1" }}
-              className="form-select mb-3 "
-              value={selectedSubCategory}
-              onChange={(e) => {
-                setSelectedSubCategory(e.target.value);
-              }}
-              disabled={!selectedCategory}
-            >
-              <option value="">Select Sub-category</option>
-              {services
-                .find((cat) => cat.category === selectedCategory)
-                ?.subcategories.map((sub, index) => (
-                  <option key={index} value={sub}>
-                    {sub}
+      ) : (
+        <div
+          className="card bg-light container shadow-sm"
+          style={{
+            marginTop: "-35px",
+            maxHeight: "380px",
+            borderTopLeftRadius: "25px",
+            borderTopRightRadius: "20px",
+            border: "1px solid #ddd",
+            padding: "20px",
+          }}
+        >
+          {" "}
+          <span
+         
+            style={{
+              backgroundColor: "#FFE4E1",
+              color: "#010101ff",
+              padding: "8px 12px",
+              borderRadius: "6px",
+              fontSize: "14px",
+            }}
+          >
+            <strong>Note:</strong> You can change your address by simply
+            clicking on the address below.
+          </span>
+          <div
+            className="d-flex align-items-center mt-2"
+            onClick={() => setChooseLocationModal(true)}
+          >
+            <i
+              className="fa-solid fa-street-view text-success me-3"
+              style={{ fontSize: "25px" }}
+            ></i>
+            <p style={{ fontSize: "16px", marginBottom: "-10px" }}>
+              {selectedArea?.areaName
+                ? selectedArea.areaName.length > 58
+                  ? selectedArea.areaName.slice(0, 58) + "..."
+                  : selectedArea.areaName
+                : "No location found! please click on me to update your location"}
+            </p>
+          </div>
+          <div style={{ marginTop: "17px" }}>
+            <div>
+              <select
+                style={{ background: "#FFE4E1" }}
+                className="form-select mb-2"
+                value={selectedCategory}
+                onChange={handleCategoryChange}
+              >
+                <option value="">Select Category</option>
+                {services.map((cat, index) => (
+                  <option key={index} value={cat.category}>
+                    {cat.category}
                   </option>
                 ))}
-            </select>
+              </select>
+              <select
+                style={{ background: "#FFE4E1" }}
+                className="form-select mb-3 "
+                value={selectedSubCategory}
+                onChange={(e) => {
+                  setSelectedSubCategory(e.target.value);
+                }}
+                disabled={!selectedCategory}
+              >
+                <option value="">Select Sub-category</option>
+                {services
+                  .find((cat) => cat.category === selectedCategory)
+                  ?.subcategories.map((sub, index) => (
+                    <option key={index} value={sub}>
+                      {sub}
+                    </option>
+                  ))}
+              </select>
+            </div>
           </div>
-        </div>
-        <p
-          style={{ fontSize: "16px", color: "#333", fontWeight: 500 }}
-          className="text-center mb-0"
-        >
-          <i
-            className="fas fa-motorcycle"
-            style={{ color: "#ff9800", marginRight: "5px" }}
-          ></i>
-          Service Charges:
-          <span
-            style={{ fontWeight: "bold", marginLeft: "5px" }}
-            className="text-success"
+          <p
+            style={{ fontSize: "16px", color: "#333", fontWeight: 500 }}
+            className="text-center mb-0"
           >
-            Rs. 15-25/km
-          </span>
-        </p>
-        <button
-          className="btn btn-success mt-1"
-          onClick={findServicesProvider}
-          disabled={loading}
-        >
-          {loading ? (
-            <>
-              Searching...
-              <div
-                className="spinner-border spinner-border-sm text-light ms-2"
-                role="status"
-              ></div>
-            </>
-          ) : (
-            <>
-              <i class="fa-solid fa-screwdriver-wrench me-2"></i>Find Services
-              Provider
-            </>
-          )}
-        </button>
-      </div>
-      )
-     }
+            <i
+              className="fas fa-motorcycle"
+              style={{ color: "#ff9800", marginRight: "5px" }}
+            ></i>
+            Service Charges:
+            <span
+              style={{ fontWeight: "bold", marginLeft: "5px" }}
+              className="text-success"
+            >
+              Rs. 15-25/km
+            </span>
+          </p>
+          <button
+            className="btn btn-success mt-1"
+            onClick={findServicesProvider}
+            disabled={loading}
+          >
+            {loading ? (
+              <>
+                Searching...
+                <div
+                  className="spinner-border spinner-border-sm text-light ms-2"
+                  role="status"
+                ></div>
+              </>
+            ) : (
+              <>
+                <i class="fa-solid fa-screwdriver-wrench me-2"></i>Find Services
+                Provider
+              </>
+            )}
+          </button>
+        </div>
+      )}
 
       {chooseLocationModal && (
         <>
@@ -1132,6 +1215,34 @@ setFilterModal(false)
                         <i className="fa-solid fa-map-location-dot me-2"></i>
                         Add Address
                       </button>
+
+                      <div className="d-flex align-items-center my-3">
+                        <hr className="flex-grow-1" />
+                        <span className="mx-2 text-muted fw-semibold">OR</span>
+                        <hr className="flex-grow-1" />
+                      </div>
+
+                      <div
+                        className="card shadow-sm border-0 p-4 rounded-3"
+                        style={{ backgroundColor: "#f8f9fa" }}
+                        onClick={chooseCurrentLocation}
+                      >
+                        <div className="d-flex align-items-center mb-2">
+                          <div
+                            className="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3"
+                            style={{ width: "36px", height: "35px" }}
+                          >
+                            <i className="fa-solid fa-location-crosshairs"></i>
+                          </div>
+                          <h6 className="mb-0 fw-semibold text-dark">
+                            Choose Current Location
+                          </h6>
+                        </div>
+                        <p className="text-muted mb-0 small">
+                          Select your live location to get the nearest service
+                          options quickly and accurately.
+                        </p>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -1917,7 +2028,7 @@ setFilterModal(false)
                   </div>
                 )}
                 {filterText === "Distance" && (
-                <div className="d-flex flex-wrap gap-2 justify-content-center">
+                  <div className="d-flex flex-wrap gap-2 justify-content-center">
                     {distanceRangeOptions.map((rate, index) => (
                       <button
                         key={index}

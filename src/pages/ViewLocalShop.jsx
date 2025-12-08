@@ -302,6 +302,7 @@ function ViewLocalShop() {
           )}
 
         {/* Menu Cards */}
+{/* Menu Cards Carousel */}
 {shop.menuCard && shop.menuCard.length > 0 && (
   <div className="mb-4">
     <h6 className="fw-semibold text-dark mb-3">
@@ -309,34 +310,87 @@ function ViewLocalShop() {
       Menu / Price List
     </h6>
 
-    <div className="d-flex flex-wrap gap-3">
-      {shop.menuCard.map((url, index) => (
-        <div
-          key={index}
-          className="border rounded shadow-sm"
-          style={{
-            width: "250px",
-            height: "350px",
-            overflow: "hidden",
-            backgroundColor: "#f8f9fa",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <img
-            src={url}
-            alt={`Menu Card ${index + 1}`}
-            className="w-100 h-100"
-            style={{
-              objectFit: "contain",
-            }}
-          />
+    <div
+      id="menuCarousel"
+      className="carousel slide border rounded shadow-sm mx-auto"
+      data-bs-ride="carousel"
+      style={{ width: "100%", maxWidth: "400px", backgroundColor: "#f8f9fa" }}
+    >
+      {/* Indicators */}
+      {shop.menuCard.length > 1 && (
+        <div className="carousel-indicators">
+          {shop.menuCard.map((_, index) => (
+            <button
+              type="button"
+              key={index}
+              data-bs-target="#menuCarousel"
+              data-bs-slide-to={index}
+              className={index === 0 ? "active" : ""}
+              aria-current={index === 0 ? "true" : undefined}
+              aria-label={`Slide ${index + 1}`}
+            ></button>
+          ))}
         </div>
-      ))}
+      )}
+
+      {/* Slides */}
+      <div className="carousel-inner">
+        {shop.menuCard.map((url, index) => (
+          <div
+            className={`carousel-item ${index === 0 ? "active" : ""}`}
+            key={index}
+          >
+            <img
+              src={url}
+              className="d-block w-100"
+              alt={`Menu Card ${index + 1}`}
+              style={{
+                width: "100%",
+                height: "auto",
+                maxHeight: "500px",
+                objectFit: "contain",
+                backgroundColor: "#f8f9fa",
+              }}
+            />
+          </div>
+        ))}
+      </div>
+
+      {/* Controls */}
+      {shop.menuCard.length > 1 && (
+        <>
+          <button
+            className="carousel-control-prev"
+            type="button"
+            data-bs-target="#menuCarousel"
+            data-bs-slide="prev"
+          >
+            <span
+              className="carousel-control-prev-icon"
+              aria-hidden="true"
+            ></span>
+            <span className="visually-hidden">Previous</span>
+          </button>
+          <button
+            className="carousel-control-next"
+            type="button"
+            data-bs-target="#menuCarousel"
+            data-bs-slide="next"
+          >
+            <span
+              className="carousel-control-next-icon"
+              aria-hidden="true"
+            ></span>
+            <span className="visually-hidden">Next</span>
+          </button>
+        </>
+      )}
     </div>
   </div>
 )}
+
+
+
 
 
           {/* Google Maps Embed */}

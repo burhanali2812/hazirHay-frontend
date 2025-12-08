@@ -237,31 +237,60 @@ const getLocalVerifiedLiveShops = async () => {
 };
 
 
-  const getUserLocations = async () => {
-    try {
-      const response = await api.get(`/users/getUserById/${user._id}`);
-      if (response.data.success) {
-        const locations = response.data.data.location || [];
-        setUserLocations(locations);
+const getUserLocations = async () => {
+  try {
+    const response = await api.get(`/users/getUserById/${user._id}`);
+    if (response.data.success) {
+      const locations = response.data.data.location || [];
+      setUserLocations(locations);
 
-        const defaultLocation = locations.find((loc) => loc.isDefault);
-        if (defaultLocation) {
-          console.log("Default Location:", defaultLocation.area);
-          setSelectedArea({
-            lat: defaultLocation?.coordinates[0],
-            lng: defaultLocation?.coordinates[1],
-            areaName: defaultLocation?.area,
-          });
+      if (locations.length === 0) {
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            async (pos) => {
+              const lat = pos.coords.latitude;
+              const lng = pos.coords.longitude;
+
+              setCoordinates({ lat, lng });
+
+              const areaName = await fetchAreaName(lat, lng);
+              setSelectedArea({
+                lat,
+                lng,
+                areaName,
+              });
+            },
+            (error) => {
+              console.error("Error getting location:", error);
+              alert("Unable to get your location. Please allow location access.");
+            }
+          );
+        } else {
+          alert("Geolocation is not supported by your browser.");
         }
-      } else {
-        console.error("Failed to fetch user locations");
-        setUserLocations([]);
+        return;
       }
-    } catch (error) {
-      console.error("Error fetching user locations:", error.message);
+
+      // If locations exist, use default
+      const defaultLocation = locations.find((loc) => loc.isDefault);
+      if (defaultLocation) {
+        console.log("Default Location:", defaultLocation.area);
+        setSelectedArea({
+          lat: defaultLocation.coordinates[0],
+          lng: defaultLocation.coordinates[1],
+          areaName: defaultLocation.area,
+        });
+      }
+    } else {
+      console.error("Failed to fetch user locations");
       setUserLocations([]);
     }
-  };
+  } catch (error) {
+    console.error("Error fetching user locations:", error.message);
+    setUserLocations([]);
+  }
+};
+
 
   const fetchAreaName = async (lat, lon) => {
     try {
