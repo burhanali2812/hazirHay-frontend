@@ -846,10 +846,10 @@ function UserDashboard() {
   console.log("selectedArea", selectedArea);
 
   return (
-    <div style={{paddingBottom : "50px"}}>
-     <div className="d-flex flex-column" style={{ height: "100vh" }}>
+    <div>
+<div className="d-flex flex-column" style={{ height: "94vh" }}>
   {/* Map Section */}
-  <div style={{ flex: 1, position: "relative" }}>
+  <div style={{ flex: 0.6, position: "relative" }}>
     <iframe
       src={`https://maps.google.com/maps?q=${selectedArea?.lat},${selectedArea?.lng}&z=15&output=embed`}
       width="100%"
@@ -864,15 +864,19 @@ function UserDashboard() {
   <div
     className="bg-light shadow-sm p-3 p-md-4"
     style={{
+      flex: 0.4, // remaining 40% height
       borderTopLeftRadius: "15px",
       borderTopRightRadius: "15px",
-      maxHeight: "45%", // max height of card, adjust if needed
-      overflowY: "auto",
     }}
   >
     <span
       className="d-block mb-3 px-2 py-1"
-      style={{ backgroundColor: "#FFE4E1", color: "#010101ff", borderRadius: "6px", fontSize: "0.9rem" }}
+      style={{
+        backgroundColor: "#FFE4E1",
+        color: "#010101ff",
+        borderRadius: "6px",
+        fontSize: "0.9rem",
+      }}
     >
       <strong>Note:</strong> You can change your address by clicking below.
     </span>
@@ -882,8 +886,14 @@ function UserDashboard() {
       onClick={() => setChooseLocationModal(true)}
       style={{ cursor: "pointer" }}
     >
-      <i className="fa-solid fa-street-view text-success me-2" style={{ fontSize: "1.5rem" }}></i>
-      <p className="mb-0 text-truncate" style={{ maxWidth: "calc(100% - 40px)" }}>
+      <i
+        className="fa-solid fa-street-view text-success me-2"
+        style={{ fontSize: "1.5rem" }}
+      ></i>
+      <p
+        className="mb-0 text-truncate"
+        style={{ maxWidth: "calc(100% - 40px)" }}
+      >
         {selectedArea?.areaName
           ? selectedArea.areaName.length > 58
             ? selectedArea.areaName.slice(0, 58) + "..."
@@ -925,7 +935,10 @@ function UserDashboard() {
       </select>
     </div>
 
-    <p className="text-center mb-3" style={{ fontSize: "1rem", color: "#333", fontWeight: 500 }}>
+    <p
+      className="text-center mb-3"
+      style={{ fontSize: "1rem", color: "#333", fontWeight: 500 }}
+    >
       <i className="fas fa-motorcycle text-warning me-1"></i>
       Service Charges:
       <span className="text-success fw-bold ms-1">Rs. 15-25/km</span>
@@ -939,16 +952,21 @@ function UserDashboard() {
       {loading ? (
         <>
           Searching...
-          <div className="spinner-border spinner-border-sm text-light ms-2" role="status"></div>
+          <div
+            className="spinner-border spinner-border-sm text-light ms-2"
+            role="status"
+          ></div>
         </>
       ) : (
         <>
-          <i className="fa-solid fa-screwdriver-wrench me-2"></i> Find Services Provider
+          <i className="fa-solid fa-screwdriver-wrench me-2"></i> Find Services
+          Provider
         </>
       )}
     </button>
   </div>
 </div>
+
 
 
       {chooseLocationModal && (
