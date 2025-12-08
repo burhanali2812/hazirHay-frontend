@@ -301,49 +301,43 @@ function ViewLocalShop() {
             </div>
           )}
 
-          {/* Menu Card */}
-          {shop.menuCard && (
-            <div className="mb-4">
-              <h6 className="fw-semibold text-dark mb-3">
-                <i className="fas fa-utensils text-primary me-2"></i>
-                Menu / Price List
-              </h6>
-              <div className="border rounded overflow-hidden shadow-sm">
-                <img
-                  src={shop.menuCard}
-                  alt="Menu Card"
-                  className="w-100"
-                  style={{
-                    maxHeight: "600px",
-                    objectFit: "contain",
-                    backgroundColor: "#f8f9fa",
-                  }}
-                />
-              </div>
-            </div>
-          )}
+        {/* Menu Cards */}
+{shop.menuCard && shop.menuCard.length > 0 && (
+  <div className="mb-4">
+    <h6 className="fw-semibold text-dark mb-3">
+      <i className="fas fa-utensils text-primary me-2"></i>
+      Menu / Price List
+    </h6>
 
-          {/* Payment Info */}
-          {shop.paymentPic && (
-            <div className="mb-4">
-              <h6 className="fw-semibold text-dark mb-3">
-                <i className="fas fa-credit-card text-primary me-2"></i>
-                Payment Information
-              </h6>
-              <div className="border rounded overflow-hidden shadow-sm">
-                <img
-                  src={shop.paymentPic}
-                  alt="Payment Info"
-                  className="w-100"
-                  style={{
-                    maxHeight: "400px",
-                    objectFit: "contain",
-                    backgroundColor: "#f8f9fa",
-                  }}
-                />
-              </div>
-            </div>
-          )}
+    <div className="d-flex flex-wrap gap-3">
+      {shop.menuCard.map((url, index) => (
+        <div
+          key={index}
+          className="border rounded shadow-sm"
+          style={{
+            width: "250px",
+            height: "350px",
+            overflow: "hidden",
+            backgroundColor: "#f8f9fa",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <img
+            src={url}
+            alt={`Menu Card ${index + 1}`}
+            className="w-100 h-100"
+            style={{
+              objectFit: "contain",
+            }}
+          />
+        </div>
+      ))}
+    </div>
+  </div>
+)}
+
 
           {/* Google Maps Embed */}
           {shopLat && shopLng && (
