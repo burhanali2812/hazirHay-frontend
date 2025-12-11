@@ -847,7 +847,7 @@ function UserDashboard() {
   const shopLat = selectedShopWithShopkepper?.shop?.location?.coordinates[0];
   const shopLng = selectedShopWithShopkepper?.shop?.location?.coordinates[1];
 
-    const getGoogleMapsUrl = () => {
+  const getGoogleMapsUrl = () => {
     if (selectedArea?.lat && selectedArea?.lng && shopLat && shopLng) {
       return `https://www.google.com/maps/dir/?api=1&origin=${selectedArea.lat},${selectedArea.lng}&destination=${shopLat},${shopLng}&travelmode=driving`;
     }
@@ -860,127 +860,126 @@ function UserDashboard() {
 
   return (
     <div>
-<div className="d-flex flex-column" style={{ height: "94vh" }}>
-  {/* Map Section */}
-  <div style={{ flex: 0.6, position: "relative" }}>
-    <iframe
-      src={`https://maps.google.com/maps?q=${selectedArea?.lat},${selectedArea?.lng}&z=15&output=embed`}
-      width="100%"
-      height="100%"
-      style={{ border: 0 }}
-      loading="lazy"
-      title="map"
-    ></iframe>
-  </div>
+      <div className="d-flex flex-column" style={{ height: "94vh" }}>
+        {/* Map Section */}
+        <div style={{ flex: 0.6, position: "relative" }}>
+          <iframe
+            src={`https://maps.google.com/maps?q=${selectedArea?.lat},${selectedArea?.lng}&z=15&output=embed`}
+            width="100%"
+            height="100%"
+            style={{ border: 0 }}
+            loading="lazy"
+            title="map"
+          ></iframe>
+        </div>
 
-  {/* Bottom Card Section */}
-  <div
-    className="bg-light shadow-sm p-3 p-md-4"
-    style={{
-      flex: 0.4, // remaining 40% height
-      borderTopLeftRadius: "15px",
-      borderTopRightRadius: "15px",
-    }}
-  >
-    <span
-      className="d-block mb-3 px-2 py-1"
-      style={{
-        backgroundColor: "#FFE4E1",
-        color: "#010101ff",
-        borderRadius: "6px",
-        fontSize: "0.9rem",
-      }}
-    >
-      <strong>Note:</strong> You can change your address by clicking below.
-    </span>
+        {/* Bottom Card Section */}
+        <div
+          className="bg-light shadow-sm p-3 p-md-4"
+          style={{
+            flex: 0.4, // remaining 40% height
+            borderTopLeftRadius: "15px",
+            borderTopRightRadius: "15px",
+          }}
+        >
+          <span
+            className="d-block mb-3 px-2 py-1"
+            style={{
+              backgroundColor: "#FFE4E1",
+              color: "#010101ff",
+              borderRadius: "6px",
+              fontSize: "0.9rem",
+            }}
+          >
+            <strong>Note:</strong> You can change your address by clicking
+            below.
+          </span>
 
-    <div
-      className="d-flex align-items-center mb-3 flex-wrap"
-      onClick={() => setChooseLocationModal(true)}
-      style={{ cursor: "pointer" }}
-    >
-      <i
-        className="fa-solid fa-street-view text-success me-2"
-        style={{ fontSize: "1.5rem" }}
-      ></i>
-      <p
-        className="mb-0 text-truncate"
-        style={{ maxWidth: "calc(100% - 40px)" }}
-      >
-        {selectedArea?.areaName
-          ? selectedArea.areaName.length > 58
-            ? selectedArea.areaName.slice(0, 58) + "..."
-            : selectedArea.areaName
-          : "No location found! Click here to update."}
-      </p>
-    </div>
-
-    <div className="mb-3">
-      <select
-        className="form-select mb-2"
-        value={selectedCategory}
-        onChange={handleCategoryChange}
-        style={{ background: "#FFE4E1" }}
-      >
-        <option value="">Select Category</option>
-        {services.map((cat, index) => (
-          <option key={index} value={cat.category}>
-            {cat.category}
-          </option>
-        ))}
-      </select>
-
-      <select
-        className="form-select"
-        value={selectedSubCategory}
-        onChange={(e) => setSelectedSubCategory(e.target.value)}
-        disabled={!selectedCategory}
-        style={{ background: "#FFE4E1" }}
-      >
-        <option value="">Select Sub-category</option>
-        {services
-          .find((cat) => cat.category === selectedCategory)
-          ?.subcategories.map((sub, index) => (
-            <option key={index} value={sub}>
-              {sub}
-            </option>
-          ))}
-      </select>
-    </div>
-
-    <p
-      className="text-center mb-3"
-      style={{ fontSize: "1rem", color: "#333", fontWeight: 500 }}
-    >
-      <i className="fas fa-motorcycle text-warning me-1"></i>
-      Service Charges:
-      <span className="text-success fw-bold ms-1">Rs. 15-25/km</span>
-    </p>
-
-    <button
-      className="btn btn-success w-100"
-      onClick={findServicesProvider}
-      disabled={loading}
-    >
-      {loading ? (
-        <>
-          Searching...
           <div
-            className="spinner-border spinner-border-sm text-light ms-2"
-            role="status"
-          ></div>
-        </>
-      ) : (
-        <>
-          <i className="fa-solid fa-screwdriver-wrench me-2"></i> Find Services
-          Provider
-        </>
-      )}
-    </button>
-  </div>
-</div>
+            className="d-flex align-items-center mb-3 flex-wrap"
+            onClick={() => setChooseLocationModal(true)}
+            style={{ cursor: "pointer" }}
+          >
+            <i
+              className="fa-solid fa-street-view text-success me-2"
+              style={{ fontSize: "1.5rem" }}
+            ></i>
+            <p
+              className="mb-0 text-truncate"
+              style={{ maxWidth: "calc(100% - 40px)" }}
+            >
+              {selectedArea?.areaName
+                ? selectedArea.areaName.length > 58
+                  ? selectedArea.areaName.slice(0, 58) + "..."
+                  : selectedArea.areaName
+                : "No location found! Click here to update."}
+            </p>
+          </div>
 
+          <div className="mb-3">
+            <select
+              className="form-select mb-2"
+              value={selectedCategory}
+              onChange={handleCategoryChange}
+              style={{ background: "#FFE4E1" }}
+            >
+              <option value="">Select Category</option>
+              {services.map((cat, index) => (
+                <option key={index} value={cat.category}>
+                  {cat.category}
+                </option>
+              ))}
+            </select>
 
+            <select
+              className="form-select"
+              value={selectedSubCategory}
+              onChange={(e) => setSelectedSubCategory(e.target.value)}
+              disabled={!selectedCategory}
+              style={{ background: "#FFE4E1" }}
+            >
+              <option value="">Select Sub-category</option>
+              {services
+                .find((cat) => cat.category === selectedCategory)
+                ?.subcategories.map((sub, index) => (
+                  <option key={index} value={sub}>
+                    {sub}
+                  </option>
+                ))}
+            </select>
+          </div>
+
+          <p
+            className="text-center mb-3"
+            style={{ fontSize: "1rem", color: "#333", fontWeight: 500 }}
+          >
+            <i className="fas fa-motorcycle text-warning me-1"></i>
+            Service Charges:
+            <span className="text-success fw-bold ms-1">Rs. 15-25/km</span>
+          </p>
+
+          <button
+            className="btn btn-success w-100"
+            onClick={findServicesProvider}
+            disabled={loading}
+          >
+            {loading ? (
+              <>
+                Searching...
+                <div
+                  className="spinner-border spinner-border-sm text-light ms-2"
+                  role="status"
+                ></div>
+              </>
+            ) : (
+              <>
+                <i className="fa-solid fa-screwdriver-wrench me-2"></i> Find
+                Services Provider
+              </>
+            )}
+          </button>
+        </div>
+      </div>
 
       {chooseLocationModal && (
         <>
@@ -1524,6 +1523,28 @@ function UserDashboard() {
                                 </div>
                               </div>
 
+                              {/* Price and Distance */}
+                              {shop.servicesOffered
+                                .filter(
+                                  (service) =>
+                                    service.subCategory?.name ===
+                                    selectedSubCategory
+                                )
+                                .map((service, index) => (
+                                  <p
+                                    key={index}
+                                    className="mb-1 fw-semibold text-primary small"
+                                  >
+                                    {service.subCategory.isVariablePricing && (
+                                      <span className="text-muted ms-2">
+                                        <i className="fa-solid fa-info-circle me-1"></i>
+                                        Price may vary based on service
+                                        requirements
+                                      </span>
+                                    )}
+                                  </p>
+                                ))}
+
                               {/* Action Buttons */}
                               {shop.isBlocked ? (
                                 <>
@@ -1773,8 +1794,8 @@ function UserDashboard() {
                     style={{ width: "313px" }}
                     onClick={viewOnGoogleMaps}
                   >
-                     <i className="fas fa-directions me-2"></i>
-              Get Directions on Google Maps
+                    <i className="fas fa-directions me-2"></i>
+                    Get Directions on Google Maps
                   </button>
                 </di>
                 <hr />
@@ -2120,7 +2141,6 @@ function UserDashboard() {
           </div>
         </div>
       )}
-
     </div>
   );
 }
