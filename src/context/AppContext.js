@@ -1,5 +1,14 @@
-import { createContext, useContext, useState, useEffect, use } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  use,
+  useRef,
+} from "react";
 import axios from "axios";
+import io from "socket.io-client";
+import { toast } from "react-toastify";
 
 export const AppContext = createContext();
 
@@ -7,6 +16,8 @@ export const AppProvider = ({ children }) => {
   const token = localStorage.getItem("token");
   const role = localStorage.getItem("role");
   const user = JSON.parse(localStorage.getItem("user"));
+
+  const socketRef = useRef(null);
 
   const [totalUser, setTotalUser] = useState([]);
   const [totalShopKepper, setTotalShopKepper] = useState([]);
@@ -36,12 +47,12 @@ export const AppProvider = ({ children }) => {
   const [selectedViewLocalShop, setSelectedViewLocalShop] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [searchType, setSearchType] = useState("");
-    const [searchQuery, setSearchQuery] = useState("");
-      const [sortOrder, setSortOrder] = useState("all");
-      const [searchData, setSearchData] = useState("");
-      const [finalSearchData, setFinalSearchData] = useState("");
-      const [localShopNames, setLocalShopNames] = useState([]);
-      const [localShopServices, setLocalShopServices] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortOrder, setSortOrder] = useState("all");
+  const [searchData, setSearchData] = useState("");
+  const [finalSearchData, setFinalSearchData] = useState("");
+  const [localShopNames, setLocalShopNames] = useState([]);
+  const [localShopServices, setLocalShopServices] = useState([]);
 
   const [loading, setLoading] = useState(false);
 
@@ -166,7 +177,7 @@ export const AppProvider = ({ children }) => {
     }
   };
 
-    function getStraightLineDistance(lat1, lon1, lat2, lon2) {
+  function getStraightLineDistance(lat1, lon1, lat2, lon2) {
     const R = 6371; // Radius of Earth in KM
     const dLat = (lat2 - lat1) * (Math.PI / 180);
     const dLon = (lon2 - lon1) * (Math.PI / 180);
@@ -203,94 +214,94 @@ export const AppProvider = ({ children }) => {
     return approxRoadDistance.toFixed(2);
   }
 
-const getLocalVerifiedLiveShops = async () => {
-  try {
-    const res = await api.get(
-      `/localShop/getAllVerifiedLiveLocalShops/${selectedCategory}`,
-      {
-        params: {
-          type: searchType,
-          name: finalSearchData,
-          t: Date.now(),
-        },
-      }
-    );
+  const getLocalVerifiedLiveShops = async () => {
+    try {
+      const res = await api.get(
+        `/localShop/getAllVerifiedLiveLocalShops/${selectedCategory}`,
+        {
+          params: {
+            type: searchType,
+            name: finalSearchData,
+            t: Date.now(),
+          },
+        }
+      );
 
-    const shopsWithDistance = res.data.shops.map((shop) => {
-      const shopCoords = shop.location?.coordinates; // [lng, lat]
-      if (shopCoords && selectedArea?.lat && selectedArea?.lng) {
+      const shopsWithDistance = res.data.shops.map((shop) => {
+        const shopCoords = shop.location?.coordinates; // [lng, lat]
+        if (shopCoords && selectedArea?.lat && selectedArea?.lng) {
+          return {
+            ...shop,
+            fixedDistance: calculateApproxDistance(shopCoords),
+          };
+        }
         return {
           ...shop,
-          fixedDistance: calculateApproxDistance(shopCoords),
+          fixedDistance: "N/A", // fallback if coordinates missing
         };
-      }
-      return {
-        ...shop,
-        fixedDistance: "N/A", // fallback if coordinates missing
-      };
-    });
+      });
 
-    setLocalShopData(shopsWithDistance);
-  } catch (error) {
-    console.log("local shop getting err", error);
-  }
-};
+      setLocalShopData(shopsWithDistance);
+    } catch (error) {
+      console.log("local shop getting err", error);
+    }
+  };
 
+  const getUserLocations = async () => {
+    try {
+      const response = await api.get(`/users/getUserById/${user._id}`);
+      if (response.data.success) {
+        const locations = response.data.data.location || [];
+        setUserLocations(locations);
 
-const getUserLocations = async () => {
-  try {
-    const response = await api.get(`/users/getUserById/${user._id}`);
-    if (response.data.success) {
-      const locations = response.data.data.location || [];
-      setUserLocations(locations);
+        if (locations.length === 0) {
+          if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+              async (pos) => {
+                const lat = pos.coords.latitude;
+                const lng = pos.coords.longitude;
 
-      if (locations.length === 0) {
-        if (navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition(
-            async (pos) => {
-              const lat = pos.coords.latitude;
-              const lng = pos.coords.longitude;
+                setCoordinates({ lat, lng });
 
-              setCoordinates({ lat, lng });
-
-              const areaName = await fetchAreaName(lat, lng);
-              setSelectedArea({
-                lat,
-                lng,
-                areaName,
-              });
-            },
-            (error) => {
-              console.error("Error getting location:", error);
-              alert("Unable to get your location. Please allow location access.");
-            }
-          );
-        } else {
-          alert("Geolocation is not supported by your browser.");
+                const areaName = await fetchAreaName(lat, lng);
+                setSelectedArea({
+                  lat,
+                  lng,
+                  areaName,
+                });
+              },
+              (error) => {
+                console.error("Error getting location:", error);
+                alert(
+                  "Unable to get your location. Please allow location access."
+                );
+              }
+            );
+          } else {
+            alert("Geolocation is not supported by your browser.");
+          }
+          return;
         }
-        return;
-      }
 
-      // If locations exist, use default
-      const defaultLocation = locations.find((loc) => loc.isDefault);
-      if (defaultLocation) {
-        console.log("Default Location:", defaultLocation.area);
-        setSelectedArea({
-          lat: defaultLocation.coordinates[0],
-          lng: defaultLocation.coordinates[1],
-          areaName: defaultLocation.area,
-        });
+        // If locations exist, use default
+        const defaultLocation = locations.find((loc) => loc.isDefault);
+        if (defaultLocation) {
+          console.log("Default Location:", defaultLocation.area);
+          setSelectedArea({
+            lat: defaultLocation.coordinates[0],
+            lng: defaultLocation.coordinates[1],
+            areaName: defaultLocation.area,
+          });
+        }
+      } else {
+        console.error("Failed to fetch user locations");
+        setUserLocations([]);
       }
-    } else {
-      console.error("Failed to fetch user locations");
+    } catch (error) {
+      console.error("Error fetching user locations:", error.message);
       setUserLocations([]);
     }
-  } catch (error) {
-    console.error("Error fetching user locations:", error.message);
-    setUserLocations([]);
-  }
-};
-
+  };
 
   const fetchAreaName = async (lat, lon) => {
     try {
@@ -327,29 +338,34 @@ const getUserLocations = async () => {
       alert("Geolocation is not supported by your browser.");
     }
   };
-  const getLocalShopsName = async()=>{
+  const getLocalShopsName = async () => {
     try {
-      const res = await api.get(`/localShop/unique-shopnames/${selectedCategory}`,{
-        params: {  t: Date.now() },
-      })
+      const res = await api.get(
+        `/localShop/unique-shopnames/${selectedCategory}`,
+        {
+          params: { t: Date.now() },
+        }
+      );
       setLocalShopNames(res.data.shopNames || []);
     } catch (error) {
       console.log("local shop names getting err", error);
       setLocalShopNames([]);
     }
-  }
-  const getLocalShopServices = async()=>{
+  };
+  const getLocalShopServices = async () => {
     try {
-      const res = await api.get(`/localShop/unique-services/${selectedCategory}`,{
-        params: {  t: Date.now() },
-      })
+      const res = await api.get(
+        `/localShop/unique-services/${selectedCategory}`,
+        {
+          params: { t: Date.now() },
+        }
+      );
       setLocalShopServices(res.data.services || []);
     } catch (error) {
       console.log("local shop services getting err", error);
       setLocalShopServices([]);
-      
     }
-  }
+  };
 
   useEffect(() => {
     if (!role) return;
@@ -373,15 +389,79 @@ const getUserLocations = async () => {
   }, [role]);
   useEffect(() => {
     if (!selectedCategory) return;
-  // getLocalVerifiedLiveShops();
+    // getLocalVerifiedLiveShops();
     getLocalShopsName();
     getLocalShopServices();
-
   }, [selectedCategory]);
   useEffect(() => {
     if (role !== "user") return;
     getLocalVerifiedLiveShops();
   }, [searchType, finalSearchData, selectedCategory]);
+
+  // Socket.IO connection for real-time notifications
+  useEffect(() => {
+    if (!user || !user._id) return;
+
+    // Initialize socket connection
+    socketRef.current = io("https://hazir-hay-backend.vercel.app", {
+      transports: ["websocket", "polling"],
+      reconnection: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
+    });
+
+    const socket = socketRef.current;
+
+    // Register user for notifications
+    socket.on("connect", () => {
+      console.log("Socket connected:", socket.id);
+      socket.emit("registerUser", user._id);
+    });
+
+    // Listen for new notifications
+    socket.on("newNotification", (newNotif) => {
+      console.log("New notification received:", newNotif);
+
+      // Add to notification state
+      setNotification((prev) => [newNotif, ...prev]);
+      setUnSeenNotification((prev) => [newNotif, ...prev]);
+
+      // Show toast notification
+      toast.info(newNotif.message, {
+        position: "top-right",
+        autoClose: 4000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
+
+      // Play notification sound (if available)
+      try {
+        const audio = new Audio("/sounds/notification.mp3");
+        audio.volume = 0.5;
+        audio.play().catch((err) => console.log("Audio play failed:", err));
+      } catch (err) {
+        console.log("Audio error:", err);
+      }
+    });
+
+    socket.on("disconnect", () => {
+      console.log("Socket disconnected");
+    });
+
+    socket.on("connect_error", (error) => {
+      console.error("Socket connection error:", error);
+    });
+
+    // Cleanup on unmount
+    return () => {
+      if (socketRef.current) {
+        socketRef.current.disconnect();
+        console.log("Socket disconnected on cleanup");
+      }
+    };
+  }, [user?._id]);
 
   return (
     <AppContext.Provider
@@ -417,6 +497,7 @@ const getUserLocations = async () => {
         statusUpdate,
         setStatusUpdate,
         setNotification,
+        setUnSeenNotification,
         shop,
         localShopData,
         method,
@@ -430,18 +511,18 @@ const getUserLocations = async () => {
         setSelectedViewLocalShop,
         selectedCategory,
         setSelectedCategory,
-        searchType, 
+        searchType,
         setSearchType,
-        searchQuery, 
+        searchQuery,
         setSearchQuery,
-        searchData, 
+        searchData,
         setSearchData,
         sortOrder,
-         setSortOrder,
-         localShopNames,
-         localShopServices,
-         setFinalSearchData,
-    
+        setSortOrder,
+        localShopNames,
+        localShopServices,
+        setFinalSearchData,
+        socket: socketRef.current,
 
         getShopData,
         getAllUser,

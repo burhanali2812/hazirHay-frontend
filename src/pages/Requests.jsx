@@ -8,18 +8,35 @@ import { MapContainer, TileLayer, Marker, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { useAppContext } from "../context/AppContext";
+import "./style.css";
 
 function Requests() {
-  const{getAllShopKepper}=useAppContext();
+  const { getAllShopKepper } = useAppContext();
   const token = localStorage.getItem("token");
+
+  // State for tabs
+  const [activeTab, setActiveTab] = useState("shopkeeper");
+
+  // Shopkeeper requests state
   const [shopWithShopkepper, setShopWithShopkepper] = useState([]);
+
+  // Local shop requests state
+  const [localShopRequests, setLocalShopRequests] = useState([]);
+
+  // Loading states
   const [loading, setLoading] = useState(false);
   const [acceptLoadingId, setAcceptLoadingId] = useState(null);
   const [deleteLoadingId, setDeleteLoadingId] = useState(null);
   const [detailsLoadingId, setDetailsLoadingId] = useState(null);
+
+  // Modal states
   const [detailsModal, setDetailsModal] = useState(false);
   const [selectedShopWithKeep, setSelectedShopWithKeep] = useState(null);
   const [showModal, setShowMOdal] = useState(false);
+
+  // Local shop modal states
+  const [localShopModal, setLocalShopModal] = useState(false);
+  const [selectedLocalShop, setSelectedLocalShop] = useState(null);
 
   const [points, setPoints] = useState([33.6844, 73.0479]);
 
@@ -31,6 +48,13 @@ function Requests() {
     }
   }, [selectedShopWithKeep]);
 
+  useEffect(() => {
+    if (selectedLocalShop?.location?.coordinates) {
+      const coords = selectedLocalShop.location.coordinates;
+      setPoints(coords);
+    }
+  }, [selectedLocalShop]);
+
   const handleDetailsModal = (shopWithKepp) => {
     setSelectedShopWithKeep(shopWithKepp);
     setDetailsLoadingId(shopWithKepp._id);
@@ -38,7 +62,17 @@ function Requests() {
     setTimeout(() => {
       setDetailsModal(true);
       setDetailsLoadingId(null);
-    }, 2000);
+    }, 500);
+  };
+
+  const handleLocalShopDetailsModal = (localShop) => {
+    setSelectedLocalShop(localShop);
+    setDetailsLoadingId(localShop._id);
+
+    setTimeout(() => {
+      setLocalShopModal(true);
+      setDetailsLoadingId(null);
+    }, 500);
   };
 
   const customIcon = new L.Icon({
@@ -72,9 +106,35 @@ function Requests() {
     }
   };
 
+  const getPendingLocalShops = async () => {
+    setLoading(true);
+    try {
+      const response = await axios.get(
+        "https://hazir-hay-backend.vercel.app/localshop/getPendingLocalShops",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.data.success) {
+        setLocalShopRequests(response.data.data);
+      }
+    } catch (error) {
+      console.error("Error fetching local shop requests:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    getShopWithShopkeppers();
-  }, []);
+    if (activeTab === "shopkeeper") {
+      getShopWithShopkeppers();
+    } else {
+      getPendingLocalShops();
+    }
+  }, [activeTab]);
 
   const handleAccept = async () => {
     setAcceptLoadingId(selectedShopWithKeep._id);
@@ -117,6 +177,7 @@ function Requests() {
         toast.success("Shopkeeper verified successfully");
         await getAllShopKepper();
         setAcceptLoadingId(null);
+        setDeleteLoadingId(null);
         getShopWithShopkeppers();
         return true;
       }
@@ -124,6 +185,46 @@ function Requests() {
       console.error("Error verifying shopkeeper:", error);
       toast.error("Failed to verify shopkeeper");
       setAcceptLoadingId(null);
+      setDeleteLoadingId(null);
+    }
+  };
+
+  const approveLocalShop = async (localShop, action) => {
+    if (action === "accept") {
+      setAcceptLoadingId(localShop._id);
+    } else {
+      setDeleteLoadingId(localShop._id);
+    }
+
+    const payload = { action };
+
+    try {
+      const response = await axios.put(
+        `https://hazir-hay-backend.vercel.app/localshop/verifyLocalShop/${localShop._id}`,
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.status === 200) {
+        toast.success(
+          action === "accept"
+            ? "Local shop verified successfully"
+            : "Local shop request declined"
+        );
+        setAcceptLoadingId(null);
+        setDeleteLoadingId(null);
+        getPendingLocalShops();
+        return true;
+      }
+    } catch (error) {
+      console.error("Error processing local shop:", error);
+      toast.error("Failed to process local shop request");
+      setAcceptLoadingId(null);
+      setDeleteLoadingId(null);
     }
   };
 
@@ -155,146 +256,348 @@ function Requests() {
           </button>
         </div>
       ) : (
-        <div className="container my-5">
+        <div className="container my-4">
           <ToastContainer />
 
-          {shopWithShopkepper.length !== 0 ? (
-            <div className="row g-4">
-              {shopWithShopkepper.filter(Boolean).map((shopwithkeep, index) => (
-                <div className="col-lg-4 col-md-6" key={index}>
-                  <div className="card border-0 shadow h-100 rounded-3">
-                    <div className="card-body">
-                      {/* Profile + Info */}
-                      <div className="d-flex align-items-center mb-3">
-                        <div
-                          className="rounded-circle border flex-shrink-0 d-flex align-items-center justify-content-center bg-light"
-                          style={{
-                            width: "80px",
-                            height: "80px",
-                            overflow: "hidden",
-                          }}
-                        >
-                          <img
-                            src={
-                              shopwithkeep?.profilePicture ||
-                              shopwithkeep.shop?.shopPicture
-                            }
-                            alt="Shop"
-                            style={{
-                              objectFit: "cover",
-                              width: "100%",
-                              height: "100%",
-                            }}
-                          />
-                        </div>
-                        <div className="ms-3">
-                          <h6 className="mb-1 fw-bold text-dark">
-                            <i className="fa-solid fa-user text-primary me-2"></i>
-                            {shopwithkeep.name}
-                          </h6>
-                          <p className="mb-1 small text-muted">
-                            <i className="fa-solid fa-phone text-primary me-2"></i>
-                            {shopwithkeep.phone}
-                          </p>
-                          <p className="mb-0 small text-muted">
-                            <i className="fa-solid fa-shop text-primary me-2"></i>
-                            {shopwithkeep.shop?.shopName || "N/A"}
-                          </p>
+          {/* Header */}
+          <div className="mb-4">
+            <h4 className="fw-bold mb-1">
+              <i className="fa-solid fa-clipboard-list text-primary me-2"></i>
+              Pending Requests
+            </h4>
+            <p className="text-muted small">
+              Review and manage pending verification requests
+            </p>
+          </div>
+
+          {/* Tabs */}
+          <div className="card shadow-sm border-0 rounded-4 mb-4">
+            <div className="card-body p-2">
+              <div className="btn-group w-100" role="group">
+                <button
+                  type="button"
+                  className={`btn ${
+                    activeTab === "shopkeeper"
+                      ? "btn-primary"
+                      : "btn-outline-primary"
+                  } rounded-start-4 py-3`}
+                  onClick={() => setActiveTab("shopkeeper")}
+                >
+                  <i className="fa-solid fa-user-tie me-2"></i>
+                  Service Providers
+                  {shopWithShopkepper.length > 0 && (
+                    <span className="badge bg-danger ms-2">
+                      {shopWithShopkepper.length}
+                    </span>
+                  )}
+                </button>
+                <button
+                  type="button"
+                  className={`btn ${
+                    activeTab === "localshop"
+                      ? "btn-primary"
+                      : "btn-outline-primary"
+                  } rounded-end-4 py-3`}
+                  onClick={() => setActiveTab("localshop")}
+                >
+                  <i className="fa-solid fa-store me-2"></i>
+                  Local Shops
+                  {localShopRequests.length > 0 && (
+                    <span className="badge bg-danger ms-2">
+                      {localShopRequests.length}
+                    </span>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Service Provider Requests */}
+          {activeTab === "shopkeeper" && (
+            <>
+              {shopWithShopkepper.length !== 0 ? (
+                <div className="row g-3">
+                  {shopWithShopkepper
+                    .filter(Boolean)
+                    .map((shopwithkeep, index) => (
+                      <div className="col-lg-4 col-md-6" key={index}>
+                        <div className="card border-0 shadow-sm h-100 rounded-4 hover-card">
+                          <div className="card-body p-3">
+                            {/* Profile Section */}
+                            <div className="d-flex align-items-start mb-3">
+                              <div
+                                className="rounded-circle border flex-shrink-0 overflow-hidden bg-light"
+                                style={{ width: "70px", height: "70px" }}
+                              >
+                                <img
+                                  src={
+                                    shopwithkeep?.profilePicture ||
+                                    shopwithkeep.shop?.shopPicture
+                                  }
+                                  alt="Shop"
+                                  style={{
+                                    objectFit: "cover",
+                                    width: "100%",
+                                    height: "100%",
+                                  }}
+                                />
+                              </div>
+                              <div className="ms-3 flex-grow-1">
+                                <h6 className="mb-1 fw-bold text-dark">
+                                  {shopwithkeep.name}
+                                </h6>
+                                <p className="mb-1 small text-muted">
+                                  <i className="fa-solid fa-phone text-primary me-1"></i>
+                                  {shopwithkeep.phone}
+                                </p>
+                                <p className="mb-0 small">
+                                  <i className="fa-solid fa-shop text-success me-1"></i>
+                                  <span className="fw-semibold">
+                                    {shopwithkeep.shop?.shopName || "N/A"}
+                                  </span>
+                                </p>
+                              </div>
+                            </div>
+
+                            <hr className="my-2" />
+
+                            {/* Action Buttons */}
+                            <div className="d-flex gap-2">
+                              <button
+                                className="btn btn-success btn-sm flex-grow-1"
+                                disabled={acceptLoadingId === shopwithkeep._id}
+                                onClick={() => approve(shopwithkeep, "accept")}
+                              >
+                                {acceptLoadingId === shopwithkeep._id ? (
+                                  <span className="d-flex align-items-center justify-content-center">
+                                    <span
+                                      className="spinner-border spinner-border-sm"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </span>
+                                ) : (
+                                  <>
+                                    <i className="fa-solid fa-circle-check me-1"></i>
+                                    Accept
+                                  </>
+                                )}
+                              </button>
+
+                              <button
+                                className="btn btn-danger btn-sm flex-grow-1"
+                                disabled={deleteLoadingId === shopwithkeep._id}
+                                onClick={() => approve(shopwithkeep, "delete")}
+                              >
+                                {deleteLoadingId === shopwithkeep._id ? (
+                                  <span className="d-flex align-items-center justify-content-center">
+                                    <span
+                                      className="spinner-border spinner-border-sm"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </span>
+                                ) : (
+                                  <>
+                                    <i className="fa-solid fa-trash me-1"></i>
+                                    Decline
+                                  </>
+                                )}
+                              </button>
+
+                              <button
+                                className="btn btn-info btn-sm flex-grow-1 text-white"
+                                onClick={() => handleDetailsModal(shopwithkeep)}
+                                disabled={detailsLoadingId === shopwithkeep._id}
+                              >
+                                {detailsLoadingId === shopwithkeep._id ? (
+                                  <span className="d-flex align-items-center justify-content-center">
+                                    <span
+                                      className="spinner-border spinner-border-sm"
+                                      aria-hidden="true"
+                                    ></span>
+                                  </span>
+                                ) : (
+                                  <>
+                                    <i className="fa-solid fa-circle-info me-1"></i>
+                                    Details
+                                  </>
+                                )}
+                              </button>
+                            </div>
+                          </div>
                         </div>
                       </div>
-
-                      {/* Divider */}
-                      <hr className="my-3" />
-
-                      <div className="d-flex justify-content-between gap-1">
-                        <button
-                          className="btn btn-success btn-sm flex-grow-1"
-                          disabled={acceptLoadingId === shopwithkeep._id}
-                          onClick={() => approve(shopwithkeep, "accept")}
-                        >
-                          {acceptLoadingId === shopwithkeep._id ? (
-                            <span className="d-flex align-items-center justify-content-center">
-                              <span role="status">Wait</span>
-                              <span
-                                className="spinner-border spinner-border-sm ms-2"
-                                aria-hidden="true"
-                              ></span>
-                            </span>
-                          ) : (
-                            <>
-                              <i class="fa-solid fa-circle-check me-1"></i>
-                              Accept
-                            </>
-                          )}
-                        </button>
-
-                        <button
-                          className="btn btn-danger btn-sm flex-grow-1"
-                          disabled={deleteLoadingId === shopwithkeep._id}
-                          onClick={() => approve(shopwithkeep, "delete")}
-                        >
-                          {deleteLoadingId === shopwithkeep._id ? (
-                            <span className="d-flex align-items-center justify-content-center">
-                              <span role="status">Wait</span>
-                              <span
-                                className="spinner-border spinner-border-sm ms-2"
-                                aria-hidden="true"
-                              ></span>
-                            </span>
-                          ) : (
-                            <>
-                              <i class="fa-solid fa-trash me-1"></i>
-                              Delete
-                            </>
-                          )}
-                        </button>
-
-                        <button
-                          className="btn btn-info btn-sm flex-grow-1 text-white"
-                          onClick={() => handleDetailsModal(shopwithkeep)}
-                          disabled={detailsLoadingId === shopwithkeep._id}
-                        >
-                          {detailsLoadingId === shopwithkeep._id ? (
-                            <span className="d-flex align-items-center justify-content-center">
-                              <span role="status">Wait</span>
-                              <span
-                                className="spinner-border spinner-border-sm ms-2"
-                                aria-hidden="true"
-                              ></span>
-                            </span>
-                          ) : (
-                            <>
-                              <i class="fa-solid fa-circle-info me-1"></i>
-                              Details
-                            </>
-                          )}
-                        </button>
-                      </div>
-                    </div>
+                    ))}
+                </div>
+              ) : (
+                <div className="card border-0 shadow-sm rounded-4">
+                  <div className="card-body text-center py-5">
+                    <img
+                      src={noData}
+                      alt="No Data"
+                      className="mb-3"
+                      style={{ width: "150px", height: "auto", opacity: 0.7 }}
+                    />
+                    <h5 className="fw-bold text-muted mb-2">
+                      No Pending Requests
+                    </h5>
+                    <p
+                      className="text-muted small"
+                      style={{ maxWidth: "400px", margin: "0 auto" }}
+                    >
+                      All service provider requests have been processed. New
+                      requests will appear here.
+                    </p>
                   </div>
                 </div>
-              ))}
-            </div>
-          ) : (
-            <div
-              className="d-flex flex-column justify-content-center align-items-center text-center"
-              style={{ height: "65vh" }}
-            >
-              <img
-                src={noData}
-                alt="No Data"
-                className="mb-3"
-                style={{ width: "180px", height: "auto" }}
-              />
-              <h4 className="fw-bold text-warning mb-2">No Requests Found</h4>
-              <p
-                className="text-muted"
-                style={{ maxWidth: "380px", fontSize: "15px" }}
-              >
-                Currently, there are no pending requests. Please check back
-                later or refresh the page.
-              </p>
-            </div>
+              )}
+            </>
+          )}
+
+          {/* Local Shop Requests */}
+          {activeTab === "localshop" && (
+            <>
+              {localShopRequests.length !== 0 ? (
+                <div className="row g-3">
+                  {localShopRequests.map((localShop, index) => (
+                    <div className="col-lg-4 col-md-6" key={index}>
+                      <div className="card border-0 shadow-sm h-100 rounded-4 hover-card">
+                        <div className="card-body p-3">
+                          {/* Shop Image */}
+                          <div className="mb-3">
+                            <div
+                              className="rounded-3 overflow-hidden bg-light"
+                              style={{ height: "150px" }}
+                            >
+                              <img
+                                src={localShop.shopPicture || noData}
+                                alt="Shop"
+                                style={{
+                                  objectFit: "cover",
+                                  width: "100%",
+                                  height: "100%",
+                                }}
+                              />
+                            </div>
+                          </div>
+
+                          {/* Shop Info */}
+                          <h6 className="fw-bold text-dark mb-2">
+                            <i className="fa-solid fa-store text-primary me-2"></i>
+                            {localShop.shopName}
+                          </h6>
+                          <p className="mb-1 small text-muted">
+                            <i className="fa-solid fa-tag text-warning me-1"></i>
+                            <span className="badge bg-warning bg-opacity-10 text-warning">
+                              {localShop.category}
+                            </span>
+                          </p>
+                          <p className="mb-1 small text-muted">
+                            <i className="fa-solid fa-phone text-primary me-1"></i>
+                            {localShop.phone}
+                          </p>
+                          <p className="mb-2 small text-muted">
+                            <i className="fa-solid fa-location-dot text-danger me-1"></i>
+                            {localShop.shopAddress?.substring(0, 40)}...
+                          </p>
+
+                          <hr className="my-2" />
+
+                          {/* Action Buttons */}
+                          <div className="d-flex gap-2">
+                            <button
+                              className="btn btn-success btn-sm flex-grow-1"
+                              disabled={acceptLoadingId === localShop._id}
+                              onClick={() =>
+                                approveLocalShop(localShop, "accept")
+                              }
+                            >
+                              {acceptLoadingId === localShop._id ? (
+                                <span className="d-flex align-items-center justify-content-center">
+                                  <span
+                                    className="spinner-border spinner-border-sm"
+                                    aria-hidden="true"
+                                  ></span>
+                                </span>
+                              ) : (
+                                <>
+                                  <i className="fa-solid fa-circle-check me-1"></i>
+                                  Accept
+                                </>
+                              )}
+                            </button>
+
+                            <button
+                              className="btn btn-danger btn-sm flex-grow-1"
+                              disabled={deleteLoadingId === localShop._id}
+                              onClick={() =>
+                                approveLocalShop(localShop, "decline")
+                              }
+                            >
+                              {deleteLoadingId === localShop._id ? (
+                                <span className="d-flex align-items-center justify-content-center">
+                                  <span
+                                    className="spinner-border spinner-border-sm"
+                                    aria-hidden="true"
+                                  ></span>
+                                </span>
+                              ) : (
+                                <>
+                                  <i className="fa-solid fa-trash me-1"></i>
+                                  Decline
+                                </>
+                              )}
+                            </button>
+
+                            <button
+                              className="btn btn-info btn-sm flex-grow-1 text-white"
+                              onClick={() =>
+                                handleLocalShopDetailsModal(localShop)
+                              }
+                              disabled={detailsLoadingId === localShop._id}
+                            >
+                              {detailsLoadingId === localShop._id ? (
+                                <span className="d-flex align-items-center justify-content-center">
+                                  <span
+                                    className="spinner-border spinner-border-sm"
+                                    aria-hidden="true"
+                                  ></span>
+                                </span>
+                              ) : (
+                                <>
+                                  <i className="fa-solid fa-circle-info me-1"></i>
+                                  Details
+                                </>
+                              )}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="card border-0 shadow-sm rounded-4">
+                  <div className="card-body text-center py-5">
+                    <img
+                      src={noData}
+                      alt="No Data"
+                      className="mb-3"
+                      style={{ width: "150px", height: "auto", opacity: 0.7 }}
+                    />
+                    <h5 className="fw-bold text-muted mb-2">
+                      No Pending Requests
+                    </h5>
+                    <p
+                      className="text-muted small"
+                      style={{ maxWidth: "400px", margin: "0 auto" }}
+                    >
+                      All local shop requests have been processed. New requests
+                      will appear here.
+                    </p>
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </div>
       )}
@@ -644,6 +947,228 @@ function Requests() {
                   onClick={() => setShowMOdal(false)}
                 >
                   Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Local Shop Details Modal */}
+      {localShopModal && selectedLocalShop && (
+        <div
+          className="modal fade show d-block"
+          tabIndex="-1"
+          style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+        >
+          <div className="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div className="modal-content">
+              <div className="modal-header bg-primary text-white">
+                <h5 className="modal-title">
+                  <i className="fa-solid fa-store me-2"></i>
+                  Local Shop Details
+                </h5>
+                <button
+                  type="button"
+                  className="btn-close btn-close-white"
+                  onClick={() => setLocalShopModal(false)}
+                ></button>
+              </div>
+              <div className="modal-body">
+                {/* Shop Image */}
+                <div className="card shadow-sm mb-3">
+                  <div className="card-body text-center">
+                    <div
+                      className="rounded-3 overflow-hidden mx-auto mb-3"
+                      style={{ width: "200px", height: "200px" }}
+                    >
+                      <img
+                        src={selectedLocalShop.shopPicture || noData}
+                        alt="Shop"
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "cover",
+                        }}
+                      />
+                    </div>
+                    <h4 className="fw-bold">{selectedLocalShop.shopName}</h4>
+                    <span className="badge bg-primary bg-opacity-10 text-primary px-3 py-2">
+                      <i className="fa-solid fa-tag me-1"></i>
+                      {selectedLocalShop.category}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Basic Information */}
+                <div className="card shadow-sm mb-3">
+                  <div className="card-header bg-info bg-opacity-10">
+                    <h6 className="mb-0 fw-bold text-info">
+                      <i className="fa-solid fa-circle-info me-2"></i>
+                      Basic Information
+                    </h6>
+                  </div>
+                  <div className="card-body">
+                    <div className="row g-3">
+                      <div className="col-md-6">
+                        <p className="mb-2">
+                          <i className="fa-solid fa-user text-primary me-2"></i>
+                          <strong>Position:</strong>{" "}
+                          {selectedLocalShop.position}
+                        </p>
+                        <p className="mb-2">
+                          <i className="fa-solid fa-envelope text-primary me-2"></i>
+                          <strong>Email:</strong> {selectedLocalShop.email}
+                        </p>
+                        <p className="mb-0">
+                          <i className="fa-solid fa-phone text-primary me-2"></i>
+                          <strong>Phone:</strong> {selectedLocalShop.phone}
+                        </p>
+                      </div>
+                      <div className="col-md-6">
+                        <p className="mb-2">
+                          <i className="fa-solid fa-location-dot text-danger me-2"></i>
+                          <strong>Address:</strong>
+                        </p>
+                        <p className="small text-muted">
+                          {selectedLocalShop.shopAddress}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Description */}
+                {selectedLocalShop.description && (
+                  <div className="card shadow-sm mb-3">
+                    <div className="card-header bg-warning bg-opacity-10">
+                      <h6 className="mb-0 fw-bold text-warning">
+                        <i className="fa-solid fa-file-lines me-2"></i>
+                        Description
+                      </h6>
+                    </div>
+                    <div className="card-body">
+                      <p className="mb-0">{selectedLocalShop.description}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Services */}
+                {selectedLocalShop.services &&
+                  selectedLocalShop.services.length > 0 && (
+                    <div className="card shadow-sm mb-3">
+                      <div className="card-header bg-success bg-opacity-10">
+                        <h6 className="mb-0 fw-bold text-success">
+                          <i className="fa-solid fa-list me-2"></i>
+                          Services Offered
+                        </h6>
+                      </div>
+                      <div className="card-body">
+                        <div className="row g-2">
+                          {selectedLocalShop.services.map((service, idx) => (
+                            <div key={idx} className="col-md-6">
+                              <div className="p-2 bg-light rounded-3">
+                                <p className="mb-0 fw-semibold">
+                                  <i className="fa-solid fa-check-circle text-success me-2"></i>
+                                  {service.name}
+                                </p>
+                                {service.price && (
+                                  <p className="mb-0 small text-muted ms-4">
+                                    Price: Rs. {service.price}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                {/* Payment Screenshot */}
+                {selectedLocalShop.paymentPic && (
+                  <div className="card shadow-sm mb-3">
+                    <div className="card-header bg-secondary bg-opacity-10">
+                      <h6 className="mb-0 fw-bold text-secondary">
+                        <i className="fa-solid fa-receipt me-2"></i>
+                        Payment Verification
+                      </h6>
+                    </div>
+                    <div className="card-body text-center">
+                      <img
+                        src={selectedLocalShop.paymentPic}
+                        alt="Payment"
+                        className="img-fluid rounded-3"
+                        style={{ maxHeight: "300px" }}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Location */}
+                <div className="card shadow-sm">
+                  <div className="card-header bg-danger bg-opacity-10">
+                    <h6 className="mb-0 fw-bold text-danger">
+                      <i className="fa-solid fa-map-location-dot me-2"></i>
+                      Location
+                    </h6>
+                  </div>
+                  <div className="card-body">
+                    <button
+                      className="btn btn-primary btn-sm w-100"
+                      onClick={seepoits}
+                    >
+                      <i className="fa-solid fa-map me-2"></i>
+                      View on Map
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="modal-footer">
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => setLocalShopModal(false)}
+                >
+                  <i className="fa-solid fa-xmark me-1"></i>
+                  Close
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-danger"
+                  onClick={() => {
+                    approveLocalShop(selectedLocalShop, "decline");
+                    setLocalShopModal(false);
+                  }}
+                  disabled={deleteLoadingId === selectedLocalShop._id}
+                >
+                  {deleteLoadingId === selectedLocalShop._id ? (
+                    <span className="spinner-border spinner-border-sm" />
+                  ) : (
+                    <>
+                      <i className="fa-solid fa-trash me-1"></i>
+                      Decline
+                    </>
+                  )}
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-success"
+                  onClick={() => {
+                    approveLocalShop(selectedLocalShop, "accept");
+                    setLocalShopModal(false);
+                  }}
+                  disabled={acceptLoadingId === selectedLocalShop._id}
+                >
+                  {acceptLoadingId === selectedLocalShop._id ? (
+                    <span className="spinner-border spinner-border-sm" />
+                  ) : (
+                    <>
+                      <i className="fa-solid fa-circle-check me-1"></i>
+                      Accept
+                    </>
+                  )}
                 </button>
               </div>
             </div>

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import puncture from "../images/puncture.png";
 import petrol from "../images/petrol.png";
 import mechanic from "../images/mechanic.png";
@@ -7,14 +7,12 @@ import processing from "../videos/processing.mp4";
 import { useAppContext } from "../context/AppContext";
 import { useNavigate } from "react-router-dom";
 import { ShopServices } from "../components/ShopServices";
-import { RiWifiFill } from "react-icons/ri";
-import { RiWifiOffFill } from "react-icons/ri";
+import { RiWifiFill, RiWifiOffFill } from "react-icons/ri";
 
 function FindShops() {
   const {
     selectedArea,
     localShopData,
-    localShopWithDistance,
     setSelectedViewLocalShop,
     selectedCategory,
     setSelectedCategory,
@@ -35,81 +33,165 @@ function FindShops() {
   const [filterLoading, setFilterLoading] = useState(false);
   const [suggestionLoading, setSuggestionLoading] = useState(false);
   const [categorySearch, setCategorySearch] = useState("");
-
-  const handleSelectCategory = (cat) => {
-    setSelectedCategory(cat);
-    console.log("Selected Category:", cat);
-  };
+  const [isLoadingShops, setIsLoadingShops] = useState(false);
+  const [displayedShops, setDisplayedShops] = useState([]);
+  const [searchInputLoading, setSearchInputLoading] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
   const navigate = useNavigate();
-  console.log("localWithDistance", localShopWithDistance);
 
-  const quickData = [
-    { img: puncture, label: "Puncture" },
-    { img: petrol, label: "Petrol Pump" },
-    { img: mechanic, label: "Mechanic" },
-    { img: pharmacy, label: "Pharmacy" },
-  ];
+  // Memoize quickData to prevent recreation on every render
+  const quickData = useMemo(
+    () => [
+      { img: puncture, label: "Puncture", category: "Puncture" },
+      { img: petrol, label: "Petrol Pump", category: "Petrol / CNG Station" },
+      { img: mechanic, label: "Mechanic", category: "Car Repair / Mechanic" },
+      {
+        img: pharmacy,
+        label: "Pharmacy",
+        category: "Pharmacy / Medical Store",
+      },
+    ],
+    []
+  );
 
-  const finalSearchSuggestion =
-    searchType === "shopName" ? localShopNames : localShopServices;
-
-  const handleChange = (e) => {
-    setSuggestionLoading(false);
-    const value = e.target.value.toLowerCase();
-    setSearchQuery(value);
-
-    if (value.length === 0) {
-      setSuggestionLoading(false);
+  // Handle quick access click
+  const handleQuickAccess = useCallback(
+    (category) => {
+      setSelectedCategory(category);
+      setSearchType("services");
+      setSearchQuery("");
       setSearchData([]);
-      return;
-    }
+      setShowSuggestions(false);
+      setSuggestionLoading(true);
 
-    let data = finalSearchSuggestion.filter((shop) => {
-      const nameMatch = shop?.toLowerCase().includes(value);
-      return nameMatch;
-    });
+      // Filter shops by selected category
+      setTimeout(() => {
+        const filteredShops = localShopData?.filter((shop) => shop.category?.includes(category));
 
-    // data = data.map((shop) => ({
-    //   ...shop,
-    //   fixedDistance:
-    //     shop.fixedDistance ??
-    //     calculateApproxDistance(shop.location.coordinates),
-    // }));
+        if (filteredShops?.length > 0) {
+          setFinalSearchData([category]);
+        } else {
+          setFinalSearchData([]);
+        }
+        
+      }, 300);
+    },
+    [
+      setSelectedCategory,
+      setSearchType,
+      setSearchQuery,
+      setSearchData,
+      setFinalSearchData,
+      localShopData,
+    ]
+  );
 
-    setSearchData(data);
-    setSuggestionLoading(false);
-  };
+  // Memoize filtered categories
+  const filteredCategories = useMemo(() => {
+    return ShopServices?.filter((item) =>
+      item.toLowerCase().includes(categorySearch.toLowerCase())
+    );
+  }, [categorySearch]);
 
-  const openGoogleMaps = (shopCoords) => {
-    const url = `https://www.google.com/maps/dir/?api=1&origin=${selectedArea?.lat},${selectedArea?.lng}&destination=${shopCoords[1]},${shopCoords[0]}&travelmode=driving`;
+  const handleSelectCategory = useCallback(
+    (cat) => {
+      setSelectedCategory(cat);
+      console.log("Selected Category:", cat);
+    },
+    [setSelectedCategory]
+  );
 
-    window.open(url, "_blank");
-  };
+  const finalSearchSuggestion = useMemo(
+    () => (searchType === "shopName" ? localShopNames : localShopServices),
+    [searchType, localShopNames, localShopServices]
+  );
 
-  const applyFilter = () => {
+  // Debounced search handler with loading state
+  const handleChange = useCallback(
+    (e) => {
+      const value = e.target.value.toLowerCase();
+      setSearchQuery(value);
+
+      if (value?.length === 0) {
+        setSearchInputLoading(false);
+        setSearchData([]);
+        setShowSuggestions(false);
+        return;
+      }
+
+      setSearchInputLoading(true);
+
+      // Debounce search for better performance
+      const timer = setTimeout(() => {
+        let data = finalSearchSuggestion?.filter((shop) => {
+          const nameMatch = shop?.toLowerCase().includes(value);
+          return nameMatch;
+        });
+
+        setSearchData(data);
+        setSearchInputLoading(false);
+        setShowSuggestions(true);
+      }, 300);
+
+      return () => clearTimeout(timer);
+    },
+    [finalSearchSuggestion, setSearchQuery, setSearchData]
+  );
+
+  const openGoogleMaps = useCallback(
+    (shopCoords) => {
+      const url = `https://www.google.com/maps/dir/?api=1&origin=${selectedArea?.lat},${selectedArea?.lng}&destination=${shopCoords[1]},${shopCoords[0]}&travelmode=driving`;
+      window.open(url, "_blank");
+    },
+    [selectedArea]
+  );
+
+  const applyFilter = useCallback(() => {
     setFilterLoading(true);
-    let sortedData = [...searchData];
 
-    if (sortOrder === "low-to-high") {
-      sortedData.sort(
-        (a, b) => parseFloat(a.fixedDistance) - parseFloat(b.fixedDistance)
-      );
-    } else if (sortOrder === "high-to-low") {
-      sortedData.sort(
-        (a, b) => parseFloat(b.fixedDistance) - parseFloat(a.fixedDistance)
-      );
-    } else if (sortOrder === "all") {
-      sortedData = [...searchData];
+    // Simulate async operation
+    setTimeout(() => {
+      let sortedData = [...displayedShops];
+
+      if (sortOrder === "low-to-high") {
+        sortedData.sort(
+          (a, b) => parseFloat(a.fixedDistance) - parseFloat(b.fixedDistance)
+        );
+      } else if (sortOrder === "high-to-low") {
+        sortedData.sort(
+          (a, b) => parseFloat(b.fixedDistance) - parseFloat(a.fixedDistance)
+        );
+      }
+
+      setDisplayedShops(sortedData);
+      setFilterLoading(false);
+      setFilterModal(false);
+    }, 400);
+  }, [displayedShops, sortOrder]);
+
+  const navigateToShop = useCallback(
+    (shop) => {
+      setSelectedViewLocalShop(shop);
+      navigate("/admin/user/localShop/viewLocalShop");
+    },
+    [setSelectedViewLocalShop, navigate]
+  );
+
+  // Load shops with smooth transition effect
+  useEffect(() => {
+    if (localShopData && localShopData?.length > 0) {
+      setIsLoadingShops(true);
+      const timer = setTimeout(() => {
+        setDisplayedShops(localShopData);
+        setIsLoadingShops(false);
+      }, 400);
+      return () => clearTimeout(timer);
+    } else {
+      setDisplayedShops([]);
+      setIsLoadingShops(false);
     }
-    setSearchData(sortedData);
-    setFilterLoading(false);
-    setFilterModal(false);
-  };
-  const navigateToShop = (shop) => {
-    setSelectedViewLocalShop(shop);
-    navigate("/admin/user/localShop/viewLocalShop");
-  };
+  }, [localShopData]);
 
   return (
     <>
@@ -150,11 +232,11 @@ function FindShops() {
               className="d-flex gap-2 flex-nowrap p-2"
               style={{ width: "max-content" }}
             >
-              {quickData.length > 0 &&
-                quickData.map((data, ind) => {
+              {quickData?.length > 0 &&
+                quickData?.map((data, ind) => {
                   return (
                     <div
-                      className="card bg-light  shadow-sm"
+                      className="card bg-light shadow-sm"
                       key={ind}
                       style={{
                         width: "100px",
@@ -164,6 +246,18 @@ function FindShops() {
                         justifyContent: "center",
                         alignItems: "center",
                         textAlign: "center",
+                        cursor: "pointer",
+                        transition: "all 0.3s ease",
+                      }}
+                      onClick={() => handleQuickAccess(data.category)}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = "translateY(-4px)";
+                        e.currentTarget.style.boxShadow =
+                          "0 4px 12px rgba(0,0,0,0.15)";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = "translateY(0)";
+                        e.currentTarget.style.boxShadow = "";
                       }}
                     >
                       <img
@@ -173,6 +267,7 @@ function FindShops() {
                           width: "65px",
                           height: "85px",
                           objectFit: "contain",
+                          pointerEvents: "none",
                         }}
                       />
                       <h6 className="fw-bold" style={{ fontSize: "15px" }}>
@@ -207,17 +302,21 @@ function FindShops() {
 
               {/* List */}
               <div style={{ maxHeight: "250px", overflowY: "auto" }}>
-                {ShopServices.filter((item) =>
-                  item.toLowerCase().includes(categorySearch.toLowerCase())
-                ).map((item, i) => (
-                  <button
-                    key={i}
-                    className="dropdown-item"
-                    onClick={() => handleSelectCategory(item)}
-                  >
-                    {item}
-                  </button>
-                ))}
+                {filteredCategories?.length > 0 ? (
+                  filteredCategories?.map((item, i) => (
+                    <button
+                      key={i}
+                      className="dropdown-item"
+                      onClick={() => handleSelectCategory(item)}
+                    >
+                      {item}
+                    </button>
+                  ))
+                ) : (
+                  <div className="text-center text-muted py-2">
+                    <small>No categories found</small>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -283,10 +382,23 @@ function FindShops() {
               <i className="fa-solid fa-magnifying-glass"></i>
             </span>
 
+            {/* Loading Spinner */}
+            {searchInputLoading && (
+              <span className="position-absolute top-50 end-0 translate-middle-y pe-3">
+                <div
+                  className="spinner-border spinner-border-sm text-primary"
+                  role="status"
+                >
+                  <span className="visually-hidden">Searching...</span>
+                </div>
+              </span>
+            )}
+
             {/* SUGGESTION DROPDOWN */}
             {searchQuery?.length > 0 &&
               searchData?.length > 0 &&
-              !suggestionLoading && (
+              !searchInputLoading &&
+              showSuggestions && (
                 <div
                   className="position-absolute w-100 bg-white shadow-lg mt-2"
                   style={{
@@ -306,7 +418,8 @@ function FindShops() {
                         onClick={() => {
                           setSearchQuery(suggestion);
                           setSuggestionLoading(true);
-                          let filtered = finalSearchSuggestion.filter(
+                          setShowSuggestions(false);
+                          let filtered = finalSearchSuggestion?.filter(
                             (shop) =>
                               shop.toLowerCase() === suggestion.toLowerCase()
                           );
@@ -324,7 +437,7 @@ function FindShops() {
                       </button>
 
                       {/* Divider (Google style) */}
-                      {index !== searchData.length - 1 && (
+                      {index !== searchData?.length - 1 && (
                         <div
                           style={{ borderBottom: "1px solid #f1f1f1" }}
                         ></div>
@@ -597,7 +710,7 @@ function FindShops() {
                         }-primary btn-sm rounded-pill px-2`}
                         onClick={() => setSortOrder("high-to-low")}
                       >
-                        <RiWifiOffFill  className="me-2" />
+                        <RiWifiOffFill className="me-2" />
                         Offline
                       </button>
                     </div>
@@ -638,18 +751,19 @@ function FindShops() {
                   <button
                     className="btn btn-outline-dark w-100"
                     onClick={applyFilter}
+                    disabled={filterLoading}
                   >
                     {filterLoading ? (
                       <>
-                        Applying...
-                        <div
-                          className="spinner-border spinner-border-sm text-light ms-2"
+                        <span
+                          className="spinner-border spinner-border-sm me-2"
                           role="status"
-                        ></div>
+                        ></span>
+                        Applying Filters...
                       </>
                     ) : (
                       <>
-                        Apply Filter<i class="fa-solid fa-filter ms-2"></i>
+                        Apply Filter<i className="fa-solid fa-filter ms-2"></i>
                       </>
                     )}
                   </button>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
@@ -15,6 +15,7 @@ function Local_Shop_Dashboard() {
   const [activeTab, setActiveTab] = useState("overview");
   const [isDataLoading, setIsDataLoading] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
   // Forms
   const [shopInfo, setShopInfo] = useState({
@@ -38,7 +39,7 @@ function Local_Shop_Dashboard() {
     fetchShopData();
   }, []);
 
-  const fetchShopData = async () => {
+  const fetchShopData = useCallback(async () => {
     setLoading(true);
     try {
       const res = await axios.get(
@@ -77,18 +78,18 @@ function Local_Shop_Dashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [token]);
 
-  const handleLogout = () => {
+  const handleLogout = useCallback(() => {
     if (window.confirm("Logout from dashboard?")) {
       localStorage.clear();
       logout && logout();
       navigate("/");
       toast.success("Logged out");
     }
-  };
+  }, [logout, navigate]);
 
-  const toggleLiveStatus = async () => {
+  const toggleLiveStatus = useCallback(async () => {
     setIsDataLoading(true);
     try {
       const res = await axios.put(
@@ -108,12 +109,15 @@ function Local_Shop_Dashboard() {
     } finally {
       setIsDataLoading(false);
     }
-  };
+  }, [token, fetchShopData]);
 
-  const handleShopInfoChange = (e) =>
-    setShopInfo({ ...shopInfo, [e.target.name]: e.target.value });
+  const handleShopInfoChange = useCallback(
+    (e) =>
+      setShopInfo((prev) => ({ ...prev, [e.target.name]: e.target.value })),
+    []
+  );
 
-  const updateShopInfo = async () => {
+  const updateShopInfo = useCallback(async () => {
     setIsDataLoading(true);
     try {
       const res = await axios.put(
@@ -134,9 +138,9 @@ function Local_Shop_Dashboard() {
     } finally {
       setIsDataLoading(false);
     }
-  };
+  }, [shopInfo, token, fetchShopData]);
 
-  const addService = () => {
+  const addService = useCallback(() => {
     const alreadyExists = services.some(
       (s) => s.name.toLowerCase() === newService.trim().toLowerCase()
     );
@@ -145,14 +149,16 @@ function Local_Shop_Dashboard() {
       return;
     }
     if (newService.trim())
-      setServices([...services, { name: newService.trim() }]);
+      setServices((prev) => [...prev, { name: newService.trim() }]);
     setNewService("");
-  };
+  }, [services, newService]);
 
-  const removeService = (i) =>
-    setServices(services.filter((_, idx) => idx !== i));
+  const removeService = useCallback(
+    (i) => setServices((prev) => prev.filter((_, idx) => idx !== i)),
+    []
+  );
 
-  const updateServices = async () => {
+  const updateServices = useCallback(async () => {
     setIsDataLoading(true);
     try {
       const res = await axios.put(
@@ -173,18 +179,22 @@ function Local_Shop_Dashboard() {
     } finally {
       setIsDataLoading(false);
     }
-  };
+  }, [services, token, fetchShopData]);
 
-  const handleLocationChange = (e) => {
+  const handleLocationChange = useCallback((e) => {
     const { name, value } = e.target;
     if (name === "lat" || name === "lng") {
-      const coords = [...location.coordinates];
-      coords[name === "lat" ? 1 : 0] = parseFloat(value) || 0;
-      setLocation({ ...location, coordinates: coords });
-    } else setLocation({ ...location, [name]: value });
-  };
+      setLocation((prev) => {
+        const coords = [...prev.coordinates];
+        coords[name === "lat" ? 1 : 0] = parseFloat(value) || 0;
+        return { ...prev, coordinates: coords };
+      });
+    } else {
+      setLocation((prev) => ({ ...prev, [name]: value }));
+    }
+  }, []);
 
-  const updateLocation = async () => {
+  const updateLocation = useCallback(async () => {
     setIsDataLoading(true);
     try {
       const res = await axios.put(
@@ -205,28 +215,28 @@ function Local_Shop_Dashboard() {
     } finally {
       setIsDataLoading(false);
     }
-  };
+  }, [location, token, fetchShopData]);
 
-  const handleImageSelect = (e, type) => {
+  const handleImageSelect = useCallback((e, type) => {
     const file = e.target.files[0];
     if (file) {
       setSelectedImage(file);
       setImageType(type);
       setPreviewImage(URL.createObjectURL(file));
     }
-  };
+  }, []);
 
   // helper: compress images before upload
-  const compressImage = async (file) => {
+  const compressImage = useCallback(async (file) => {
     const options = {
       maxSizeMB: 0.6,
       maxWidthOrHeight: 800,
       useWebWorker: true,
     };
     return imageCompression(file, options);
-  };
+  }, []);
 
-  const uploadImage = async () => {
+  const uploadImage = useCallback(async () => {
     if (!selectedImage) return toast.error("Select an image first");
     setIsDataLoading(true);
     try {
@@ -257,13 +267,14 @@ function Local_Shop_Dashboard() {
     } finally {
       setIsDataLoading(false);
     }
-  };
+  }, [selectedImage, imageType, token, compressImage, fetchShopData]);
 
-  const handleMenuCardsSelect = (e) =>
-    setNewMenuCards(Array.from(e.target.files));
+  const handleMenuCardsSelect = useCallback(
+    (e) => setNewMenuCards(Array.from(e.target.files)),
+    []
+  );
 
-// ...existing code...
-  const addMenuCards = async () => {
+  const addMenuCards = useCallback(async () => {
     if (!newMenuCards.length) return toast.error("Select menu images");
     setIsDataLoading(true);
     try {
@@ -295,38 +306,119 @@ function Local_Shop_Dashboard() {
     } finally {
       setIsDataLoading(false);
     }
-  };
-// ...existing code...
+  }, [newMenuCards, token, compressImage, fetchShopData]);
 
-  const deleteMenuCard = async (url) => {
-    if (!window.confirm("Delete this menu card?")) return;
-    setIsDataLoading(true);
-    try {
-      const res = await axios.delete(
-        "https://hazir-hay-backend.vercel.app/localShop/deleteMenuCard",
-        {
-          headers: { Authorization: `Bearer ${token}` },
-          data: { menuCardUrl: url },
-          params: { t: Date.now() },
+  const deleteMenuCard = useCallback(
+    async (url) => {
+      if (!window.confirm("Delete this menu card?")) return;
+      setIsDataLoading(true);
+      try {
+        const res = await axios.delete(
+          "https://hazir-hay-backend.vercel.app/localShop/deleteMenuCard",
+          {
+            headers: { Authorization: `Bearer ${token}` },
+            data: { menuCardUrl: url },
+            params: { t: Date.now() },
+          }
+        );
+        if (res.data.success) {
+          toast.success("Menu card deleted");
+          fetchShopData();
         }
-      );
-      if (res.data.success) {
-        toast.success("Menu card deleted");
-        fetchShopData();
+      } catch {
+        toast.error("Delete failed");
+      } finally {
+        setIsDataLoading(false);
       }
-    } catch {
-      toast.error("Delete failed");
-    } finally {
-      setIsDataLoading(false);
-    }
-  };
+    },
+    [token, fetchShopData]
+  );
+
+  const handleTabChange = useCallback((tab) => {
+    setIsTransitioning(true);
+    setTimeout(() => {
+      setActiveTab(tab);
+      setIsTransitioning(false);
+    }, 150);
+  }, []);
+
+  // Memoized config arrays
+  const menuTabConfig = useMemo(
+    () => [
+      ["overview", "fa-chart-line", "Overview"],
+      ["shopInfo", "fa-info-circle", "Shop Info"],
+      ["services", "fa-concierge-bell", "Services"],
+      ["location", "fa-map-marker-alt", "Location"],
+      ["menu", "fa-utensils", "Menu"],
+    ],
+    []
+  );
+
+  const statsCards = useMemo(
+    () => [
+      {
+        title: "Total Clicks",
+        value: shopData?.activityCount || 0,
+        icon: "fa-mouse-pointer",
+        color: "primary",
+      },
+      {
+        title: "Services",
+        value: services.length || 0,
+        icon: "fa-concierge-bell",
+        color: "success",
+      },
+      {
+        title: "Menu Cards",
+        value: menuCards.length || 0,
+        icon: "fa-images",
+        color: "info",
+      },
+    ],
+    [shopData?.activityCount, services.length, menuCards.length]
+  );
+
+  const shopInfoFields = useMemo(
+    () => [
+      ["shopName", "Shop Name", "text", "fa-store"],
+      ["position", "Position/Type", "text", "fa-briefcase"],
+      ["phone", "Phone", "text", "fa-phone"],
+      ["email", "Email", "email", "fa-envelope"],
+      ["shopAddress", "Address", "text", "fa-map-marker-alt"],
+    ],
+    []
+  );
+
+  const shopInfoDisplay = useMemo(
+    () => [
+      ["Shop Name", shopInfo.shopName, "fa-store"],
+      ["Position/Type", shopInfo.position, "fa-briefcase"],
+      ["Phone", shopInfo.phone, "fa-phone"],
+      ["Email", shopInfo.email, "fa-envelope"],
+      ["Address", shopInfo.shopAddress, "fa-map-marker-alt"],
+    ],
+    [shopInfo]
+  );
+
+  const locationFields = useMemo(
+    () => [
+      ["lat", "Latitude", location.coordinates[1]],
+      ["lng", "Longitude", location.coordinates[0]],
+    ],
+    [location.coordinates]
+  );
 
   if (loading) {
     return (
       <div className="container py-5 text-center">
-        <div className="spinner-border text-primary" role="status">
+        <div
+          className="spinner-border text-primary"
+          role="status"
+          style={{ width: "3rem", height: "3rem" }}
+        >
           <span className="visually-hidden">Loading…</span>
         </div>
+        <p className="mt-3 text-muted">Loading dashboard...</p>
       </div>
     );
   }
@@ -346,6 +438,7 @@ function Local_Shop_Dashboard() {
                   alt="shop"
                   className="rounded-circle me-3 border"
                   style={{ width: 52, height: 52, objectFit: "cover" }}
+                  loading="lazy"
                 />
                 <div>
                   <div className="fw-semibold small mb-1">
@@ -365,20 +458,14 @@ function Local_Shop_Dashboard() {
             </div>
             {showMobileMenu && (
               <div className="mt-3 border-top pt-2">
-                {[
-                  ["overview", "fa-chart-line", "Overview"],
-                  ["shopInfo", "fa-info-circle", "Shop Info"],
-                  ["services", "fa-concierge-bell", "Services"],
-                  ["location", "fa-map-marker-alt", "Location"],
-                  ["menu", "fa-utensils", "Menu"],
-                ].map(([key, icon, label]) => (
+                {menuTabConfig.map(([key, icon, label]) => (
                   <button
                     key={key}
                     className={`list-group-item list-group-item-action border-0 py-2 small ${
                       activeTab === key ? "active" : ""
                     }`}
                     onClick={() => {
-                      setActiveTab(key);
+                      handleTabChange(key);
                       setShowMobileMenu(false);
                     }}
                   >
@@ -416,6 +503,7 @@ function Local_Shop_Dashboard() {
                     alt="shop"
                     className="rounded-circle border border-3 border-primary"
                     style={{ width: 110, height: 110, objectFit: "cover" }}
+                    loading="lazy"
                   />
                   <button
                     className="btn btn-sm btn-primary rounded-circle position-absolute bottom-0 end-0"
@@ -474,19 +562,13 @@ function Local_Shop_Dashboard() {
               </div>
 
               <div className="list-group list-group-flush">
-                {[
-                  ["overview", "fa-chart-line", "Overview"],
-                  ["shopInfo", "fa-info-circle", "Shop Info"],
-                  ["services", "fa-concierge-bell", "Services"],
-                  ["location", "fa-map-marker-alt", "Location"],
-                  ["menu", "fa-utensils", "Menu"],
-                ].map(([key, icon, label]) => (
+                {menuTabConfig.map(([key, icon, label]) => (
                   <button
                     key={key}
                     className={`list-group-item list-group-item-action border-0 py-2 small ${
                       activeTab === key ? "active" : ""
                     }`}
-                    onClick={() => setActiveTab(key)}
+                    onClick={() => handleTabChange(key)}
                   >
                     <i className={`fas ${icon} me-2`}></i>
                     {label}
@@ -509,347 +591,338 @@ function Local_Shop_Dashboard() {
 
         {/* Main */}
         <div className="col-lg-9">
-          {/* Overview */}
-          {activeTab === "overview" && (
-            <div className="mb-4">
-              <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-                <h5 className="fw-bold mb-0 text-secondary">
-                  <i className="fas fa-chart-line text-primary me-2"></i>
-                  Overview
-                </h5>
-                <button
-                  className={`btn btn-sm ${
-                    shopData?.isLive
-                      ? "btn-outline-success"
-                      : "btn-outline-secondary"
-                  } d-flex align-items-center gap-2`}
-                  onClick={toggleLiveStatus}
-                  disabled={isDataLoading}
-                >
-                  {isDataLoading ? (
-                    <span className="spinner-border spinner-border-sm"></span>
-                  ) : (
-                    <>
-                      <i
-                        className={`fas ${
-                          shopData?.isLive ? "fa-toggle-on" : "fa-toggle-off"
-                        }`}
-                      ></i>
-                      <span className="small mb-0">
-                        {shopData?.isLive ? "Online" : "Offline"}
-                      </span>
-                    </>
-                  )}
-                </button>
-              </div>
-              <div className="row g-3 mb-3">
-                {[
-                  {
-                    title: "Total Clicks",
-                    value: shopData?.activityCount || 0,
-                    icon: "fa-mouse-pointer",
-                    color: "primary",
-                  },
-                  {
-                    title: "Services",
-                    value: services.length || 0,
-                    icon: "fa-concierge-bell",
-                    color: "success",
-                  },
-                  {
-                    title: "Menu Cards",
-                    value: menuCards.length || 0,
-                    icon: "fa-images",
-                    color: "info",
-                  },
-                ].map((c, i) => (
-                  <div className="col-md-4 col-sm-6" key={i}>
-                    <div className="card shadow-sm border-0 h-100">
-                      <div className="card-body d-flex align-items-center gap-3">
-                        <div
-                          className={`rounded-circle bg-${c.color} bg-opacity-10 p-3`}
-                        >
-                          <i className={`fas ${c.icon} text-${c.color}`}></i>
-                        </div>
-                        <div>
-                          <div className="text-muted small">{c.title}</div>
-                          <div className="fw-bold fs-5">{c.value}</div>
+          <div
+            style={{
+              opacity: isTransitioning ? 0.5 : 1,
+              transition: "opacity 0.15s ease-in-out",
+              pointerEvents: isTransitioning ? "none" : "auto",
+            }}
+          >
+            {/* Overview */}
+            {activeTab === "overview" && (
+              <div className="mb-4">
+                <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                  <h5 className="fw-bold mb-0 text-secondary">
+                    <i className="fas fa-chart-line text-primary me-2"></i>
+                    Overview
+                  </h5>
+                  <button
+                    className={`btn btn-sm ${
+                      shopData?.isLive
+                        ? "btn-outline-success"
+                        : "btn-outline-secondary"
+                    } d-flex align-items-center gap-2`}
+                    onClick={toggleLiveStatus}
+                    disabled={isDataLoading}
+                  >
+                    {isDataLoading ? (
+                      <span className="spinner-border spinner-border-sm"></span>
+                    ) : (
+                      <>
+                        <i
+                          className={`fas ${
+                            shopData?.isLive ? "fa-toggle-on" : "fa-toggle-off"
+                          }`}
+                        ></i>
+                        <span className="small mb-0">
+                          {shopData?.isLive ? "Online" : "Offline"}
+                        </span>
+                      </>
+                    )}
+                  </button>
+                </div>
+                <div className="row g-3 mb-3">
+                  {statsCards.map((c, i) => (
+                    <div className="col-md-4 col-sm-6" key={i}>
+                      <div className="card shadow-sm border-0 h-100">
+                        <div className="card-body d-flex align-items-center gap-3">
+                          <div
+                            className={`rounded-circle bg-${c.color} bg-opacity-10 p-3`}
+                          >
+                            <i className={`fas ${c.icon} text-${c.color}`}></i>
+                          </div>
+                          <div>
+                            <div className="text-muted small">{c.title}</div>
+                            <div className="fw-bold fs-5">{c.value}</div>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
 
-              <div className="card shadow-sm border-0">
-                <div className="card-body p-4">
-                  <div className="d-flex align-items-center mb-3">
-                    <i className="fas fa-store text-primary me-2"></i>
-                    <h6 className="fw-bold mb-0 text-secondary">
-                      Shop Details
-                    </h6>
-                  </div>
-                  <div className="row g-3 small text-secondary">
-                    <div className="col-md-6">
-                      <div className="text-muted">Category</div>
-                      <div className="fw-semibold text-dark">
-                        {shopData?.category}
-                      </div>
+                <div className="card shadow-sm border-0">
+                  <div className="card-body p-4">
+                    <div className="d-flex align-items-center mb-3">
+                      <i className="fas fa-store text-primary me-2"></i>
+                      <h6 className="fw-bold mb-0 text-secondary">
+                        Shop Details
+                      </h6>
                     </div>
-                    <div className="col-md-6">
-                      <div className="text-muted">Email</div>
-                      <div className="fw-semibold text-dark">
-                        {shopData?.email}
+                    <div className="row g-3 small text-secondary">
+                      <div className="col-md-6">
+                        <div className="text-muted">Category</div>
+                        <div className="fw-semibold text-dark">
+                          {shopData?.category}
+                        </div>
                       </div>
-                    </div>
-                    <div className="col-md-6">
-                      <div className="text-muted">Phone</div>
-                      <div className="fw-semibold text-dark">
-                        {shopData?.phone}
+                      <div className="col-md-6">
+                        <div className="text-muted">Email</div>
+                        <div className="fw-semibold text-dark">
+                          {shopData?.email}
+                        </div>
                       </div>
-                    </div>
-                    <div className="col-md-6">
-                      <div className="text-muted">Address</div>
-                      <div className="fw-semibold text-dark">
-                        {shopData?.shopAddress}
+                      <div className="col-md-6">
+                        <div className="text-muted">Phone</div>
+                        <div className="fw-semibold text-dark">
+                          {shopData?.phone}
+                        </div>
                       </div>
-                    </div>
-                    <div className="col-12">
-                      <div className="text-muted">Description</div>
-                      <div className="fw-semibold text-dark">
-                        {shopData?.description}
+                      <div className="col-md-6">
+                        <div className="text-muted">Address</div>
+                        <div className="fw-semibold text-dark">
+                          {shopData?.shopAddress}
+                        </div>
                       </div>
-                    </div>
-                    <div className="col-md-6">
-                      <div className="text-muted">Member Since</div>
-                      <div className="fw-semibold text-dark">
-                        {new Date(shopData?.createdAt).toLocaleDateString(
-                          "en-US",
-                          {
-                            month: "short",
-                            year: "numeric",
-                          }
-                        )}
+                      <div className="col-12">
+                        <div className="text-muted">Description</div>
+                        <div className="fw-semibold text-dark">
+                          {shopData?.description}
+                        </div>
+                      </div>
+                      <div className="col-md-6">
+                        <div className="text-muted">Member Since</div>
+                        <div className="fw-semibold text-dark">
+                          {new Date(shopData?.createdAt).toLocaleDateString(
+                            "en-US",
+                            {
+                              month: "short",
+                              year: "numeric",
+                            }
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Shop Info */}
-          {activeTab === "shopInfo" && (
-            <div className="mb-4">
-              <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-                <h5 className="fw-bold mb-0 text-secondary">
-                  <i className="fas fa-info-circle text-primary me-2"></i>
-                  Shop Information
-                </h5>
-                <button
-                  className="btn btn-primary btn-sm"
-                  data-bs-toggle="modal"
-                  data-bs-target="#shopInfoModal"
-                >
-                  <i className="fas fa-edit me-2"></i>Edit
-                </button>
-              </div>
-              <div className="card shadow-sm border-0">
-                <div className="card-body p-4 small text-secondary">
-                  <div className="row g-3">
-                    {[
-                      ["Shop Name", shopInfo.shopName, "fa-store"],
-                      ["Position/Type", shopInfo.position, "fa-briefcase"],
-                      ["Phone", shopInfo.phone, "fa-phone"],
-                      ["Email", shopInfo.email, "fa-envelope"],
-                      ["Address", shopInfo.shopAddress, "fa-map-marker-alt"],
-                    ].map(([label, val, icon], i) => (
-                      <div className="col-md-6" key={i}>
+            {/* Shop Info */}
+            {activeTab === "shopInfo" && (
+              <div className="mb-4">
+                <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                  <h5 className="fw-bold mb-0 text-secondary">
+                    <i className="fas fa-info-circle text-primary me-2"></i>
+                    Shop Information
+                  </h5>
+                  <button
+                    className="btn btn-primary btn-sm"
+                    data-bs-toggle="modal"
+                    data-bs-target="#shopInfoModal"
+                  >
+                    <i className="fas fa-edit me-2"></i>Edit
+                  </button>
+                </div>
+                <div className="card shadow-sm border-0">
+                  <div className="card-body p-4 small text-secondary">
+                    <div className="row g-3">
+                      {shopInfoDisplay.map(([label, val, icon], i) => (
+                        <div className="col-md-6" key={i}>
+                          <div className="text-muted">
+                            <i className={`fas ${icon} me-1 text-primary`}></i>
+                            {label}
+                          </div>
+                          <div className="fw-semibold text-dark">
+                            {val || "-"}
+                          </div>
+                        </div>
+                      ))}
+                      <div className="col-12">
                         <div className="text-muted">
-                          <i className={`fas ${icon} me-1 text-primary`}></i>
-                          {label}
+                          <i className="fas fa-align-left me-1 text-primary"></i>
+                          Description
                         </div>
                         <div className="fw-semibold text-dark">
-                          {val || "-"}
+                          {shopInfo.description || "-"}
                         </div>
-                      </div>
-                    ))}
-                    <div className="col-12">
-                      <div className="text-muted">
-                        <i className="fas fa-align-left me-1 text-primary"></i>
-                        Description
-                      </div>
-                      <div className="fw-semibold text-dark">
-                        {shopInfo.description || "-"}
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Services */}
-          {activeTab === "services" && (
-            <div className="mb-4">
-              <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-                <h5 className="fw-bold mb-0 text-secondary">
-                  <i className="fas fa-concierge-bell text-primary me-2"></i>
-                  Services
-                </h5>
-                <button
-                  className="btn btn-primary btn-sm"
-                  data-bs-toggle="modal"
-                  data-bs-target="#servicesModal"
-                >
-                  <i className="fas fa-edit me-2"></i>Manage
-                </button>
-              </div>
-              <div className="card shadow-sm border-0">
-                <div className="card-body p-4">
-                  {services.length === 0 ? (
-                    <div className="text-center text-muted small py-4">
-                      <i className="fas fa-inbox fa-2x mb-2 opacity-50"></i>
-                      <div>No services added</div>
-                      <button
-                        className="btn btn-primary btn-sm mt-2"
-                        data-bs-toggle="modal"
-                        data-bs-target="#servicesModal"
-                      >
-                        <i className="fas fa-plus me-2"></i>Add
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="row g-2">
-                      {services.map((s, i) => (
-                        <div className="col-md-4 col-sm-6" key={i}>
-                          <div className="card border h-100">
-                            <div className="card-body text-center py-3">
-                              <i className="fas fa-check-circle text-success mb-2"></i>
-                              <div className="fw-semibold small text-dark">
-                                {s.name}
+            {/* Services */}
+            {activeTab === "services" && (
+              <div className="mb-4">
+                <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                  <h5 className="fw-bold mb-0 text-secondary">
+                    <i className="fas fa-concierge-bell text-primary me-2"></i>
+                    Services
+                  </h5>
+                  <button
+                    className="btn btn-primary btn-sm"
+                    data-bs-toggle="modal"
+                    data-bs-target="#servicesModal"
+                  >
+                    <i className="fas fa-edit me-2"></i>Manage
+                  </button>
+                </div>
+                <div className="card shadow-sm border-0">
+                  <div className="card-body p-4">
+                    {services.length === 0 ? (
+                      <div className="text-center text-muted small py-4">
+                        <i className="fas fa-inbox fa-2x mb-2 opacity-50"></i>
+                        <div>No services added</div>
+                        <button
+                          className="btn btn-primary btn-sm mt-2"
+                          data-bs-toggle="modal"
+                          data-bs-target="#servicesModal"
+                        >
+                          <i className="fas fa-plus me-2"></i>Add
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="row g-2">
+                        {services.map((s, i) => (
+                          <div className="col-md-4 col-sm-6" key={i}>
+                            <div className="card border h-100">
+                              <div className="card-body text-center py-3">
+                                <i className="fas fa-check-circle text-success mb-2"></i>
+                                <div className="fw-semibold small text-dark">
+                                  {s.name}
+                                </div>
                               </div>
                             </div>
                           </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Location */}
+            {activeTab === "location" && (
+              <div className="mb-4">
+                <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                  <h5 className="fw-bold mb-0 text-secondary">
+                    <i className="fas fa-map-marker-alt text-primary me-2"></i>
+                    Location
+                  </h5>
+                  <button
+                    className="btn btn-primary btn-sm"
+                    data-bs-toggle="modal"
+                    data-bs-target="#locationModal"
+                  >
+                    <i className="fas fa-edit me-2"></i>Update
+                  </button>
+                </div>
+                <div className="card shadow-sm border-0 mb-3">
+                  <div className="card-body p-4 small text-secondary">
+                    <div className="row g-3">
+                      <div className="col-md-4 col-sm-6">
+                        <div className="text-muted">Latitude</div>
+                        <div className="fw-semibold text-dark">
+                          {location.coordinates[1]}
                         </div>
-                      ))}
+                      </div>
+                      <div className="col-md-4 col-sm-6">
+                        <div className="text-muted">Longitude</div>
+                        <div className="fw-semibold text-dark">
+                          {location.coordinates[0]}
+                        </div>
+                      </div>
+                      <div className="col-md-4 col-sm-12">
+                        <div className="text-muted">Area</div>
+                        <div className="fw-semibold text-dark">
+                          {location.area}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                {location.coordinates[0] !== 0 &&
+                  location.coordinates[1] !== 0 && (
+                    <div className="card shadow-sm border-0">
+                      <div className="card-body p-0">
+                        <iframe
+                          src={`https://maps.google.com/maps?q=${location.coordinates[1]},${location.coordinates[0]}&z=15&output=embed`}
+                          width="100%"
+                          height="360"
+                          style={{ border: 0 }}
+                          loading="lazy"
+                          title="map"
+                        ></iframe>
+                      </div>
                     </div>
                   )}
-                </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Location */}
-          {activeTab === "location" && (
-            <div className="mb-4">
-              <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-                <h5 className="fw-bold mb-0 text-secondary">
-                  <i className="fas fa-map-marker-alt text-primary me-2"></i>
-                  Location
-                </h5>
-                <button
-                  className="btn btn-primary btn-sm"
-                  data-bs-toggle="modal"
-                  data-bs-target="#locationModal"
-                >
-                  <i className="fas fa-edit me-2"></i>Update
-                </button>
-              </div>
-              <div className="card shadow-sm border-0 mb-3">
-                <div className="card-body p-4 small text-secondary">
-                  <div className="row g-3">
-                    <div className="col-md-4 col-sm-6">
-                      <div className="text-muted">Latitude</div>
-                      <div className="fw-semibold text-dark">
-                        {location.coordinates[1]}
-                      </div>
-                    </div>
-                    <div className="col-md-4 col-sm-6">
-                      <div className="text-muted">Longitude</div>
-                      <div className="fw-semibold text-dark">
-                        {location.coordinates[0]}
-                      </div>
-                    </div>
-                    <div className="col-md-4 col-sm-12">
-                      <div className="text-muted">Area</div>
-                      <div className="fw-semibold text-dark">
-                        {location.area}
-                      </div>
-                    </div>
-                  </div>
+            {/* Menu */}
+            {activeTab === "menu" && (
+              <div className="mb-4">
+                <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                  <h5 className="fw-bold mb-0 text-secondary">
+                    <i className="fas fa-utensils text-primary me-2"></i>
+                    Menu Cards
+                  </h5>
+                  <button
+                    className="btn btn-primary btn-sm"
+                    data-bs-toggle="modal"
+                    data-bs-target="#menuModal"
+                  >
+                    <i className="fas fa-plus me-2"></i>Add
+                  </button>
                 </div>
-              </div>
-              {location.coordinates[0] !== 0 &&
-                location.coordinates[1] !== 0 && (
-                  <div className="card shadow-sm border-0">
-                    <div className="card-body p-0">
-                      <iframe
-                        src={`https://maps.google.com/maps?q=${location.coordinates[1]},${location.coordinates[0]}&z=15&output=embed`}
-                        width="100%"
-                        height="360"
-                        style={{ border: 0 }}
-                        loading="lazy"
-                        title="map"
-                      ></iframe>
-                    </div>
-                  </div>
-                )}
-            </div>
-          )}
-
-          {/* Menu */}
-          {activeTab === "menu" && (
-            <div className="mb-4">
-              <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-                <h5 className="fw-bold mb-0 text-secondary">
-                  <i className="fas fa-utensils text-primary me-2"></i>
-                  Menu Cards
-                </h5>
-                <button
-                  className="btn btn-primary btn-sm"
-                  data-bs-toggle="modal"
-                  data-bs-target="#menuModal"
-                >
-                  <i className="fas fa-plus me-2"></i>Add
-                </button>
-              </div>
-              <div className="card shadow-sm border-0">
-                <div className="card-body p-4">
-                  {menuCards.length === 0 ? (
-                    <div className="text-center text-muted small py-4">
-                      <i className="fas fa-image fa-2x mb-2 opacity-50"></i>
-                      <div>No menu cards</div>
-                    </div>
-                  ) : (
-                    <div className="row g-2">
-                      {menuCards.map((card, i) => (
-                        <div className="col-md-4 col-sm-6" key={i}>
-                          <div className="card border h-100">
-                            <img
-                              src={card}
-                              alt="menu"
-                              className="card-img-top"
-                              style={{ height: 200, objectFit: "cover" }}
-                            />
-                            <div className="card-body text-center py-2">
-                              <button
-                                className="btn btn-outline-danger btn-sm"
-                                onClick={() => deleteMenuCard(card)}
-                                disabled={isDataLoading}
-                              >
-                                <i className="fas fa-trash me-1"></i>Delete
-                              </button>
+                <div className="card shadow-sm border-0">
+                  <div className="card-body p-4">
+                    {menuCards.length === 0 ? (
+                      <div className="text-center text-muted small py-4">
+                        <i className="fas fa-image fa-2x mb-2 opacity-50"></i>
+                        <div>No menu cards</div>
+                      </div>
+                    ) : (
+                      <div className="row g-2">
+                        {menuCards.map((card, i) => (
+                          <div className="col-md-4 col-sm-6" key={i}>
+                            <div className="card border h-100">
+                              <img
+                                src={card}
+                                alt="menu"
+                                className="card-img-top"
+                                style={{ height: 200, objectFit: "cover" }}
+                                loading="lazy"
+                              />
+                              <div className="card-body text-center py-2">
+                                <button
+                                  className="btn btn-outline-danger btn-sm"
+                                  onClick={() => deleteMenuCard(card)}
+                                  disabled={isDataLoading}
+                                >
+                                  {isDataLoading ? (
+                                    <span className="spinner-border spinner-border-sm"></span>
+                                  ) : (
+                                    <>
+                                      <i className="fas fa-trash me-1"></i>
+                                      Delete
+                                    </>
+                                  )}
+                                </button>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
 
@@ -879,13 +952,7 @@ function Local_Shop_Dashboard() {
             </div>
             <div className="modal-body small">
               <div className="row g-3">
-                {[
-                  ["shopName", "Shop Name", "text", "fa-store"],
-                  ["position", "Position/Type", "text", "fa-briefcase"],
-                  ["phone", "Phone", "text", "fa-phone"],
-                  ["email", "Email", "email", "fa-envelope"],
-                  ["shopAddress", "Address", "text", "fa-map-marker-alt"],
-                ].map(([name, label, type, icon]) => (
+                {shopInfoFields.map(([name, label, type, icon]) => (
                   <div className="col-md-6" key={name}>
                     <label className="form-label small text-muted fw-semibold">
                       <i className={`fas ${icon} me-2 text-primary`}></i>
@@ -973,14 +1040,24 @@ function Local_Shop_Dashboard() {
                   className="form-control"
                   placeholder="Service name"
                   value={newService}
-                  disabled={services.length === 5}
+                  disabled={services.length >= 5}
                   onChange={(e) => setNewService(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && addService()}
                 />
-                <button className="btn btn-primary" onClick={addService}>
+                <button
+                  className="btn btn-primary"
+                  onClick={addService}
+                  disabled={services.length >= 5 || !newService.trim()}
+                >
                   <i className="fas fa-plus"></i>
                 </button>
               </div>
+              {services.length >= 5 && (
+                <div className="alert alert-warning py-2 small mb-2">
+                  <i className="fas fa-exclamation-triangle me-2"></i>
+                  Maximum 5 services allowed
+                </div>
+              )}
               <div className="fw-semibold text-muted mb-2">
                 Current Services
               </div>
@@ -1056,10 +1133,7 @@ function Local_Shop_Dashboard() {
             </div>
             <div className="modal-body small">
               <div className="row g-3">
-                {[
-                  ["lat", "Latitude", location.coordinates[1]],
-                  ["lng", "Longitude", location.coordinates[0]],
-                ].map(([name, label, val]) => (
+                {locationFields.map(([name, label, val]) => (
                   <div className="col-md-6" key={name}>
                     <label className="form-label text-muted fw-semibold">
                       <i className="fas fa-compass me-2 text-primary"></i>
