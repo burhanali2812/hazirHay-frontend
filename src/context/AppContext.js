@@ -216,16 +216,14 @@ export const AppProvider = ({ children }) => {
 
   const getLocalVerifiedLiveShops = async () => {
     try {
-      const res = await api.get(
-        `/localShop/getAllVerifiedLiveLocalShops/${selectedCategory}`,
-        {
-          params: {
-            type: searchType,
-            name: finalSearchData,
-            t: Date.now(),
-          },
-        }
-      );
+      const res = await api.get(`/localShop/getAllVerifiedLiveLocalShops`, {
+        params: {
+          category: selectedCategory,
+          type: searchType ? searchType : "Quick Access",
+          name: finalSearchData ? finalSearchData : selectedCategory,
+          t: Date.now(),
+        },
+      });
 
       const shopsWithDistance = res.data.shops.map((shop) => {
         const shopCoords = shop.location?.coordinates; // [lng, lat]
@@ -244,6 +242,9 @@ export const AppProvider = ({ children }) => {
       setLocalShopData(shopsWithDistance);
     } catch (error) {
       console.log("local shop getting err", error);
+      if (error.response?.status === 404) {
+        setLocalShopData([]);
+      }
     }
   };
 

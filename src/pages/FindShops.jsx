@@ -58,24 +58,15 @@ function FindShops() {
   // Handle quick access click
   const handleQuickAccess = useCallback(
     (category) => {
+      setIsLoadingShops(true);
+
       setSelectedCategory(category);
-      setSearchType("services");
       setSearchQuery("");
       setSearchData([]);
       setShowSuggestions(false);
       setSuggestionLoading(true);
-
-      // Filter shops by selected category
-      setTimeout(() => {
-        const filteredShops = localShopData?.filter((shop) => shop.category?.includes(category));
-
-        if (filteredShops?.length > 0) {
-          setFinalSearchData([category]);
-        } else {
-          setFinalSearchData([]);
-        }
-        
-      }, 300);
+      console.log("Quick Access Category:", category);
+      console.log("localshops:", localShopData);
     },
     [
       setSelectedCategory,
@@ -86,6 +77,10 @@ function FindShops() {
       localShopData,
     ]
   );
+  useEffect(() => {
+    // setDisplayedShops(localShopData);
+    setIsLoadingShops(false);
+  }, [localShopData]);
 
   // Memoize filtered categories
   const filteredCategories = useMemo(() => {
@@ -177,21 +172,6 @@ function FindShops() {
     },
     [setSelectedViewLocalShop, navigate]
   );
-
-  // Load shops with smooth transition effect
-  useEffect(() => {
-    if (localShopData && localShopData?.length > 0) {
-      setIsLoadingShops(true);
-      const timer = setTimeout(() => {
-        setDisplayedShops(localShopData);
-        setIsLoadingShops(false);
-      }, 400);
-      return () => clearTimeout(timer);
-    } else {
-      setDisplayedShops([]);
-      setIsLoadingShops(false);
-    }
-  }, [localShopData]);
 
   return (
     <>
@@ -457,7 +437,21 @@ function FindShops() {
               onClick={() => setFilterModal(true)}
             ></i>
           </div>
-          {!suggestionLoading ? (
+          {isLoadingShops ? (
+            // Loading spinner
+            <div className="text-center mt-5">
+              <div
+                className="spinner-border text-primary"
+                role="status"
+                style={{ width: "3rem", height: "3rem" }}
+              >
+                <span className="visually-hidden">Loading...</span>
+              </div>
+              <p className="text-muted mt-3 fw-semibold">
+                Finding nearby shops...
+              </p>
+            </div>
+          ) : !suggestionLoading ? (
             // Loading animation while fetching
             <>
               <div className="d-flex justify-content-center align-items-center mt-3">
