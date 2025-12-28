@@ -30,6 +30,7 @@ export const AppProvider = ({ children }) => {
   const [notification, setNotification] = useState([]);
   const [unSeenNotification, setUnSeenNotification] = useState([]);
   const [localShopData, setLocalShopData] = useState([]);
+  const [topTenLocalShopData, setTopTenLocalShopData] = useState([]);
 
   const [topText, setTopText] = useState("");
   const [pageKey, setKey] = useState(null);
@@ -248,6 +249,8 @@ export const AppProvider = ({ children }) => {
     }
   };
 
+ 
+
   const getUserLocations = async () => {
     try {
       const response = await api.get(`/users/getUserById/${user._id}`);
@@ -341,12 +344,9 @@ export const AppProvider = ({ children }) => {
   };
   const getLocalShopsName = async () => {
     try {
-      const res = await api.get(
-        `/localShop/unique-shopnames/${selectedCategory}`,
-        {
-          params: { t: Date.now() },
-        }
-      );
+      const res = await api.get(`/localShop/unique-shopnames`, {
+        params: { category: selectedCategory, t: Date.now() },
+      });
       setLocalShopNames(res.data.shopNames || []);
     } catch (error) {
       console.log("local shop names getting err", error);
@@ -355,12 +355,9 @@ export const AppProvider = ({ children }) => {
   };
   const getLocalShopServices = async () => {
     try {
-      const res = await api.get(
-        `/localShop/unique-services/${selectedCategory}`,
-        {
-          params: { t: Date.now() },
-        }
-      );
+      const res = await api.get(`/localShop/unique-services`, {
+        params: { category: selectedCategory, t: Date.now() },
+      });
       setLocalShopServices(res.data.services || []);
     } catch (error) {
       console.log("local shop services getting err", error);
@@ -390,7 +387,6 @@ export const AppProvider = ({ children }) => {
   }, [role]);
   useEffect(() => {
     if (!selectedCategory) return;
-    // getLocalVerifiedLiveShops();
     getLocalShopsName();
     getLocalShopServices();
   }, [selectedCategory]);
@@ -522,8 +518,11 @@ export const AppProvider = ({ children }) => {
         setSortOrder,
         localShopNames,
         localShopServices,
+        topTenLocalShopData,
+        setTopTenLocalShopData,
         setFinalSearchData,
         socket: socketRef.current,
+        token,
 
         getShopData,
         getAllUser,
@@ -536,6 +535,8 @@ export const AppProvider = ({ children }) => {
         getCartData,
         fetchAreaName,
         getUserLocations,
+        calculateApproxDistance,
+      
 
         loading,
         setLoading,

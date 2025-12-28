@@ -8,6 +8,7 @@ import { useAppContext } from "../context/AppContext";
 import { useNavigate } from "react-router-dom";
 import { ShopServices } from "../components/ShopServices";
 import { RiWifiFill, RiWifiOffFill } from "react-icons/ri";
+import axios from "axios";
 
 function FindShops() {
   const {
@@ -27,6 +28,10 @@ function FindShops() {
     localShopNames,
     localShopServices,
     setFinalSearchData,
+    setTopTenLocalShopData,
+    topTenLocalShopData,
+    calculateApproxDistance,
+    token,
   } = useAppContext();
 
   const [filterModal, setFilterModal] = useState(false);
@@ -55,16 +60,61 @@ function FindShops() {
     []
   );
 
+   const getTopTenLocalShops = async (cat) => {
+    try {
+      const res = await axios.get(`https://hazir-hay-backend.vercel.app/localShop/getAllVerifiedLiveLocalShops`, {
+        params: {
+          category: cat || selectedCategory,
+          type: "",
+          name: "",
+          t: Date.now(),
+        },
+         headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const shopsWithDistance = res.data.shops.map((shop) => {
+        const shopCoords = shop.location?.coordinates; // [lng, lat]
+        if (shopCoords && selectedArea?.lat && selectedArea?.lng) {
+          return {
+            ...shop,
+            fixedDistance: calculateApproxDistance(shopCoords),
+          };
+        }
+        return {
+          ...shop,
+          fixedDistance: "N/A",
+        };
+      });
+
+      // Sort by distance and get only the 10 nearest shops
+      const sortedShops = shopsWithDistance
+        .filter((shop) => shop.fixedDistance !== "N/A") // Filter out shops without valid distance
+        .sort(
+          (a, b) => parseFloat(a.fixedDistance) - parseFloat(b.fixedDistance)
+        )
+        .slice(0, 10); // Get only top 10 nearest shops
+
+      setTopTenLocalShopData(sortedShops);
+    } catch (error) {
+      console.log("local shop getting err", error);
+      if (error.response?.status === 404) {
+        setTopTenLocalShopData([]);
+      }
+    }
+  };
+
   // Handle quick access click
   const handleQuickAccess = useCallback(
     (category) => {
       setIsLoadingShops(true);
 
       setSelectedCategory(category);
+      setSearchType("Quick Access");
       setSearchQuery("");
       setSearchData([]);
       setShowSuggestions(false);
       setSuggestionLoading(true);
+      setFinalSearchData(category);
       console.log("Quick Access Category:", category);
       console.log("localshops:", localShopData);
     },
@@ -80,7 +130,7 @@ function FindShops() {
   useEffect(() => {
     // setDisplayedShops(localShopData);
     setIsLoadingShops(false);
-  }, [localShopData]);
+  }, [localShopData, topTenLocalShopData]);
 
   // Memoize filtered categories
   const filteredCategories = useMemo(() => {
@@ -91,11 +141,18 @@ function FindShops() {
 
   const handleSelectCategory = useCallback(
     (cat) => {
+            setFinalSearchData(cat);
       setSelectedCategory(cat);
+      setIsLoadingShops(true);
+      setSuggestionLoading(true);
+      
+      getTopTenLocalShops(cat);
       console.log("Selected Category:", cat);
     },
     [setSelectedCategory]
   );
+
+
 
   const finalSearchSuggestion = useMemo(
     () => (searchType === "shopName" ? localShopNames : localShopServices),
@@ -399,11 +456,8 @@ function FindShops() {
                           setSearchQuery(suggestion);
                           setSuggestionLoading(true);
                           setShowSuggestions(false);
-                          let filtered = finalSearchSuggestion?.filter(
-                            (shop) =>
-                              shop.toLowerCase() === suggestion.toLowerCase()
-                          );
-                          setFinalSearchData(filtered);
+                        
+                          setFinalSearchData(suggestion);
                         }}
                         style={{
                           padding: "10px 14px",
@@ -437,6 +491,13 @@ function FindShops() {
               onClick={() => setFilterModal(true)}
             ></i>
           </div>
+          {
+            topTenLocalShopData?.length > 0 && (
+              <div className="alert alert-info text-center" role="alert">
+                Showing top 10 nearest shops in "{selectedCategory}" category.
+              </div>
+            )
+          }
           {isLoadingShops ? (
             // Loading spinner
             <div className="text-center mt-5">
@@ -491,9 +552,12 @@ function FindShops() {
                 </p>
               </div>
             </>
-          ) : localShopData?.length > 0 ? (
+          ) : (
+         
+            
+            topTenLocalShopData?.length > 0 ? topTenLocalShopData : localShopData)?.length > 0 ? (
             // Show shop cards only if data exists
-            localShopData?.map((shop, ind) => (
+            (topTenLocalShopData?.length > 0 ? topTenLocalShopData : localShopData)?.map((shop, ind) => (
               <div
                 key={ind}
                 className="card border-0 shadow-sm mb-3 px-2"
