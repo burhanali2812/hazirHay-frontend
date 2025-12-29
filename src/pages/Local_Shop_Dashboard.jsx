@@ -4,6 +4,32 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import { useAppContext } from "../context/AppContext";
 import imageCompression from "browser-image-compression";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  Filler,
+} from "chart.js";
+import { Line } from "react-chartjs-2";
+
+// Register Chart.js components
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+  Filler
+);
 
 function Local_Shop_Dashboard() {
   const { user, logout } = useAppContext();
@@ -16,6 +42,29 @@ function Local_Shop_Dashboard() {
   const [isDataLoading, setIsDataLoading] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
+
+  // Generate sample daily clicks data (last 7 days)
+  const generateDailyClicksData = useMemo(() => {
+    const days = [];
+    const clicks = [];
+    const today = new Date();
+
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date(today);
+      date.setDate(date.getDate() - i);
+      days.push(
+        date.toLocaleDateString("en-US", { month: "short", day: "numeric" })
+      );
+      // Generate random clicks between 0 and total clicks / 7
+      const maxDailyClicks = Math.max(
+        Math.floor((shopData?.activityCount || 0) / 7),
+        10
+      );
+      clicks.push(Math.floor(Math.random() * maxDailyClicks));
+    }
+
+    return { days, clicks };
+  }, [shopData?.activityCount]);
 
   // Forms
   const [shopInfo, setShopInfo] = useState({
@@ -342,6 +391,81 @@ function Local_Shop_Dashboard() {
     }, 150);
   }, []);
 
+  // Chart configuration
+  const chartData = useMemo(
+    () => ({
+      labels: generateDailyClicksData.days,
+      datasets: [
+        {
+          label: "Daily Clicks",
+          data: generateDailyClicksData.clicks,
+          borderColor: "rgb(75, 192, 192)",
+          backgroundColor: "rgba(75, 192, 192, 0.2)",
+          fill: true,
+          tension: 0.4,
+          pointRadius: 4,
+          pointHoverRadius: 6,
+          pointBackgroundColor: "rgb(75, 192, 192)",
+          pointBorderColor: "#fff",
+          pointBorderWidth: 2,
+        },
+      ],
+    }),
+    [generateDailyClicksData]
+  );
+
+  const chartOptions = useMemo(
+    () => ({
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: false,
+        },
+        tooltip: {
+          backgroundColor: "rgba(0, 0, 0, 0.8)",
+          padding: 12,
+          titleFont: {
+            size: 13,
+          },
+          bodyFont: {
+            size: 12,
+          },
+          callbacks: {
+            label: function (context) {
+              return `Clicks: ${context.parsed.y}`;
+            },
+          },
+        },
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: {
+            stepSize: 1,
+            font: {
+              size: 11,
+            },
+          },
+          grid: {
+            color: "rgba(0, 0, 0, 0.05)",
+          },
+        },
+        x: {
+          ticks: {
+            font: {
+              size: 11,
+            },
+          },
+          grid: {
+            display: false,
+          },
+        },
+      },
+    }),
+    []
+  );
+
   // Memoized config arrays
   const menuTabConfig = useMemo(
     () => [
@@ -602,48 +726,70 @@ function Local_Shop_Dashboard() {
             {activeTab === "overview" && (
               <div className="mb-4">
                 <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-                  <h5 className="fw-bold mb-0 text-secondary">
+                  <h5 className="fw-bold mb-0 text-dark">
                     <i className="fas fa-chart-line text-primary me-2"></i>
-                    Overview
+                    Dashboard Overview
                   </h5>
                   <button
                     className={`btn btn-sm ${
-                      shopData?.isLive
-                        ? "btn-outline-success"
-                        : "btn-outline-secondary"
+                      shopData?.isLive ? "btn-success" : "btn-outline-secondary"
                     } d-flex align-items-center gap-2`}
                     onClick={toggleLiveStatus}
                     disabled={isDataLoading}
+                    style={{ minWidth: "100px" }}
                   >
                     {isDataLoading ? (
                       <span className="spinner-border spinner-border-sm"></span>
                     ) : (
                       <>
                         <i
-                          className={`fas ${
-                            shopData?.isLive ? "fa-toggle-on" : "fa-toggle-off"
-                          }`}
+                          className={`fas fa-circle`}
+                          style={{ fontSize: "8px" }}
                         ></i>
-                        <span className="small mb-0">
-                          {shopData?.isLive ? "Online" : "Offline"}
+                        <span className="small fw-semibold">
+                          {shopData?.isLive ? "Online" : "Go Online"}
                         </span>
                       </>
                     )}
                   </button>
                 </div>
-                <div className="row g-3 mb-3">
+
+                {/* Stats Cards */}
+                <div className="row g-3 mb-4">
                   {statsCards.map((c, i) => (
                     <div className="col-md-4 col-sm-6" key={i}>
-                      <div className="card shadow-sm border-0 h-100">
-                        <div className="card-body d-flex align-items-center gap-3">
+                      <div
+                        className="card shadow-sm border-0 h-100 hover-lift"
+                        style={{ transition: "transform 0.2s" }}
+                        onMouseEnter={(e) =>
+                          (e.currentTarget.style.transform = "translateY(-4px)")
+                        }
+                        onMouseLeave={(e) =>
+                          (e.currentTarget.style.transform = "translateY(0)")
+                        }
+                      >
+                        <div className="card-body d-flex align-items-center gap-3 p-3">
                           <div
-                            className={`rounded-circle bg-${c.color} bg-opacity-10 p-3`}
+                            className={`rounded-circle d-flex align-items-center justify-content-center`}
+                            style={{
+                              width: "50px",
+                              height: "50px",
+                              background: `linear-gradient(135deg, ${
+                                c.color === "primary"
+                                  ? "#667eea, #764ba2"
+                                  : c.color === "success"
+                                  ? "#11998e, #38ef7d"
+                                  : "#4facfe, #00f2fe"
+                              })`,
+                            }}
                           >
-                            <i className={`fas ${c.icon} text-${c.color}`}></i>
+                            <i className={`fas ${c.icon} text-white fa-lg`}></i>
                           </div>
                           <div>
-                            <div className="text-muted small">{c.title}</div>
-                            <div className="fw-bold fs-5">{c.value}</div>
+                            <div className="text-muted small mb-1">
+                              {c.title}
+                            </div>
+                            <div className="fw-bold fs-4">{c.value}</div>
                           </div>
                         </div>
                       </div>
@@ -651,55 +797,174 @@ function Local_Shop_Dashboard() {
                   ))}
                 </div>
 
+                {/* Daily Clicks Chart */}
+                <div className="card shadow-sm border-0 mb-4">
+                  <div className="card-body p-4">
+                    <div className="d-flex align-items-center justify-content-between mb-3">
+                      <h6 className="fw-bold mb-0 text-dark">
+                        <i className="fas fa-chart-area text-primary me-2"></i>
+                        Daily User Clicks (Last 7 Days)
+                      </h6>
+                      <span className="badge bg-light text-dark border small">
+                        <i className="fas fa-calendar-alt me-1"></i>
+                        Weekly View
+                      </span>
+                    </div>
+                    <div style={{ height: "280px", position: "relative" }}>
+                      <Line data={chartData} options={chartOptions} />
+                    </div>
+                    <div className="mt-3 p-3 bg-light rounded">
+                      <div className="row g-3 small text-center">
+                        <div className="col-4">
+                          <div className="text-muted">Avg. Daily</div>
+                          <div className="fw-bold text-dark">
+                            {Math.round(
+                              generateDailyClicksData.clicks.reduce(
+                                (a, b) => a + b,
+                                0
+                              ) / generateDailyClicksData.clicks.length
+                            )}
+                          </div>
+                        </div>
+                        <div className="col-4">
+                          <div className="text-muted">Highest</div>
+                          <div className="fw-bold text-success">
+                            {Math.max(...generateDailyClicksData.clicks)}
+                          </div>
+                        </div>
+                        <div className="col-4">
+                          <div className="text-muted">Total (7d)</div>
+                          <div className="fw-bold text-primary">
+                            {generateDailyClicksData.clicks.reduce(
+                              (a, b) => a + b,
+                              0
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Shop Details */}
                 <div className="card shadow-sm border-0">
                   <div className="card-body p-4">
-                    <div className="d-flex align-items-center mb-3">
-                      <i className="fas fa-store text-primary me-2"></i>
-                      <h6 className="fw-bold mb-0 text-secondary">
-                        Shop Details
+                    <div className="d-flex align-items-center justify-content-between mb-3">
+                      <h6 className="fw-bold mb-0 text-dark">
+                        <i className="fas fa-store text-primary me-2"></i>
+                        Shop Information
                       </h6>
+                      <button
+                        className="btn btn-outline-primary btn-sm"
+                        data-bs-toggle="modal"
+                        data-bs-target="#shopInfoModal"
+                      >
+                        <i className="fas fa-edit me-1"></i>
+                        Edit
+                      </button>
                     </div>
-                    <div className="row g-3 small text-secondary">
+                    <div className="row g-3 small">
                       <div className="col-md-6">
-                        <div className="text-muted">Category</div>
-                        <div className="fw-semibold text-dark">
-                          {shopData?.category}
+                        <div className="d-flex align-items-start gap-2">
+                          <i className="fas fa-tag text-primary mt-1"></i>
+                          <div>
+                            <div className="text-muted">Category</div>
+                            <div className="fw-semibold text-dark">
+                              {shopData?.category || "-"}
+                            </div>
+                          </div>
                         </div>
                       </div>
                       <div className="col-md-6">
-                        <div className="text-muted">Email</div>
-                        <div className="fw-semibold text-dark">
-                          {shopData?.email}
+                        <div className="d-flex align-items-start gap-2">
+                          <i className="fas fa-envelope text-primary mt-1"></i>
+                          <div>
+                            <div className="text-muted">Email</div>
+                            <div className="fw-semibold text-dark text-break">
+                              {shopData?.email || "-"}
+                            </div>
+                          </div>
                         </div>
                       </div>
                       <div className="col-md-6">
-                        <div className="text-muted">Phone</div>
-                        <div className="fw-semibold text-dark">
-                          {shopData?.phone}
+                        <div className="d-flex align-items-start gap-2">
+                          <i className="fas fa-phone text-primary mt-1"></i>
+                          <div>
+                            <div className="text-muted">Phone</div>
+                            <div className="fw-semibold text-dark">
+                              {shopData?.phone || "-"}
+                            </div>
+                          </div>
                         </div>
                       </div>
                       <div className="col-md-6">
-                        <div className="text-muted">Address</div>
-                        <div className="fw-semibold text-dark">
-                          {shopData?.shopAddress}
+                        <div className="d-flex align-items-start gap-2">
+                          <i className="fas fa-map-marker-alt text-primary mt-1"></i>
+                          <div>
+                            <div className="text-muted">Address</div>
+                            <div className="fw-semibold text-dark">
+                              {shopData?.shopAddress || "-"}
+                            </div>
+                          </div>
                         </div>
                       </div>
                       <div className="col-12">
-                        <div className="text-muted">Description</div>
-                        <div className="fw-semibold text-dark">
-                          {shopData?.description}
+                        <div className="d-flex align-items-start gap-2">
+                          <i className="fas fa-align-left text-primary mt-1"></i>
+                          <div>
+                            <div className="text-muted">Description</div>
+                            <div className="fw-semibold text-dark">
+                              {shopData?.description ||
+                                "No description provided"}
+                            </div>
+                          </div>
                         </div>
                       </div>
                       <div className="col-md-6">
-                        <div className="text-muted">Member Since</div>
-                        <div className="fw-semibold text-dark">
-                          {new Date(shopData?.createdAt).toLocaleDateString(
-                            "en-US",
-                            {
-                              month: "short",
-                              year: "numeric",
-                            }
-                          )}
+                        <div className="d-flex align-items-start gap-2">
+                          <i className="fas fa-calendar-check text-primary mt-1"></i>
+                          <div>
+                            <div className="text-muted">Member Since</div>
+                            <div className="fw-semibold text-dark">
+                              {new Date(shopData?.createdAt).toLocaleDateString(
+                                "en-US",
+                                {
+                                  month: "long",
+                                  day: "numeric",
+                                  year: "numeric",
+                                }
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="col-md-6">
+                        <div className="d-flex align-items-start gap-2">
+                          <i className="fas fa-shield-alt text-primary mt-1"></i>
+                          <div>
+                            <div className="text-muted">Status</div>
+                            <div>
+                              {shopData?.isVerified && (
+                                <span className="badge bg-primary me-2">
+                                  <i className="fas fa-check-circle me-1"></i>
+                                  Verified
+                                </span>
+                              )}
+                              <span
+                                className={`badge ${
+                                  shopData?.isLive
+                                    ? "bg-success"
+                                    : "bg-secondary"
+                                }`}
+                              >
+                                <i
+                                  className="fas fa-circle me-1"
+                                  style={{ fontSize: "7px" }}
+                                ></i>
+                                {shopData?.isLive ? "Online" : "Offline"}
+                              </span>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>

@@ -12,7 +12,6 @@ function LocalShopSignup() {
     position: "",
     shopAddress: "",
     description: "",
-    email: "",
     category: "",
     password: "",
     phone: "",
@@ -110,7 +109,6 @@ const handleSelectCategory = (cat) => {
       data.append("position", formData.position);
       data.append("shopAddress", formData.shopAddress);
       data.append("description", formData.description);
-      data.append("email", formData.email);
       data.append("password", formData.password);
       data.append("phone", formData.phone);
       data.append("category", selectedCategory);
@@ -143,7 +141,6 @@ const handleSelectCategory = (cat) => {
         shopName: "",
         position: "",
         shopAddress: "",
-        email: "",
         description: "",
         password: "",
         phone: "",
@@ -512,21 +509,6 @@ const handleSelectCategory = (cat) => {
 
 
 
-            <div className="form-floating mb-3">
-          <input
-            type="email"
-            className="form-control"
-            id="email"
-            name="email"
-            placeholder="Email"
-            value={formData.email}
-            onChange={handleChange}
-            required
-          />
-          <label htmlFor="email">
-            Email<b className="text-danger">*</b>
-          </label>
-        </div>
 
         <div className="form-floating mb-3">
           <input

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import axios from "axios";
 import location from "../images/location.png";
 import "./style.css";
@@ -10,7 +10,6 @@ import { Toaster, toast } from "react-hot-toast";
 
 import { services } from "../components/servicesData";
 import { useAppContext } from "../context/AppContext";
-const UserShopRoute = lazy(() => import("../components/UserShopRoute"));
 const MyMap = lazy(() => import("../components/MyMap"));
 function UserDashboard() {
   const {
@@ -64,6 +63,8 @@ function UserDashboard() {
   const [FilterServices, setFilterServices] = useState([]);
   const [loadingDelandSet, setLoadingDelandSet] = useState(false);
   const [isDataLoading, setIsDataLoading] = useState(true);
+  const [shopData, setShopData] = useState([]);
+  const [copyShopData, setCopyShopData] = useState([]);
   const [filters, setFilters] = useState({
     status: "All",
     price: "All",
@@ -76,29 +77,27 @@ function UserDashboard() {
     }
   }, [role]);
 
-  const handleFilterChange = (type, value) => {
-    console.log("type", type, "option", value);
+  const handleFilterChange = useCallback((type, value) => {
     setFilterServices([]);
     setFilters((prev) => ({ ...prev, [type.toLowerCase()]: value }));
-  };
+  }, []);
 
   const reviews = selectedShopWithShopkepper?.shop?.reviews || [];
   const reviewsPerPage = 4;
   const startIndex = page * reviewsPerPage;
   const currentReviews = reviews.slice(startIndex, startIndex + reviewsPerPage);
 
-  const handleNextPage = () => {
-    console.log(currentReviews);
-
+  const handleNextPage = useCallback(() => {
     if (startIndex + reviewsPerPage < reviews.length) {
       setPage((prev) => prev + 1);
     }
-  };
-  const handleBackPage = () => {
+  }, [startIndex, reviewsPerPage, reviews.length]);
+
+  const handleBackPage = useCallback(() => {
     if (page > 0) {
       setPage((prev) => prev - 1);
     }
-  };
+  }, [page]);
   useEffect(() => {
     setKey("home");
     setTimeout(() => {
@@ -228,13 +227,12 @@ function UserDashboard() {
       );
       if (response.data.success) {
         setAllRequests(response.data.data || []);
-        console.log("All Requests", response.data.data);
       } else {
         console.error("Failed to fetch requests");
         setAllRequests([]);
       }
     } catch (error) {
-      console.log("Error fetching requests:", error.message);
+      console.error("Error fetching requests:", error.message);
     }
   };
   //findwithloading
@@ -242,32 +240,32 @@ function UserDashboard() {
     getAllRequests();
   }, []);
 
-  const findRatio = (id, type) => {
-    if (!allRequests || allRequests.length === 0) return 0;
-    console.log("allRequests", allRequests);
-    console.log("id", id);
+  const findRatio = useCallback(
+    (id, type) => {
+      if (!allRequests || allRequests.length === 0) return 0;
 
-    const Totalrequest = allRequests.filter((req) => req.shopOwnerId === id);
-    const acceptedRequests = Totalrequest.filter(
-      (req) => req.status === "completed"
-    );
-    const rejectedRequests = Totalrequest.filter(
-      (req) => req.status === "rejected" || req.status === "deleted"
-    );
-    console.log("Totalrequest", Totalrequest);
-    console.log("acceptedRequests", acceptedRequests);
-    console.log("rejectedRequests", rejectedRequests);
+      const Totalrequest = allRequests.filter((req) => req.shopOwnerId === id);
+      if (Totalrequest.length === 0) return 0;
 
-    if (type === "accepted") {
-      const ratio = (acceptedRequests.length / Totalrequest.length) * 100;
-      return ratio.toFixed(0);
-    } else if (type === "rejected") {
-      const ratio = (rejectedRequests.length / Totalrequest.length) * 100;
-      return ratio.toFixed(0);
-    } else {
-      return Totalrequest.length;
-    }
-  };
+      const acceptedRequests = Totalrequest.filter(
+        (req) => req.status === "completed"
+      );
+      const rejectedRequests = Totalrequest.filter(
+        (req) => req.status === "rejected" || req.status === "deleted"
+      );
+
+      if (type === "accepted") {
+        const ratio = (acceptedRequests.length / Totalrequest.length) * 100;
+        return ratio.toFixed(0);
+      } else if (type === "rejected") {
+        const ratio = (rejectedRequests.length / Totalrequest.length) * 100;
+        return ratio.toFixed(0);
+      } else {
+        return Totalrequest.length;
+      }
+    },
+    [allRequests]
+  );
 
   const getShopWithShopkeppers = async (provider) => {
     setDetailLoading(provider._id);
@@ -283,8 +281,6 @@ function UserDashboard() {
 
       if (response.status === 200) {
         const shopWithShopkeppers = response.data.data || [];
-        console.log("All shops with shopkeepers:", shopWithShopkeppers);
-        console.log("Selected provider:", provider);
 
         // Convert ObjectId to string for accurate comparison
         const selected = shopWithShopkeppers.find(
@@ -293,9 +289,6 @@ function UserDashboard() {
             provider?.owner?._id?.toString()
         );
         setDetailLoading(false);
-        console.log("Selected shop with shopkeeper:", selected);
-
-        console.log("Selected shop with shopkeeper:", selected);
 
         setSelectedShopWithShopkepper(selected);
         setInfoModal(true);
@@ -342,13 +335,11 @@ function UserDashboard() {
 
       if (response.data.success) {
         setLoading(false);
-        console.log("Providers found:", response.data.data);
         setAvailableServices(response.data.data || []);
         toast.success("Service Providers Found");
         setSubCatModal(true);
       } else {
         setLoading(false);
-        console.warn(response.data.message);
       }
     } catch (error) {
       setLoading(false);
@@ -365,19 +356,19 @@ function UserDashboard() {
       setLoading(false);
     }
   };
-  function getMinPrice(shop) {
-    const prices = shop.servicesOffered.map((service) => {
-      return service.subCategory?.price || service.price || Infinity;
-    });
-    return Math.min.apply(null, prices);
-  }
+  const getMinPrice = useCallback((shop) => {
+    const prices = shop.servicesOffered.map(
+      (service) => service.subCategory?.price || service.price || Infinity
+    );
+    return Math.min(...prices);
+  }, []);
 
-  function getMaxPrice(shop) {
-    const prices = shop.servicesOffered.map((service) => {
-      return service.subCategory?.price || service.price || -Infinity;
-    });
-    return Math.max.apply(null, prices);
-  }
+  const getMaxPrice = useCallback((shop) => {
+    const prices = shop.servicesOffered.map(
+      (service) => service.subCategory?.price || service.price || -Infinity
+    );
+    return Math.max(...prices);
+  }, []);
 
   const applyFilters = () => {
     if (copyShopData.length === 0) {
@@ -697,74 +688,103 @@ function UserDashboard() {
     setSelectedSubCategory("");
   };
 
-  // Calculate distance between two coordinates in kilometers
-  async function getDistance(userCoords, shopCoords) {
-    console.log("shopCoordsdd", shopCoords);
+  // Helper function to calculate straight-line distance (Haversine formula)
+  function getStraightLineDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371; // Radius of Earth in KM
+    const dLat = (lat2 - lat1) * (Math.PI / 180);
+    const dLon = (lon2 - lon1) * (Math.PI / 180);
 
-    if (!shopCoords || shopCoords.length < 2)
-      return { distance: null, duration: null };
-    const accessToken =
-      "pk.eyJ1Ijoic3llZGJ1cmhhbmFsaTI4MTIiLCJhIjoiY21mamM0NjZiMHg4NTJqczRocXhvdndiYiJ9.Z4l8EQQ47ejlWdVGcimn4A";
-    const url = `https://api.mapbox.com/directions/v5/mapbox/driving/${userCoords[0]},${userCoords[1]};${shopCoords[0]},${shopCoords[1]}?access_token=${accessToken}&overview=false`;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * (Math.PI / 180)) *
+        Math.cos(lat2 * (Math.PI / 180)) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
 
-    const res = await axios.get(url);
-    const route = res.data.routes[0];
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
-    if (!res.data.routes || res.data.routes.length === 0) {
-      console.warn("No route found for:", shopCoords);
-      return { distance: null, duration: null };
-    }
-
-    return {
-      distance: (route.distance / 1000).toFixed(2),
-      duration: (route.duration / 60).toFixed(0),
-    };
+    return R * c;
   }
 
-  const findAverageRating = (ratings) => {
+  // Add 40% variation to account for road distance
+  function addVariation(distance) {
+    const variationPercent = 50 / 100;
+    return distance + distance * variationPercent;
+  }
+
+  // Calculate approximate road distance
+  function calculateApproxDistance(shopCoords, userCoords) {
+    const [userLon, userLat] = userCoords;
+    const [shopLon, shopLat] = shopCoords;
+
+    const straightLine = getStraightLineDistance(
+      userLat,
+      userLon,
+      shopLat,
+      shopLon
+    );
+
+    const approxRoadDistance = addVariation(straightLine);
+
+    return approxRoadDistance.toFixed(2);
+  }
+
+  // Calculate distance between two coordinates in kilometers
+  const getDistance = useCallback(async (userCoords, shopCoords) => {
+    if (!shopCoords || shopCoords.length < 2)
+      return { distance: null, duration: null };
+
+    const distance = calculateApproxDistance(shopCoords, userCoords);
+
+    // Estimate duration (assuming average speed of 40 km/h in city)
+    const duration = Math.round((parseFloat(distance) / 40) * 60);
+
+    return {
+      distance: distance,
+      duration: duration.toString(),
+    };
+  }, []);
+
+  const findAverageRating = useCallback((ratings) => {
     if (!ratings || ratings.length === 0) return 0;
 
     const total = ratings.reduce((acc, rating) => acc + rating.rate, 0);
     return Number((total / ratings.length).toFixed(1));
-  };
-  console.log("Selected area", selectedArea);
+  }, []);
 
-  const userCoords = [
-    selectedArea?.lng || 73.04732533048735,
-    selectedArea?.lat || 33.69832701012015,
-  ];
-  console.log("UserCords", userCoords);
+  const userCoords = useMemo(
+    () => [
+      selectedArea?.lng || 73.04732533048735,
+      selectedArea?.lat || 33.69832701012015,
+    ],
+    [selectedArea]
+  );
 
   useEffect(() => {
     if (selectedShopWithShopkepper) {
       const shop = shopData.find(
         (shop) => shop._id === selectedShopWithShopkepper.shop._id
       );
-      console.log("shopData", shopData);
-      console.log("selectedShop", selectedShopWithShopkepper);
-      console.log("shop", shop);
 
-      setShopDistance(shop.distance);
+      if (shop) setShopDistance(shop.distance);
     }
-  }, [selectedShopWithShopkepper]);
+  }, [selectedShopWithShopkepper, shopData]);
 
   const priceRangeOptions = ["All", "Low-to-High", "High-to-Low"];
   const ratingRangeOptions = ["All", "Low-to-High", "High-to-Low"];
   const distanceRangeOptions = ["All", "Low-to-High", "High-to-Low"];
   const statusOptions = ["All", "Online", "Offline"];
 
-  const finalServices = isFilter ? FilterServices : availableServices;
-  console.log("finalServices", finalServices);
+  const finalServices = useMemo(
+    () => (isFilter ? FilterServices : availableServices),
+    [isFilter, FilterServices, availableServices]
+  );
 
-  async function calculateDistances() {
-    console.log("Calculating distances for shops:", finalServices);
-
+  const calculateDistances = useCallback(async () => {
     const shopDistances = await Promise.all(
       finalServices.map(async (shop) => {
-        console.log("Processing shop:", shop);
         const coords = shop?.location?.coordinates;
         if (!coords) {
-          console.warn("No coordinates for shop", shop);
           return { ...shop, distance: null, duration: null };
         }
         const shopCoords = [coords[1], coords[0]];
@@ -776,41 +796,34 @@ function UserDashboard() {
       })
     );
 
-    console.log("shopDistances", shopDistances);
     return shopDistances;
-  }
+  }, [finalServices, userCoords, getDistance]);
 
-  const [shopData, setShopData] = useState([]);
-  const [copyShopData, setCopyShopData] = useState([]);
   useEffect(() => {
     if (!finalServices || finalServices.length === 0) return;
 
-    async function fetchDistances() {
+    const fetchDistances = async () => {
       const result = await calculateDistances();
-      console.log("shoppppppppppsss", result);
-
       setShopData(result);
-      console.log("ShopData for distance", result);
-    }
+    };
 
     fetchDistances();
-  }, [finalServices, selectedArea]);
+  }, [finalServices, selectedArea, calculateDistances]);
 
-  const completeOrderRatioSelectedShop = findRatio(
-    selectedShopWithShopkepper?.shop?.owner,
-    "accepted"
+  const completeOrderRatioSelectedShop = useMemo(
+    () => findRatio(selectedShopWithShopkepper?.shop?.owner, "accepted"),
+    [selectedShopWithShopkepper?.shop?.owner, findRatio]
   );
-  console.log("completeOrderRatioSelectedShop", completeOrderRatioSelectedShop);
-  const rejectedRatio = findRatio(
-    selectedShopWithShopkepper?.shop?.owner,
-    "rejected"
+
+  const rejectedRatio = useMemo(
+    () => findRatio(selectedShopWithShopkepper?.shop?.owner, "rejected"),
+    [selectedShopWithShopkepper?.shop?.owner, findRatio]
   );
-  console.log("rejectedRatio", rejectedRatio);
-  const totalRequests = findRatio(
-    selectedShopWithShopkepper?.shop?.owner,
-    "total"
+
+  const totalRequests = useMemo(
+    () => findRatio(selectedShopWithShopkepper?.shop?.owner, "total"),
+    [selectedShopWithShopkepper?.shop?.owner, findRatio]
   );
-  console.log("totalRequests", totalRequests);
 
   const handleSetDefault = async (locationId) => {
     setLoadingDelandSet(true);
@@ -832,34 +845,103 @@ function UserDashboard() {
         setUserLocations(res.data.locations);
       } else {
         setLoadingDelandSet(false);
-        console.log(res.data.message);
       }
     } catch (error) {
       setLoadingDelandSet(false);
       console.error("Error setting default location:", error);
     }
   };
-  useEffect(() => {
-    console.log("allShopDistance", allShopDistance);
-  }, []);
-
-  console.log("selectedArea", selectedArea);
   const shopLat = selectedShopWithShopkepper?.shop?.location?.coordinates[0];
   const shopLng = selectedShopWithShopkepper?.shop?.location?.coordinates[1];
 
-  const getGoogleMapsUrl = () => {
+  const getGoogleMapsUrl = useCallback(() => {
     if (selectedArea?.lat && selectedArea?.lng && shopLat && shopLng) {
       return `https://www.google.com/maps/dir/?api=1&origin=${selectedArea.lat},${selectedArea.lng}&destination=${shopLat},${shopLng}&travelmode=driving`;
     }
     return `https://www.google.com/maps/search/?api=1&query=${shopLat},${shopLng}`;
-  };
+  }, [selectedArea, shopLat, shopLng]);
 
-  const viewOnGoogleMaps = () => {
+  const viewOnGoogleMaps = useCallback(() => {
     window.open(getGoogleMapsUrl(), "_blank");
-  };
+  }, [getGoogleMapsUrl]);
 
   return (
     <div>
+      <Toaster />
+      <style>
+        {`
+          .hover-effect:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
+          }
+          
+          .form-select:focus,
+          .form-control:focus {
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+            border-color: #667eea;
+          }
+          
+          .btn:not(:disabled):hover {
+            transform: translateY(-1px);
+          }
+          
+          .btn:active {
+            transform: translateY(0);
+          }
+          
+          @keyframes fadeIn {
+            from {
+              opacity: 0;
+              transform: translateY(10px);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0);
+            }
+          }
+          
+          .card {
+            animation: fadeIn 0.3s ease-out;
+          }
+          
+          .locationCard {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          }
+          
+          .locationCard:hover {
+            transform: translateY(-4px) scale(1.01);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.12) !important;
+          }
+          
+          .badge {
+            transition: all 0.2s ease;
+          }
+          
+          .badge:hover {
+            transform: scale(1.05);
+          }
+          
+          /* Smooth scrollbar */
+          ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+          }
+          
+          ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+          }
+          
+          ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 10px;
+          }
+          
+          ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+          }
+        `}
+      </style>
       <div className="d-flex flex-column" style={{ height: "94vh" }}>
         {/* Map Section */}
         <div style={{ flex: 0.6, position: "relative" }}>
@@ -875,106 +957,177 @@ function UserDashboard() {
 
         {/* Bottom Card Section */}
         <div
-          className="bg-light shadow-sm p-3 p-md-4"
+          className="bg-white shadow p-3 p-md-4"
           style={{
-            flex: 0.4, // remaining 40% height
+            flex: 0.4,
             borderTopLeftRadius: "15px",
             borderTopRightRadius: "15px",
           }}
         >
-          <span
-            className="d-block mb-3 px-2 py-1"
+          <div
+            className="alert alert-info d-flex align-items-center mb-2 border-0 py-1"
             style={{
-              backgroundColor: "#FFE4E1",
-              color: "#010101ff",
-              borderRadius: "6px",
-              fontSize: "0.9rem",
+              backgroundColor: "#e3f2fd",
+              borderRadius: "8px",
+              fontSize: "0.8rem",
             }}
           >
-            <strong>Note:</strong> You can change your address by clicking
-            below.
-          </span>
+            <i
+              className="fas fa-info-circle me-1 text-primary"
+              style={{ fontSize: "0.9rem" }}
+            ></i>
+            <span>
+              <strong>Tip:</strong> Click below to update your delivery address
+            </span>
+          </div>
 
           <div
-            className="d-flex align-items-center mb-3 flex-wrap"
+            className="d-flex align-items-center mb-2 p-1 bg-light rounded-3 flex-wrap hover-effect"
             onClick={() => setChooseLocationModal(true)}
-            style={{ cursor: "pointer" }}
+            style={{
+              cursor: "pointer",
+              transition: "all 0.3s ease",
+              border: "2px solid #e0e0e0",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = "translateY(-2px)";
+              e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.1)";
+              e.currentTarget.style.borderColor = "#28a745";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = "translateY(0)";
+              e.currentTarget.style.boxShadow = "none";
+              e.currentTarget.style.borderColor = "#e0e0e0";
+            }}
           >
             <i
-              className="fa-solid fa-street-view text-success me-2"
-              style={{ fontSize: "1.5rem" }}
+              className="fa-solid fa-map-marker-alt text-success me-2"
+              style={{ fontSize: "1.2rem" }}
             ></i>
-            <p
-              className="mb-0 text-truncate"
-              style={{ maxWidth: "calc(100% - 40px)" }}
-            >
-              {selectedArea?.areaName
-                ? selectedArea.areaName.length > 58
-                  ? selectedArea.areaName.slice(0, 58) + "..."
-                  : selectedArea.areaName
-                : "No location found! Click here to update."}
-            </p>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <small
+                className="text-muted d-block mb-1"
+                style={{ fontSize: "0.8rem" }}
+              >
+                Delivery Location
+              </small>
+              <p
+                className="mb-0 text-truncate fw-semibold"
+                style={{ fontSize: "0.9rem", color: "#333" }}
+              >
+                {selectedArea?.areaName
+                  ? selectedArea.areaName.length > 58
+                    ? selectedArea.areaName.slice(0, 58) + "..."
+                    : selectedArea.areaName
+                  : "No location found! Click here to update."}
+              </p>
+            </div>
+            <i className="fas fa-chevron-right text-muted ms-2"></i>
           </div>
 
           <div className="mb-3">
-            <select
-              className="form-select mb-2"
-              value={selectedCategory}
-              onChange={handleCategoryChange}
-              style={{ background: "#FFE4E1" }}
-            >
-              <option value="">Select Category</option>
-              {services.map((cat, index) => (
-                <option key={index} value={cat.category}>
-                  {cat.category}
-                </option>
-              ))}
-            </select>
-
-            <select
-              className="form-select"
-              value={selectedSubCategory}
-              onChange={(e) => setSelectedSubCategory(e.target.value)}
-              disabled={!selectedCategory}
-              style={{ background: "#FFE4E1" }}
-            >
-              <option value="">Select Sub-category</option>
-              {services
-                .find((cat) => cat.category === selectedCategory)
-                ?.subcategories.map((sub, index) => (
-                  <option key={index} value={sub}>
-                    {sub}
+            <div className="mb-2">
+              <label
+                className="form-label fw-semibold mb-1"
+                style={{ fontSize: "0.9rem" }}
+              >
+                Category
+              </label>
+              <select
+                className="form-select form-select-sm"
+                value={selectedCategory}
+                onChange={handleCategoryChange}
+                style={{
+                  backgroundColor: "#f8f9fa",
+                  border: "1px solid #dee2e6",
+                  borderRadius: "6px",
+                  padding: "6px 8px",
+                  fontSize: "0.95rem",
+                }}
+              >
+                <option value="">Select Category</option>
+                {services.map((cat, index) => (
+                  <option key={index} value={cat.category}>
+                    {cat.category}
                   </option>
                 ))}
-            </select>
+              </select>
+            </div>
+
+            <div>
+              <label
+                className="form-label fw-semibold mb-1"
+                style={{ fontSize: "0.9rem" }}
+              >
+                Sub-category
+              </label>
+              <select
+                className="form-select form-select-sm"
+                value={selectedSubCategory}
+                onChange={(e) => setSelectedSubCategory(e.target.value)}
+                disabled={!selectedCategory}
+                style={{
+                  backgroundColor: selectedCategory ? "#f8f9fa" : "#e9ecef",
+                  border: "1px solid #dee2e6",
+                  borderRadius: "6px",
+                  padding: "6px 8px",
+                  fontSize: "0.95rem",
+                }}
+              >
+                <option value="">Select Sub-category</option>
+                {services
+                  .find((cat) => cat.category === selectedCategory)
+                  ?.subcategories.map((sub, index) => (
+                    <option key={index} value={sub}>
+                      {sub}
+                    </option>
+                  ))}
+              </select>
+            </div>
           </div>
 
-          <p
-            className="text-center mb-3"
-            style={{ fontSize: "1rem", color: "#333", fontWeight: 500 }}
+          <div
+            className="text-center mb-2 p-1 rounded"
+            style={{
+              backgroundColor: "#fff3cd",
+              border: "1px solid wheat",
+            }}
           >
-            <i className="fas fa-motorcycle text-warning me-1"></i>
-            Service Charges:
-            <span className="text-success fw-bold ms-1">Rs. 15-25/km</span>
-          </p>
+            <i
+              className="fas fa-motorcycle text-dark me-1"
+              style={{ fontSize: "0.95rem" }}
+            ></i>
+            <span
+              style={{ fontSize: "0.9rem", fontWeight: 500, color: "#333" }}
+            >
+              Service Charges:{" "}
+              <span className="text-dark fw-bold ms-1">Rs. 15-25/km</span>
+            </span>
+          </div>
 
           <button
-            className="btn btn-success w-100"
+            className="btn btn-primary w-100"
             onClick={findServicesProvider}
             disabled={loading}
+            style={{
+              borderRadius: "6px",
+              padding: "8px 12px",
+              fontWeight: "500",
+              fontSize: "1rem",
+            }}
           >
             {loading ? (
               <>
-                Searching...
-                <div
-                  className="spinner-border spinner-border-sm text-light ms-2"
+                <span
+                  className="spinner-border spinner-border-sm me-2"
                   role="status"
-                ></div>
+                ></span>
+                Searching for providers...
               </>
             ) : (
               <>
-                <i className="fa-solid fa-screwdriver-wrench me-2"></i> Find
-                Services Provider
+                <i className="fa-solid fa-search me-2"></i>
+                Find Service Providers
               </>
             )}
           </button>
@@ -1426,17 +1579,38 @@ function UserDashboard() {
 
                       return (
                         <div className="col-12 col-md-6 col-lg-4" key={index}>
-                          <div className="card shadow-sm border-0 rounded-2 ">
+                          <div
+                            className="card border-0 h-100"
+                            style={{
+                              borderRadius: "16px",
+                              overflow: "hidden",
+                              transition: "all 0.3s ease",
+                              boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.transform =
+                                "translateY(-8px)";
+                              e.currentTarget.style.boxShadow =
+                                "0 12px 24px rgba(0,0,0,0.15)";
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.transform = "translateY(0)";
+                              e.currentTarget.style.boxShadow =
+                                "0 2px 8px rgba(0,0,0,0.08)";
+                            }}
+                          >
                             <div className="card-body p-3">
                               {/* Header Section */}
                               <div className="d-flex align-items-center mb-3">
                                 {/* Shop Image */}
                                 <div
-                                  className="rounded-circle bg-light border d-flex align-items-center justify-content-center overflow-hidden flex-shrink-0"
+                                  className="rounded-circle bg-light d-flex align-items-center justify-content-center overflow-hidden flex-shrink-0 position-relative"
                                   style={{
                                     width: "85px",
                                     height: "85px",
                                     cursor: "pointer",
+                                    border: "2px solid #e0e0e0",
+                                    padding: "3px",
                                   }}
                                 >
                                   <img
@@ -1444,24 +1618,41 @@ function UserDashboard() {
                                       shop.shopPicture || "/default-image.jpg"
                                     }
                                     alt="Shop"
+                                    loading="lazy"
                                     style={{
                                       width: "100%",
                                       height: "100%",
                                       objectFit: "cover",
                                     }}
                                   />
+                                  {shop.isLive && (
+                                    <span
+                                      className="position-absolute"
+                                      style={{
+                                        bottom: "2px",
+                                        right: "2px",
+                                        width: "14px",
+                                        height: "14px",
+                                        backgroundColor: "#28a745",
+                                        border: "2px solid white",
+                                        borderRadius: "50%",
+                                      }}
+                                    ></span>
+                                  )}
                                 </div>
 
                                 {/* Shop Details */}
                                 <div className="ms-3 flex-grow-1">
                                   {/* Shop Name + Rating */}
-                                  <div className="d-flex justify-content-between align-items-center mb-1">
+                                  <div className="d-flex justify-content-between align-items-start mb-2">
                                     <h6
-                                      className="fw-semibold text-dark mb-0 text-truncate"
+                                      className="fw-bold mb-0 text-truncate"
                                       title={shop.shopName}
                                       style={{
-                                        maxWidth: "70%",
+                                        maxWidth: "65%",
                                         cursor: "pointer",
+                                        fontSize: "1rem",
+                                        color: "#2c3e50",
                                       }}
                                     >
                                       {shop.shopName.length > 12
@@ -1469,10 +1660,16 @@ function UserDashboard() {
                                         : shop.shopName}
                                     </h6>
 
-                                    <div className="text-warning small fw-semibold">
-                                      <i className="fa-solid fa-star me-1"></i>
+                                    <span
+                                      className="badge bg-warning text-dark"
+                                      style={{ fontSize: "0.85rem" }}
+                                    >
+                                      <i
+                                        className="fa-solid fa-star me-1"
+                                        style={{ fontSize: "0.8rem" }}
+                                      ></i>
                                       {averageRating}/5
-                                    </div>
+                                    </span>
                                   </div>
 
                                   {/* Price and Distance */}
@@ -1485,11 +1682,12 @@ function UserDashboard() {
                                     .map((service, index) => (
                                       <p
                                         key={index}
-                                        className="mb-1 fw-semibold text-primary small"
+                                        className="mb-1 fw-semibold text-primary"
+                                        style={{ fontSize: "1rem" }}
                                       >
                                         Rs. {service.subCategory.price}/-{" "}
                                         <span className="text-muted ms-1">
-                                          | {shop.distance} km away
+                                          | {shop.distance} km
                                         </span>
                                       </p>
                                     ))}
@@ -1499,7 +1697,10 @@ function UserDashboard() {
                                   {shop.isBlocked ? (
                                     ""
                                   ) : (
-                                    <div className="d-flex justify-content-between small mt-1">
+                                    <div
+                                      className="d-flex justify-content-between mt-1"
+                                      style={{ fontSize: "0.95rem" }}
+                                    >
                                       <span className="fw-bold">
                                         COR:{" "}
                                         <span className="text-success fw-semibold">
@@ -1548,60 +1749,95 @@ function UserDashboard() {
                               {/* Action Buttons */}
                               {shop.isBlocked ? (
                                 <>
-                                  <span className="text-danger ">
-                                    This shop is temporarily blocked due to
-                                    order cancellations.
-                                  </span>
-                                  <button
-                                    className="btn btn-danger w-100 mt-1 "
-                                    disabled={true}
+                                  <div
+                                    className="alert alert-danger mb-2 py-2 px-3"
+                                    style={{
+                                      fontSize: "0.8rem",
+                                      borderRadius: "10px",
+                                      border: "none",
+                                    }}
                                   >
-                                    {" "}
-                                    <i class="fa-solid fa-ban me-1"></i>Blocked
+                                    <i className="fa-solid fa-exclamation-triangle me-2"></i>
+                                    Temporarily blocked due to order
+                                    cancellations
+                                  </div>
+                                  <button
+                                    className="btn btn-danger w-100"
+                                    disabled={true}
+                                    style={{
+                                      borderRadius: "10px",
+                                      padding: "10px",
+                                      fontWeight: "600",
+                                    }}
+                                  >
+                                    <i className="fa-solid fa-ban me-2"></i>
+                                    Blocked
                                   </button>
                                 </>
                               ) : (
-                                <div className="d-flex justify-content-around mt-2">
+                                <div className="d-flex gap-2 mt-2">
                                   <button
-                                    className={`btn btn-sm px-2  ${
+                                    className={`btn btn-sm ${
                                       shop.isLive ? "btn-primary" : "btn-danger"
                                     }`}
                                     onClick={() => addToCart(shop, "main")}
                                     disabled={addCartLoading === shop._id}
+                                    style={{
+                                      flex: 1,
+                                      fontSize: "0.8rem",
+                                      padding: "4px 8px",
+                                    }}
                                   >
                                     {addCartLoading === shop._id ? (
                                       <>
+                                        <span
+                                          className="spinner-border spinner-border-sm me-1"
+                                          style={{
+                                            width: "0.7rem",
+                                            height: "0.7rem",
+                                          }}
+                                        ></span>
                                         Wait...
-                                        <div
-                                          className="spinner-border spinner-border-sm text-light ms-2"
-                                          role="status"
-                                        ></div>
                                       </>
                                     ) : (
                                       <>
-                                        <i class="fa-solid fa-cart-plus me-2"></i>
-                                        Add to Cart
+                                        <i
+                                          className="fa-solid fa-cart-plus me-1"
+                                          style={{ fontSize: "0.8rem" }}
+                                        ></i>
+                                        Add
                                       </>
                                     )}
                                   </button>
 
                                   <button
-                                    className="btn btn-sm btn-outline-primary px-2   "
+                                    className="btn btn-sm btn-outline-primary"
                                     onClick={() => getShopWithShopkeppers(shop)}
                                     disabled={detailLoading === shop._id}
+                                    style={{
+                                      flex: 1,
+                                      fontSize: "0.8rem",
+                                      padding: "4px 8px",
+                                    }}
                                   >
                                     {detailLoading === shop._id ? (
                                       <>
-                                        Loading...
-                                        <div
-                                          className="spinner-border spinner-border-sm text-primary ms-2"
-                                          role="status"
-                                        ></div>
+                                        <span
+                                          className="spinner-border spinner-border-sm me-1"
+                                          style={{
+                                            width: "0.7rem",
+                                            height: "0.7rem",
+                                          }}
+                                        ></span>
+                                        Load...
                                       </>
                                     ) : (
                                       <>
-                                        <i class="fa-solid fa-circle-info me-2"></i>
-                                        Shop Details
+                                        <i
+                                          className="fa-solid fa-info-circle me-1"
+                                          style={{ fontSize: "0.8rem" }}
+                                        ></i>
+                                        Details
                                       </>
                                     )}
                                   </button>
@@ -1815,6 +2051,7 @@ function UserDashboard() {
                         <th>Category</th>
                         <th>Sub Category</th>
                         <th>Price</th>
+                        <th>Fixed Price?</th>
                         <th>Action</th>
                       </tr>
                     </thead>
@@ -1829,6 +2066,9 @@ function UserDashboard() {
                                 {sub.subCategory.name}
                               </td>
                               <td>{sub.subCategory.price}</td>
+                              <td>
+                                {sub.subCategory.isFixedPrice ? "Yes" : "No"}
+                              </td>
                               <td>
                                 <button
                                   className="btn btn-outline-primary btn-sm  w-100"

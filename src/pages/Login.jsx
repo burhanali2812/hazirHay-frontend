@@ -46,6 +46,7 @@ if (!isEmail && !isPhone) {
         email,
         password,
         role,
+        formate: isEmail ? "email" : "phone"
       };
 
       console.log(loginPayload);
@@ -145,7 +146,7 @@ if (!isEmail && !isPhone) {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
           />
-          <label htmlFor="floatingEmail">Email address</label>
+          <label htmlFor="floatingEmail">Email address OR Phone Number</label>
         </div>
 
         {/* Password */}

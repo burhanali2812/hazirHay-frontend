@@ -13,35 +13,23 @@ import axios from "axios";
 function FindShops() {
   const {
     selectedArea,
-    localShopData,
     setSelectedViewLocalShop,
     selectedCategory,
     setSelectedCategory,
-    searchType,
-    setSearchType,
-    searchQuery,
-    setSearchQuery,
-    searchData,
-    setSearchData,
-    sortOrder,
-    setSortOrder,
-    localShopNames,
-    localShopServices,
-    setFinalSearchData,
-    setTopTenLocalShopData,
-    topTenLocalShopData,
     calculateApproxDistance,
     token,
+    allShops,
+    setAllShops,
   } = useAppContext();
 
   const [filterModal, setFilterModal] = useState(false);
-  const [filterLoading, setFilterLoading] = useState(false);
-  const [suggestionLoading, setSuggestionLoading] = useState(false);
   const [categorySearch, setCategorySearch] = useState("");
   const [isLoadingShops, setIsLoadingShops] = useState(false);
-  const [displayedShops, setDisplayedShops] = useState([]);
-  const [searchInputLoading, setSearchInputLoading] = useState(false);
-  const [showSuggestions, setShowSuggestions] = useState(false);
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const [kmRange, setKmRange] = useState(10);
+  const [localSearchQuery, setLocalSearchQuery] = useState("");
+  const shopsPerPage = 5;
 
   const navigate = useNavigate();
 
@@ -60,17 +48,20 @@ function FindShops() {
     []
   );
 
-   const getTopTenLocalShops = async (cat) => {
+  const getTopTenLocalShops = async (cat) => {
     try {
-      const res = await axios.get(`https://hazir-hay-backend.vercel.app/localShop/getAllVerifiedLiveLocalShops`, {
-        params: {
-          category: cat || selectedCategory,
-          type: "",
-          name: "",
-          t: Date.now(),
-        },
-         headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await axios.get(
+        `https://hazir-hay-backend.vercel.app/localShop/getAllVerifiedLiveLocalShops`,
+        {
+          params: {
+            category: cat || selectedCategory,
+            type: "",
+            name: "",
+            t: Date.now(),
+          },
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
 
       const shopsWithDistance = res.data.shops.map((shop) => {
         const shopCoords = shop.location?.coordinates; // [lng, lat]
@@ -86,19 +77,21 @@ function FindShops() {
         };
       });
 
-      // Sort by distance and get only the 10 nearest shops
+      // Sort by distance and get top 15 nearest shops
       const sortedShops = shopsWithDistance
         .filter((shop) => shop.fixedDistance !== "N/A") // Filter out shops without valid distance
         .sort(
           (a, b) => parseFloat(a.fixedDistance) - parseFloat(b.fixedDistance)
         )
-        .slice(0, 10); // Get only top 10 nearest shops
+        .slice(0, 15); // Get only top 15 nearest shops
 
-      setTopTenLocalShopData(sortedShops);
+      setAllShops(sortedShops);
+      setIsLoadingShops(false);
     } catch (error) {
       console.log("local shop getting err", error);
+      setIsLoadingShops(false);
       if (error.response?.status === 404) {
-        setTopTenLocalShopData([]);
+        setAllShops([]);
       }
     }
   };
@@ -107,30 +100,46 @@ function FindShops() {
   const handleQuickAccess = useCallback(
     (category) => {
       setIsLoadingShops(true);
-
       setSelectedCategory(category);
-      setSearchType("Quick Access");
-      setSearchQuery("");
-      setSearchData([]);
-      setShowSuggestions(false);
-      setSuggestionLoading(true);
-      setFinalSearchData(category);
-      console.log("Quick Access Category:", category);
-      console.log("localshops:", localShopData);
+      setCurrentPage(1);
+      getTopTenLocalShops(category);
     },
-    [
-      setSelectedCategory,
-      setSearchType,
-      setSearchQuery,
-      setSearchData,
-      setFinalSearchData,
-      localShopData,
-    ]
+    [selectedArea]
   );
-  useEffect(() => {
-    // setDisplayedShops(localShopData);
-    setIsLoadingShops(false);
-  }, [localShopData, topTenLocalShopData]);
+  // Filter shops by km range and search query
+  const filteredShops = useMemo(() => {
+    let filtered = allShops.filter(
+      (shop) => parseFloat(shop.fixedDistance) <= kmRange
+    );
+
+    // Apply search filter if search query exists
+    if (localSearchQuery.trim()) {
+      const query = localSearchQuery.toLowerCase();
+      filtered = filtered.filter((shop) => {
+        const shopName = shop.shopName?.toLowerCase() || "";
+        const services = shop.services?.join(" ").toLowerCase() || "";
+        const address = shop.address?.toLowerCase() || "";
+        return (
+          shopName.includes(query) ||
+          services.includes(query) ||
+          address.includes(query)
+        );
+      });
+    }
+
+    return filtered;
+  }, [allShops, kmRange, localSearchQuery]);
+
+  // Pagination logic
+  const indexOfLastShop = currentPage * shopsPerPage;
+  const indexOfFirstShop = indexOfLastShop - shopsPerPage;
+  const currentShops = filteredShops.slice(indexOfFirstShop, indexOfLastShop);
+  const totalPages = Math.ceil(filteredShops.length / shopsPerPage);
+
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   // Memoize filtered categories
   const filteredCategories = useMemo(() => {
@@ -141,55 +150,18 @@ function FindShops() {
 
   const handleSelectCategory = useCallback(
     (cat) => {
-            setFinalSearchData(cat);
       setSelectedCategory(cat);
       setIsLoadingShops(true);
-      setSuggestionLoading(true);
-      
+      setCurrentPage(1);
       getTopTenLocalShops(cat);
-      console.log("Selected Category:", cat);
     },
-    [setSelectedCategory]
+    [selectedArea]
   );
 
-
-
-  const finalSearchSuggestion = useMemo(
-    () => (searchType === "shopName" ? localShopNames : localShopServices),
-    [searchType, localShopNames, localShopServices]
-  );
-
-  // Debounced search handler with loading state
-  const handleChange = useCallback(
-    (e) => {
-      const value = e.target.value.toLowerCase();
-      setSearchQuery(value);
-
-      if (value?.length === 0) {
-        setSearchInputLoading(false);
-        setSearchData([]);
-        setShowSuggestions(false);
-        return;
-      }
-
-      setSearchInputLoading(true);
-
-      // Debounce search for better performance
-      const timer = setTimeout(() => {
-        let data = finalSearchSuggestion?.filter((shop) => {
-          const nameMatch = shop?.toLowerCase().includes(value);
-          return nameMatch;
-        });
-
-        setSearchData(data);
-        setSearchInputLoading(false);
-        setShowSuggestions(true);
-      }, 300);
-
-      return () => clearTimeout(timer);
-    },
-    [finalSearchSuggestion, setSearchQuery, setSearchData]
-  );
+  const applyKmFilter = useCallback(() => {
+    setCurrentPage(1);
+    setFilterModal(false);
+  }, []);
 
   const openGoogleMaps = useCallback(
     (shopCoords) => {
@@ -198,29 +170,6 @@ function FindShops() {
     },
     [selectedArea]
   );
-
-  const applyFilter = useCallback(() => {
-    setFilterLoading(true);
-
-    // Simulate async operation
-    setTimeout(() => {
-      let sortedData = [...displayedShops];
-
-      if (sortOrder === "low-to-high") {
-        sortedData.sort(
-          (a, b) => parseFloat(a.fixedDistance) - parseFloat(b.fixedDistance)
-        );
-      } else if (sortOrder === "high-to-low") {
-        sortedData.sort(
-          (a, b) => parseFloat(b.fixedDistance) - parseFloat(a.fixedDistance)
-        );
-      }
-
-      setDisplayedShops(sortedData);
-      setFilterLoading(false);
-      setFilterModal(false);
-    }, 400);
-  }, [displayedShops, sortOrder]);
 
   const navigateToShop = useCallback(
     (shop) => {
@@ -358,148 +307,68 @@ function FindShops() {
             </div>
           </div>
 
-          {/* 2. SIMPLE SEARCH TYPE DROPDOWN */}
-          <div className="dropdown">
-            <button
-              className="btn btn-outline-primary btn-sm px-2 rounded-pill dropdown-toggle"
-              data-bs-toggle="dropdown"
-            >
-              <i class="fa-brands fa-searchengin me-1"></i>
-              {searchType === ""
-                ? "Search By"
-                : searchType === "shopName"
-                ? "Shop Name"
-                : "Services"}
-            </button>
-
-            <ul className="dropdown-menu">
-              <li>
-                <button
-                  className="dropdown-item"
-                  onClick={() => setSearchType("shopName")}
-                >
-                  Shop Name
-                </button>
-              </li>
-              <li>
-                <button
-                  className="dropdown-item"
-                  onClick={() => setSearchType("services")}
-                >
-                  Services
-                </button>
-              </li>
-            </ul>
-          </div>
+          {/* Filter Button */}
+          <button
+            className="btn btn-outline-primary btn-sm px-3 rounded-pill"
+            onClick={() => setFilterModal(true)}
+          >
+            <i className="fa-solid fa-filter me-1"></i>
+            Filter ({kmRange} km)
+          </button>
         </div>
 
-        <form className="d-flex position-relative w-100" role="search">
-          {/* SEARCH INPUT */}
-          <div className="position-relative w-100 mt-3">
+        {/* Search Input */}
+        {allShops.length > 0 && (
+          <div className="position-relative mt-3">
             <input
-              type="search"
-              className={`form-control rounded-pill ps-5 shadow-sm 
-      ${!(selectedCategory && searchType) ? "bg-light" : ""}`}
-              placeholder={`Search ${
-                selectedCategory ? selectedCategory : "shops/services"
-              } by ${
-                searchType === "shopName"
-                  ? "Shop Name"
-                  : searchType === "services"
-                  ? "Services"
-                  : "..."
-              }`}
-              disabled={!(selectedCategory && searchType)}
-              value={searchQuery}
-              onChange={handleChange}
+              type="text"
+              className="form-control rounded-pill ps-5 pe-5 shadow-sm"
+              placeholder="Search by shop name, services, or address..."
+              value={localSearchQuery}
+              onChange={(e) => {
+                setLocalSearchQuery(e.target.value);
+                setCurrentPage(1);
+              }}
+              style={{
+                fontSize: "14px",
+                border: "1px solid #e0e0e0",
+              }}
             />
-
-            {/* Search Icon */}
             <span className="position-absolute top-50 start-0 translate-middle-y ps-3 text-muted">
               <i className="fa-solid fa-magnifying-glass"></i>
             </span>
-
-            {/* Loading Spinner */}
-            {searchInputLoading && (
-              <span className="position-absolute top-50 end-0 translate-middle-y pe-3">
-                <div
-                  className="spinner-border spinner-border-sm text-primary"
-                  role="status"
-                >
-                  <span className="visually-hidden">Searching...</span>
-                </div>
-              </span>
+            {localSearchQuery && (
+              <button
+                className="btn btn-sm position-absolute top-50 end-0 translate-middle-y me-2 p-0"
+                onClick={() => {
+                  setLocalSearchQuery("");
+                  setCurrentPage(1);
+                }}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: "#999",
+                  fontSize: "18px",
+                }}
+              >
+                <i className="fa-solid fa-times-circle"></i>
+              </button>
             )}
-
-            {/* SUGGESTION DROPDOWN */}
-            {searchQuery?.length > 0 &&
-              searchData?.length > 0 &&
-              !searchInputLoading &&
-              showSuggestions && (
-                <div
-                  className="position-absolute w-100 bg-white shadow-lg mt-2"
-                  style={{
-                    top: "100%",
-                    zIndex: 9999,
-                    maxHeight: "260px",
-                    overflowY: "auto",
-                    borderRadius: "12px",
-                    border: "1px solid #e5e7eb",
-                  }}
-                >
-                  {searchData.map((suggestion, index) => (
-                    <div key={index}>
-                      <button
-                        type="button"
-                        className="w-100 d-flex align-items-center text-start border-0 bg-white suggestion-item"
-                        onClick={() => {
-                          setSearchQuery(suggestion);
-                          setSuggestionLoading(true);
-                          setShowSuggestions(false);
-                        
-                          setFinalSearchData(suggestion);
-                        }}
-                        style={{
-                          padding: "10px 14px",
-                          fontSize: "15px",
-                          width: "100%",
-                          cursor: "pointer",
-                        }}
-                      >
-                        <i className="fa-regular fa-clock me-2 text-muted"></i>
-                        {suggestion}
-                      </button>
-
-                      {/* Divider (Google style) */}
-                      {index !== searchData?.length - 1 && (
-                        <div
-                          style={{ borderBottom: "1px solid #f1f1f1" }}
-                        ></div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
           </div>
-        </form>
+        )}
 
         <div className="mt-4 mb-4">
-          <div className="d-flex justify-content-between mb-4">
-            <h6 className="fw-bold mx-2">Filtered shops</h6>
-            <i
-              className="fa-solid fa-filter me-2 text-primary"
-              onClick={() => setFilterModal(true)}
-            ></i>
+          <div className="d-flex justify-content-between align-items-center mb-4">
+            <h6 className="fw-bold mx-2">
+              {selectedCategory ? `${selectedCategory} Shops` : "Nearby Shops"}
+              {filteredShops.length > 0 && (
+                <span className="text-muted ms-2" style={{ fontSize: "13px" }}>
+                  ({filteredShops.length} found)
+                </span>
+              )}
+            </h6>
           </div>
-          {
-            topTenLocalShopData?.length > 0 && (
-              <div className="alert alert-info text-center" role="alert">
-                Showing top 10 nearest shops in "{selectedCategory}" category.
-              </div>
-            )
-          }
           {isLoadingShops ? (
-            // Loading spinner
             <div className="text-center mt-5">
               <div
                 className="spinner-border text-primary"
@@ -509,11 +378,10 @@ function FindShops() {
                 <span className="visually-hidden">Loading...</span>
               </div>
               <p className="text-muted mt-3 fw-semibold">
-                Finding nearby shops...
+                Finding nearest shops...
               </p>
             </div>
-          ) : !suggestionLoading ? (
-            // Loading animation while fetching
+          ) : !selectedCategory ? (
             <>
               <div className="d-flex justify-content-center align-items-center mt-3">
                 <video
@@ -552,144 +420,197 @@ function FindShops() {
                 </p>
               </div>
             </>
-          ) : (
-         
-            
-            topTenLocalShopData?.length > 0 ? topTenLocalShopData : localShopData)?.length > 0 ? (
-            // Show shop cards only if data exists
-            (topTenLocalShopData?.length > 0 ? topTenLocalShopData : localShopData)?.map((shop, ind) => (
-              <div
-                key={ind}
-                className="card border-0 shadow-sm mb-3 px-2"
-                style={{
-                  borderRadius: "18px",
-                  background: "#ffffff",
-                }}
-              >
-                <div className="d-flex p-3">
-                  {/* LEFT IMAGE */}
-                  <div
-                    style={{
-                      width: "65px",
-                      height: "65px",
-                      borderRadius: "12px",
-                      overflow: "hidden",
-                      background: "#f1f1f1",
-                      border: "1px solid #eee",
-                      flexShrink: 0,
-                    }}
-                  >
-                    {shop?.shopPicture ? (
-                      <img
-                        src={shop.shopPicture}
-                        alt="Shop"
-                        style={{
-                          width: "100%",
-                          height: "100%",
-                          objectFit: "cover",
-                        }}
-                      />
-                    ) : (
-                      <div className="d-flex justify-content-center align-items-center h-100">
-                        <i
-                          className="fa-solid fa-shop text-muted"
-                          style={{ fontSize: "28px" }}
-                        ></i>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* RIGHT CONTENT */}
-                  <div className="ms-3 flex-grow-1">
-                    {/* NAME + ONLINE STATUS */}
-                    <div className="d-flex justify-content-between align-items-center">
-                      <h6 className="fw-bold mb-0" style={{ fontSize: "15px" }}>
-                        {shop.shopName}
-                      </h6>
-
-                      <span
-                        className="badge rounded-pill"
-                        style={{
-                          background: shop.isLive ? "#d4f8da" : "#ffe6e6",
-                          color: shop.isLive ? "#0a8a2a" : "#b10000",
-                          fontSize: "11px",
-                        }}
-                      >
-                        {shop.isLive ? "Online" : "Offline"}
-                      </span>
-                    </div>
-
-                    {/* DISTANCE */}
-                    <div className="text-secondary small mt-1">
-                      <i className="fa-solid fa-location-dot text-danger me-1"></i>
-                      {shop.fixedDistance} km away
-                    </div>
-
-                    {/* ADDRESS */}
+          ) : allShops.length > 0 ? (
+            <>
+              {currentShops?.map((shop, ind) => (
+                <div
+                  key={ind}
+                  className="card border-0 shadow-sm mb-3 px-2"
+                  style={{
+                    borderRadius: "18px",
+                    background: "#ffffff",
+                  }}
+                >
+                  <div className="d-flex p-3">
+                    {/* LEFT IMAGE */}
                     <div
-                      className="text-muted small mt-1"
                       style={{
-                        whiteSpace: "nowrap",
+                        width: "65px",
+                        height: "65px",
+                        borderRadius: "12px",
                         overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        maxWidth: "200px",
-                        fontSize: "12px",
+                        background: "#f1f1f1",
+                        border: "1px solid #eee",
+                        flexShrink: 0,
                       }}
                     >
-                      {shop?.shopAddress}
+                      {shop?.shopPicture ? (
+                        <img
+                          src={shop.shopPicture}
+                          alt="Shop"
+                          style={{
+                            width: "100%",
+                            height: "100%",
+                            objectFit: "cover",
+                          }}
+                        />
+                      ) : (
+                        <div className="d-flex justify-content-center align-items-center h-100">
+                          <i
+                            className="fa-solid fa-shop text-muted"
+                            style={{ fontSize: "28px" }}
+                          ></i>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* RIGHT CONTENT */}
+                    <div className="ms-3 flex-grow-1">
+                      {/* NAME + ONLINE STATUS */}
+                      <div className="d-flex justify-content-between align-items-center">
+                        <h6
+                          className="fw-bold mb-0"
+                          style={{ fontSize: "15px" }}
+                        >
+                          {shop.shopName}
+                        </h6>
+
+                        <span
+                          className="badge rounded-pill"
+                          style={{
+                            background: shop.isLive ? "#d4f8da" : "#ffe6e6",
+                            color: shop.isLive ? "#0a8a2a" : "#b10000",
+                            fontSize: "11px",
+                          }}
+                        >
+                          {shop.isLive ? "Online" : "Offline"}
+                        </span>
+                      </div>
+
+                      {/* DISTANCE */}
+                      <div className="text-secondary small mt-1">
+                        <i className="fa-solid fa-location-dot text-danger me-1"></i>
+                        {shop.fixedDistance} km away
+                      </div>
+
+                      {/* ADDRESS */}
+                      <div
+                        className="text-muted small mt-1"
+                        style={{
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          maxWidth: "200px",
+                          fontSize: "12px",
+                        }}
+                      >
+                        {shop?.shopAddress}
+                      </div>
                     </div>
                   </div>
+
+                  <div className="d-flex w-100 justify-content-between mb-3">
+                    {/* CALL */}
+                    <a
+                      href={`tel:${shop.phone}`}
+                      className="btn btn-light shadow-sm flex-fill mx-1 d-flex align-items-center justify-content-center"
+                      style={{ borderRadius: "12px", padding: "10px 0" }}
+                    >
+                      <i className="fa-solid fa-phone text-primary me-1"></i>
+                      <span style={{ fontSize: "12px" }}>Call</span>
+                    </a>
+
+                    {/* WHATSAPP */}
+                    <a
+                      href={`https://wa.me/${shop.phone}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn btn-light shadow-sm flex-fill mx-1 d-flex align-items-center justify-content-center"
+                      style={{ borderRadius: "12px", padding: "10px 0" }}
+                    >
+                      <i className="fa-brands fa-whatsapp text-success me-1 fa-lg"></i>
+                      <span style={{ fontSize: "12px" }}>WhatsApp</span>
+                    </a>
+
+                    {/* MAP */}
+                    <button
+                      className="btn btn-light shadow-sm flex-fill mx-1 d-flex align-items-center justify-content-center"
+                      style={{ borderRadius: "12px", padding: "10px 0" }}
+                      onClick={() => openGoogleMaps(shop.location?.coordinates)}
+                    >
+                      <i className="fa-solid fa-map-location-dot text-danger me-1"></i>
+                      <span style={{ fontSize: "12px" }}>Map</span>
+                    </button>
+
+                    {/* DETAILS */}
+                    <button
+                      className="btn btn-light shadow-sm flex-fill mx-1 d-flex align-items-center justify-content-center"
+                      style={{ borderRadius: "12px", padding: "10px 0" }}
+                      onClick={() => navigateToShop(shop)}
+                    >
+                      <i className="fa-solid fa-chevron-right text-danger me-1"></i>
+                      <span style={{ fontSize: "12px" }}>Details</span>
+                    </button>
+                  </div>
                 </div>
+              ))}
 
-                <div className="d-flex w-100 justify-content-between mb-3">
-                  {/* CALL */}
-                  <a
-                    href={`tel:${shop.phone}`}
-                    className="btn btn-light shadow-sm flex-fill mx-1 d-flex align-items-center justify-content-center"
-                    style={{ borderRadius: "12px", padding: "10px 0" }}
-                  >
-                    <i className="fa-solid fa-phone text-primary me-1"></i>
-                    <span style={{ fontSize: "12px" }}>Call</span>
-                  </a>
-
-                  {/* WHATSAPP */}
-                  <a
-                    href={`https://wa.me/${shop.phone}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="btn btn-light shadow-sm flex-fill mx-1 d-flex align-items-center justify-content-center"
-                    style={{ borderRadius: "12px", padding: "10px 0" }}
-                  >
-                    <i className="fa-brands fa-whatsapp text-success me-1 fa-lg"></i>
-                    <span style={{ fontSize: "12px" }}>WhatsApp</span>
-                  </a>
-
-                  {/* MAP */}
-                  <button
-                    className="btn btn-light shadow-sm flex-fill mx-1 d-flex align-items-center justify-content-center"
-                    style={{ borderRadius: "12px", padding: "10px 0" }}
-                    onClick={() => openGoogleMaps(shop.location?.coordinates)}
-                  >
-                    <i className="fa-solid fa-map-location-dot text-danger me-1"></i>
-                    <span style={{ fontSize: "12px" }}>Map</span>
-                  </button>
-
-                  {/* DETAILS */}
-                  <button
-                    className="btn btn-light shadow-sm flex-fill mx-1 d-flex align-items-center justify-content-center"
-                    style={{ borderRadius: "12px", padding: "10px 0" }}
-                    onClick={() => navigateToShop(shop)}
-                  >
-                    <i className="fa-solid fa-chevron-right text-danger me-1"></i>
-                    <span style={{ fontSize: "12px" }}>Details</span>
-                  </button>
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="d-flex justify-content-center mt-4 mb-3">
+                  <nav>
+                    <ul className="pagination pagination-sm">
+                      <li
+                        className={`page-item ${
+                          currentPage === 1 ? "disabled" : ""
+                        }`}
+                      >
+                        <button
+                          className="page-link"
+                          onClick={() => handlePageChange(currentPage - 1)}
+                          disabled={currentPage === 1}
+                        >
+                          Previous
+                        </button>
+                      </li>
+                      {[...Array(totalPages)].map((_, index) => (
+                        <li
+                          key={index}
+                          className={`page-item ${
+                            currentPage === index + 1 ? "active" : ""
+                          }`}
+                        >
+                          <button
+                            className="page-link"
+                            onClick={() => handlePageChange(index + 1)}
+                          >
+                            {index + 1}
+                          </button>
+                        </li>
+                      ))}
+                      <li
+                        className={`page-item ${
+                          currentPage === totalPages ? "disabled" : ""
+                        }`}
+                      >
+                        <button
+                          className="page-link"
+                          onClick={() => handlePageChange(currentPage + 1)}
+                          disabled={currentPage === totalPages}
+                        >
+                          Next
+                        </button>
+                      </li>
+                    </ul>
+                  </nav>
                 </div>
-              </div>
-            ))
+              )}
+            </>
           ) : (
             // Empty state when no data
             <div className="text-center mt-4">
               <h5 className="fw-bold text-secondary">No Shops Found</h5>
+              <p className="text-muted">Try adjusting your km range filter</p>
             </div>
           )}
         </div>
@@ -740,90 +661,37 @@ function FindShops() {
 
                 {/* Body */}
                 <div className="modal-body text-start container">
-                  <div className="mb-3">
+                  <div className="mb-4">
                     <label className="form-label fw-semibold">
-                      Filter By Status
+                      Distance Range (KM)
                     </label>
-
-                    <div className="d-flex gap-2 text-center justify-content-center">
-                      <button
-                        className="btn btn-outline-primary btn-sm rounded-pill px-4"
-                        onClick={() => setSortOrder("all")}
+                    <div className="d-flex align-items-center gap-3">
+                      <input
+                        type="range"
+                        className="form-range flex-grow-1"
+                        min="1"
+                        max="50"
+                        value={kmRange}
+                        onChange={(e) => setKmRange(Number(e.target.value))}
+                      />
+                      <span
+                        className="badge bg-primary fs-6"
+                        style={{ minWidth: "60px" }}
                       >
-                        All
-                      </button>
-
-                      <button
-                        className={`btn btn${
-                          sortOrder === "low-to-high" ? "" : "-outline"
-                        }-primary btn-sm rounded-pill px-2`}
-                        onClick={() => setSortOrder("low-to-high")}
-                      >
-                        <RiWifiFill className="me-2" />
-                        Online
-                      </button>
-                      <button
-                        className={`btn btn${
-                          sortOrder === "high-to-low" ? "" : "-outline"
-                        }-primary btn-sm rounded-pill px-2`}
-                        onClick={() => setSortOrder("high-to-low")}
-                      >
-                        <RiWifiOffFill className="me-2" />
-                        Offline
-                      </button>
+                        {kmRange} km
+                      </span>
+                    </div>
+                    <div className="d-flex justify-content-between mt-2">
+                      <small className="text-muted">1 km</small>
+                      <small className="text-muted">50 km</small>
                     </div>
                   </div>
-                  <div className=" mb-3 mt-3">
-                    <label className="form-label fw-semibold">
-                      Sort by Distance
-                    </label>
 
-                    <div className="d-flex gap-2 text-center justify-content-center">
-                      <button
-                        className="btn btn-outline-primary btn-sm rounded-pill px-4"
-                        onClick={() => setSortOrder("all")}
-                      >
-                        All
-                      </button>
-
-                      <button
-                        className={`btn btn${
-                          sortOrder === "low-to-high" ? "" : "-outline"
-                        }-primary btn-sm rounded-pill px-2`}
-                        onClick={() => setSortOrder("low-to-high")}
-                      >
-                        <i class="fa-solid fa-arrow-up-wide-short me-2"></i>
-                        low-to-high
-                      </button>
-                      <button
-                        className={`btn btn${
-                          sortOrder === "high-to-low" ? "" : "-outline"
-                        }-primary btn-sm rounded-pill px-2`}
-                        onClick={() => setSortOrder("high-to-low")}
-                      >
-                        <i class="fa-solid fa-arrow-down-wide-short me-2"></i>
-                        high-to-low
-                      </button>
-                    </div>
-                  </div>
                   <button
-                    className="btn btn-outline-dark w-100"
-                    onClick={applyFilter}
-                    disabled={filterLoading}
+                    className="btn btn-primary w-100 rounded-pill"
+                    onClick={applyKmFilter}
                   >
-                    {filterLoading ? (
-                      <>
-                        <span
-                          className="spinner-border spinner-border-sm me-2"
-                          role="status"
-                        ></span>
-                        Applying Filters...
-                      </>
-                    ) : (
-                      <>
-                        Apply Filter<i className="fa-solid fa-filter ms-2"></i>
-                      </>
-                    )}
+                    Apply Filter<i className="fa-solid fa-check ms-2"></i>
                   </button>
                 </div>
               </div>

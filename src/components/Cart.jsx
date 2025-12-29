@@ -10,7 +10,15 @@ import jsPDF from "jspdf";
 import { useAppContext } from "../context/AppContext";
 
 function Cart() {
-  const {cartData,areaName,setCartData,setKey, getNotifications, getCartData, selectedArea} = useAppContext();
+  const {
+    cartData,
+    areaName,
+    setCartData,
+    setKey,
+    getNotifications,
+    getCartData,
+    selectedArea,
+  } = useAppContext();
 
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
@@ -85,7 +93,6 @@ function Cart() {
     return acc;
   }, []);
 
-
   const coordinates = [selectedArea?.lat, selectedArea?.lng];
 
   const downloadReceiptAsPDF = async () => {
@@ -101,7 +108,7 @@ function Cart() {
         logging: false,
       });
 
-      const imgData = canvas.toDataURL("image/png", 1.0); 
+      const imgData = canvas.toDataURL("image/png", 1.0);
       const pdf = new jsPDF("p", "mm", "a4");
 
       const pageWidth = pdf.internal.pageSize.getWidth();
@@ -142,7 +149,7 @@ function Cart() {
     (acc, cart) => acc + cart.items.reduce((sum, item) => sum + item.price, 0),
     0
   );
-  console.log("groupedcart1", groupedCart)
+
   const getShopWithShopkeppers = async () => {
     try {
       const response = await axios.get(
@@ -187,32 +194,63 @@ function Cart() {
     }
   };
 
-  async function getDistance(userCoords, shopCoords) {
-    console.log("shopCoordsdd", shopCoords);
+  // Helper function to calculate straight-line distance (Haversine formula)
+  function getStraightLineDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371; // Radius of Earth in KM
+    const dLat = (lat2 - lat1) * (Math.PI / 180);
+    const dLon = (lon2 - lon1) * (Math.PI / 180);
 
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * (Math.PI / 180)) *
+        Math.cos(lat2 * (Math.PI / 180)) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+    return R * c;
+  }
+
+  // Add 40% variation to account for road distance
+  function addVariation(distance) {
+    const variationPercent = 50 / 100;
+    return distance + distance * variationPercent;
+  }
+
+  // Calculate approximate road distance
+  function calculateApproxDistance(shopCoords, userCoords) {
+    const [userLon, userLat] = userCoords;
+    const [shopLon, shopLat] = shopCoords;
+
+    const straightLine = getStraightLineDistance(
+      userLat,
+      userLon,
+      shopLat,
+      shopLon
+    );
+
+    const approxRoadDistance = addVariation(straightLine);
+
+    return approxRoadDistance.toFixed(2);
+  }
+
+  function getDistance(userCoords, shopCoords) {
     if (!shopCoords || shopCoords.length < 2)
       return { distance: null, duration: null };
-    const accessToken =
-      "pk.eyJ1Ijoic3llZGJ1cmhhbmFsaTI4MTIiLCJhIjoiY21mamM0NjZiMHg4NTJqczRocXhvdndiYiJ9.Z4l8EQQ47ejlWdVGcimn4A";
-    const url = `https://api.mapbox.com/directions/v5/mapbox/driving/${userCoords[0]},${userCoords[1]};${shopCoords[0]},${shopCoords[1]}?access_token=${accessToken}&overview=false`;
 
-    const res = await axios.get(url);
-    const route = res.data.routes[0];
+    const distance = calculateApproxDistance(shopCoords, userCoords);
 
-    if (!res.data.routes || res.data.routes.length === 0) {
-      console.warn("No route found for:", shopCoords);
-      toast.error("No route found for: " + shopCoords);
-
-      return { distance: null, duration: null };
-    }
+    // Estimate duration (assuming average speed of 40 km/h in city)
+    const duration = Math.round((parseFloat(distance) / 40) * 60);
 
     return {
-      distance: (route.distance / 1000).toFixed(2),
-      duration: (route.duration / 60).toFixed(0),
+      distance: distance,
+      duration: duration.toString(),
     };
   }
 
-  const findShopDistance = async (shopId) => {
+  const findShopDistance = (shopId) => {
     const shop = shopWithShopKepper.find((shop) => shop.shop._id === shopId);
     if (!shop || !shop.shop.location?.coordinates || !coordinates) return null;
 
@@ -224,24 +262,21 @@ function Cart() {
       coordinates[1] || 73.04732533048735,
       coordinates[0] || 33.69832701012015,
     ];
-    console.log("shopCords", shopCoords);
-    console.log("UserCords", userCoords);
 
-    const distance = await getDistance(userCoords, shopCoords);
+    const distance = getDistance(userCoords, shopCoords);
     return distance.distance; // km
   };
   const [totalDistance, setTotalDistance] = useState(0);
   const [shopDistances, setShopDistances] = useState({});
 
-  // fetchAllDistances will handle opening modal itself
-  const fetchAllDistances = async () => {
+  // Calculate all distances synchronously
+  const fetchAllDistances = () => {
     try {
       let total = 0;
       const distances = {};
 
       for (const shop of groupedCart) {
-        const dist = await findShopDistance(shop.shopId);
-        console.log("Fetched distance for shop:", shop.shopId, dist);
+        const dist = findShopDistance(shop.shopId);
         distances[shop.shopId] = dist || 0;
         total += Number(dist) || 0;
       }
@@ -256,11 +291,12 @@ function Cart() {
       return false;
     }
   };
-  const handleNext = async () => {
+
+  const handleNext = () => {
     try {
       setDistanceLoading(true);
 
-      let success = await fetchAllDistances();
+      let success = fetchAllDistances();
 
       if (success) {
         setOrderSummaryModal(true);
@@ -315,10 +351,9 @@ function Cart() {
   useEffect(() => {
     const rateTime = getRateByTime();
     if (rateTime === null) {
-      console.log("Service unavailable right now");
+      toast.error("Service unavailable right now");
     } else {
       setRate(rateTime);
-      console.log("Current rate:", rateTime);
     }
   }, []);
 
@@ -366,7 +401,7 @@ function Cart() {
       );
 
       if (res.data.success) {
-        console.log(" Notification sent:", res.data.data);
+        toast.success("Notification sent successfully!");
       }
     } catch (error) {
       console.error("Error sending notification:", error);
@@ -392,10 +427,10 @@ function Cart() {
       );
 
       if (res.data.success) {
-        console.log(" Notification sent:", res.data.requests);
+        toast.success("Notifications sent to providers!");
       }
     } catch (error) {
-      console.error(" Error sending notification:", error);
+      console.error("Error sending notification:", error);
     }
   };
 
@@ -425,8 +460,6 @@ function Cart() {
     }));
 
     try {
-      console.log("Payload (requests):", requests);
-
       const response = await axios.post(
         "https://hazir-hay-backend.vercel.app/requests/sendBulkRequests",
         { requests },
@@ -465,48 +498,47 @@ function Cart() {
     }
   };
 
-const clearCart = async (type) => {
-  if (type === "clear") {
-    const result = await Swal.fire({
-      title: "Are you sure?",
-      html: "Are you sure you want to clear the cart?",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonColor: "#d33",
-      cancelButtonColor: "#3085d6",
-      confirmButtonText: "Yes, clear it!",
-    });
+  const clearCart = async (type) => {
+    if (type === "clear") {
+      const result = await Swal.fire({
+        title: "Are you sure?",
+        html: "Are you sure you want to clear the cart?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#d33",
+        cancelButtonColor: "#3085d6",
+        confirmButtonText: "Yes, clear it!",
+      });
 
-    if (!result.isConfirmed) return;
-  }
-
-  try {
-    const response = await axios.delete(
-      "https://hazir-hay-backend.vercel.app/cart/deleteUserCart",
-      {
-        headers: { Authorization: `Bearer ${token}` },
-         params: { t: Date.now() },
-      }
-    );
-
-    if (response.data.success) {
-      getCartData();
-      setCartData([]);
-      
-      if (type === "clear") {
-        toast.success("Cleared! Cart has been cleared.");
-      }
+      if (!result.isConfirmed) return;
     }
-  } catch (error) {
-    console.error("Error clearing cart:", error);
-    toast.error("Something went wrong while clearing the cart.");
-  }
-};
 
+    try {
+      const response = await axios.delete(
+        "https://hazir-hay-backend.vercel.app/cart/deleteUserCart",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          params: { t: Date.now() },
+        }
+      );
+
+      if (response.data.success) {
+        getCartData();
+        setCartData([]);
+
+        if (type === "clear") {
+          toast.success("Cleared! Cart has been cleared.");
+        }
+      }
+    } catch (error) {
+      console.error("Error clearing cart:", error);
+      toast.error("Something went wrong while clearing the cart.");
+    }
+  };
 
   return (
     <div style={{ paddingBottom: "120px", paddingTop: "70px" }}>
-      <Toaster/>
+      <Toaster />
       <div>
         <div>
           <div>
@@ -647,8 +679,7 @@ const clearCart = async (type) => {
                     <span className="text-success">Rs. {grandTotal}/-</span>
                   </p>
                   <p className="mb-0 text-muted">
-                    Total Items:{" "}
-                    <b className="text-dark">{cartData?.length}</b>
+                    Total Items: <b className="text-dark">{cartData?.length}</b>
                   </p>
                 </div>
 
@@ -985,12 +1016,10 @@ const clearCart = async (type) => {
                   <button
                     type="button"
                     className="btn btn-danger px-4 rounded-pill shadow-sm"
-                    onClick={() => 
-                       {
-                            clearCart("update");
-                      navigate("/admin/user/dashboard")
-                       }
-                    }
+                    onClick={() => {
+                      clearCart("update");
+                      navigate("/admin/user/dashboard");
+                    }}
                     disabled={groupedCart.length === 0}
                   >
                     Close
@@ -999,7 +1028,6 @@ const clearCart = async (type) => {
                     type="button"
                     className="btn btn-success px-4 rounded-pill shadow-sm"
                     onClick={() => {
-                    
                       setIsReciept(true);
                       setCopied(false);
                     }}
@@ -1136,7 +1164,7 @@ const clearCart = async (type) => {
                   type="button"
                   className="btn btn-outline-secondary rounded-pill px-4"
                   onClick={() => {
-                       clearCart("update");
+                    clearCart("update");
                     setIsReciept(false);
                     setPostOrderModal(false);
                     setOrderSummaryModal(false);
