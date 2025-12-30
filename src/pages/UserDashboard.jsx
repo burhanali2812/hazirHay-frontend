@@ -977,7 +977,7 @@ function UserDashboard() {
               style={{ fontSize: "0.9rem" }}
             ></i>
             <span>
-              <strong>Tip:</strong> Click below to update your delivery address
+              <strong>Tip:</strong> Click below to update your address
             </span>
           </div>
 
@@ -1025,7 +1025,7 @@ function UserDashboard() {
             <i className="fas fa-chevron-right text-muted ms-2"></i>
           </div>
 
-          <div className="mb-3">
+          <div className="mb-2">
             <div className="mb-2">
               <label
                 className="form-label fw-semibold mb-1"
@@ -1088,10 +1088,6 @@ function UserDashboard() {
 
           <div
             className="text-center mb-2 p-1 rounded"
-            style={{
-              backgroundColor: "#fff3cd",
-              border: "1px solid wheat",
-            }}
           >
             <i
               className="fas fa-motorcycle text-dark me-1"
