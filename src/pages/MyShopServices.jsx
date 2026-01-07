@@ -192,118 +192,201 @@ useEffect(() => {
   }
 
   return (
-    <div>
-<div className="container py-4">
+    <div className="container py-4" style={{ maxWidth: "1200px" }}>
+      {/* Top Bar */}
+      <div className="d-flex align-items-center justify-content-between mb-4">
+        <button
+          className="btn btn-outline-secondary"
+          onClick={() => window.history.back()}
+          style={{ borderRadius: "10px", minWidth: "100px" }}
+        >
+          <i className="fa-solid fa-arrow-left me-2"></i>
+          Back
+        </button>
 
-  {/* Top Bar */}
-  <div className="d-flex align-items-center mb-4 position-relative">
-    {/* Back Button */}
-    <button
-      className="btn btn-outline-secondary d-flex align-items-center"
-      onClick={() => window.history.back()}
-      style={{ position: "absolute", left: 0 }}
-    >
-      <i className="fa-solid fa-arrow-left me-2"></i> Back
-    </button>
+        <h4 className="mb-0 fw-bold" style={{ color: "#2c3e50" }}>
+          <i className="fas fa-tools text-primary me-2"></i>
+          My Services
+        </h4>
 
-    {/* Title Center */}
-    <h3 className="m-0 w-100 text-center fw-bold">My Services</h3>
-  </div>
+        <button
+          className="btn btn-primary"
+          onClick={() => setIsAddServiceModal(true)}
+          style={{ borderRadius: "10px", minWidth: "100px" }}
+        >
+          <i className="fa-solid fa-plus me-2"></i>
+          Add New
+        </button>
+      </div>
 
-  {/* Add New Service Button */}
-  <div className="text-end mb-3">
-    <button
-      className="btn btn-primary btn-sm px-4 fw-semibold"
-      onClick={() => setIsAddServiceModal(true)}
-    >
-      <i className="fa-solid fa-plus me-2"></i>
-      Add New Service
-    </button>
-  </div>
+      {/* Services Grid */}
+      {shop?.servicesOffered?.length > 0 ? (
+        <div className="row g-3">
+          {shop.servicesOffered.map((service, index) => (
+            <div key={service._id} className="col-12 col-md-6 col-lg-4">
+              <div
+                className="card border-0 shadow-sm h-100"
+                style={{
+                  borderRadius: "16px",
+                  transition: "all 0.3s ease",
+                }}
+                onMouseOver={(e) => e.currentTarget.style.transform = "translateY(-4px)"}
+                onMouseOut={(e) => e.currentTarget.style.transform = "translateY(0)"}
+              >
+                <div className="card-body p-3">
+                  {/* Category Badge */}
+                  <div className="d-flex align-items-center justify-content-between mb-3">
+                    <span
+                      className="badge"
+                      style={{
+                        background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+                        fontSize: "0.7rem",
+                        padding: "6px 12px",
+                        borderRadius: "8px",
+                      }}
+                    >
+                      {service.category}
+                    </span>
+                    <div className="d-flex gap-2">
+                      <button
+                        className="btn btn-sm btn-light"
+                        onClick={() => openEditServiceModal(service)}
+                        style={{
+                          width: "32px",
+                          height: "32px",
+                          padding: 0,
+                          borderRadius: "8px",
+                        }}
+                        title="Edit Service"
+                      >
+                        <i className="fa-solid fa-pen text-primary" style={{ fontSize: "0.8rem" }}></i>
+                      </button>
+                      {deleteServiceId === service._id ? (
+                        <div
+                          className="d-flex align-items-center justify-content-center"
+                          style={{ width: "32px", height: "32px" }}
+                        >
+                          <span className="spinner-border spinner-border-sm text-danger"></span>
+                        </div>
+                      ) : (
+                        <button
+                          className="btn btn-sm btn-light"
+                          onClick={() => handleEditAndDeleteService("delete", service)}
+                          style={{
+                            width: "32px",
+                            height: "32px",
+                            padding: 0,
+                            borderRadius: "8px",
+                          }}
+                          title="Delete Service"
+                        >
+                          <i className="fa-solid fa-trash text-danger" style={{ fontSize: "0.8rem" }}></i>
+                        </button>
+                      )}
+                    </div>
+                  </div>
 
-  {/* Table */}
-  <div className="table-responsive shadow-sm">
-    <table className="table table-hover text-nowrap">
-      <thead className="table-light">
-        <tr>
-          <th>#</th>
-          <th>Category</th>
-          <th>Sub-Category</th>
-          <th>Price</th>
-          <th>Variable Price</th>
-          <th className="text-center">Action</th>
-        </tr>
-      </thead>
+                  {/* Service Name */}
+                  <h6 className="fw-bold mb-2" style={{ color: "#2c3e50", fontSize: "0.95rem" }}>
+                    {service.subCategory.name}
+                  </h6>
 
-      <tbody>
-        {shop?.servicesOffered?.length > 0 ? (
-          shop.servicesOffered.map((service, index) => (
-            <tr key={service._id} className="text-nowrap">
-              <td className="fw-semibold">{index + 1}</td>
-              <td>{service.category}</td>
-              <td>{service.subCategory.name}</td>
-              <td className="fw-semibold">Rs.{service.subCategory.price}/-</td>
-              <td className="text-center"><input type="checkbox" className="form-check-input" disabled={true}  checked= {service.subCategory.isVariablePricing}/></td>
-            
-              <td className="text-center">
-                <i
-                  className="fa-solid fa-pen-to-square text-primary me-2 cursor-pointer"
-                  style={{ cursor: "pointer" }}
-                  onClick={() => openEditServiceModal(service)}
-                ></i>
+                  {/* Price */}
+                  <div className="d-flex align-items-center justify-content-between mb-2">
+                    <div>
+                      <div className="text-muted" style={{ fontSize: "0.75rem" }}>Price</div>
+                      <div className="fw-bold" style={{ fontSize: "1.25rem", color: "#11998e" }}>
+                        Rs. {service.subCategory.price}
+                      </div>
+                    </div>
+                    <div
+                      className="rounded-circle d-flex align-items-center justify-content-center"
+                      style={{
+                        width: "40px",
+                        height: "40px",
+                        background: service.subCategory.isVariablePricing
+                          ? "rgba(255, 193, 7, 0.1)"
+                          : "rgba(40, 167, 69, 0.1)",
+                      }}
+                    >
+                      <i
+                        className={`fas fa-${
+                          service.subCategory.isVariablePricing ? "chart-line" : "check-circle"
+                        }`}
+                        style={{
+                          color: service.subCategory.isVariablePricing ? "#ffc107" : "#28a745",
+                          fontSize: "1rem",
+                        }}
+                      ></i>
+                    </div>
+                  </div>
 
-                {deleteServiceId === service._id ? (
-                  <span
-                    className="spinner-border spinner-border-sm text-danger"
-                    role="status"
-                  ></span>
-                ) : (
-                  <i
-                    className="fa-solid fa-trash text-danger cursor-pointer"
-                    style={{ cursor: "pointer" }}
-                    onClick={() =>
-                      handleEditAndDeleteService("delete", service)
-                    }
-                  ></i>
-                )}
-              </td>
-            </tr>
-          ))
-        ) : (
-          <tr>
-            <td colSpan="5" className="text-center text-muted py-3">
-              No services provided
-            </td>
-          </tr>
-        )}
-      </tbody>
-    </table>
-  </div>
-</div>
-
+                  {/* Pricing Type */}
+                  <div
+                    className="text-center py-1 rounded"
+                    style={{
+                      backgroundColor: service.subCategory.isVariablePricing
+                        ? "rgba(255, 193, 7, 0.1)"
+                        : "rgba(40, 167, 69, 0.1)",
+                      fontSize: "0.75rem",
+                      color: service.subCategory.isVariablePricing ? "#856404" : "#155724",
+                    }}
+                  >
+                    {service.subCategory.isVariablePricing ? "Variable Pricing" : "Fixed Price"}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="card border-0 shadow-sm" style={{ borderRadius: "16px" }}>
+          <div className="card-body text-center py-5">
+            <div
+              className="rounded-circle bg-secondary bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-3"
+              style={{ width: "80px", height: "80px" }}
+            >
+              <i className="fas fa-tools fa-2x text-secondary opacity-50"></i>
+            </div>
+            <h6 className="fw-bold text-secondary">No Services Added Yet</h6>
+            <p className="text-muted small mb-3">
+              Start adding services to showcase what you offer to customers
+            </p>
+            <button
+              className="btn btn-primary"
+              onClick={() => setIsAddServiceModal(true)}
+              style={{ borderRadius: "10px" }}
+            >
+              <i className="fa-solid fa-plus me-2"></i>
+              Add Your First Service
+            </button>
+          </div>
+        </div>
+      )}
 
       {isAddServiceModalOpen && (
         <div
           className="modal fade show d-block"
           tabIndex="-1"
           style={{
-            backgroundColor: "rgba(0, 0, 0, 0.6)",
-            backdropFilter: "blur(3px)",
+            backgroundColor: "rgba(0, 0, 0, 0.5)",
+            backdropFilter: "blur(4px)",
           }}
         >
-          <div className="modal-dialog modal-sm modal-dialog-centered">
-            <div className="modal-content shadow-sm border-0 rounded-4">
+          <div className="modal-dialog modal-dialog-centered" style={{ maxWidth: "500px" }}>
+            <div className="modal-content border-0" style={{ borderRadius: "16px" }}>
               {/* Header */}
               <div
-                className="modal-header text-white py-2 px-3"
-                style={{ backgroundColor: "#0d6efd" }}
+                className="modal-header border-0 pb-0"
+                style={{ padding: "1.5rem 1.5rem 0.5rem" }}
               >
-                <h6 className="modal-title m-0">
-                  <i className="fa-solid fa-plus me-2"></i>Add New Service
-                </h6>
+                <h5 className="modal-title fw-bold" style={{ color: "#2c3e50" }}>
+                  <i className="fa-solid fa-plus-circle text-primary me-2"></i>
+                  Add New Service
+                </h5>
                 <button
                   type="button"
-                  className="btn-close btn-close-white"
+                  className="btn-close"
                   onClick={() => {
                     setIsAddServiceModal(false);
                     resetValues();
@@ -312,31 +395,44 @@ useEffect(() => {
               </div>
 
               {/* Body */}
-              <div className="modal-body text-center p-4">
-                <div>
+              <div className="modal-body" style={{ padding: "1.5rem" }}>
+                {/* Category Selection */}
+                <div className="mb-3">
+                  <label className="form-label fw-semibold small text-muted mb-2">
+                    <i className="fas fa-layer-group me-2"></i>
+                    Select Category
+                  </label>
                   <select
-                    style={{ background: "#FFE4E1" }}
-                    className="form-select mb-2"
+                    className="form-select"
                     value={selectedCategory}
                     onChange={handleCategoryChange}
+                    style={{ borderRadius: "10px" }}
                   >
-                    <option value="">Select Category</option>
+                    <option value="">Choose a category...</option>
                     {services.map((cat, index) => (
                       <option key={index} value={cat.category}>
                         {cat.category}
                       </option>
                     ))}
                   </select>
+                </div>
+
+                {/* Sub-Category Selection */}
+                <div className="mb-3">
+                  <label className="form-label fw-semibold small text-muted mb-2">
+                    <i className="fas fa-list me-2"></i>
+                    Select Sub-Category
+                  </label>
                   <select
-                    style={{ background: "#FFE4E1" }}
-                    className="form-select mb-3 "
+                    className="form-select"
                     value={selectedSubCategory}
                     onChange={(e) => {
                       setSelectedSubCategory(e.target.value);
                     }}
                     disabled={!selectedCategory}
+                    style={{ borderRadius: "10px" }}
                   >
-                    <option value="">Select Sub-category</option>
+                    <option value="">Choose a sub-category...</option>
                     {services
                       .find((cat) => cat.category === selectedCategory)
                       ?.subcategories.map((sub, index) => (
@@ -346,110 +442,161 @@ useEffect(() => {
                       ))}
                   </select>
                 </div>
-                <div>
-                  {selectedCategory !== null && selectedSubCategory && !isAlreadyFound &&  (
-                    <>
-                      <p className="text-center mb-3">
-                        Set price of{" "}
-                        <strong>
-                          {selectedSubCategory} ({selectedCategory})
-                        </strong>{" "}
-                        for <strong>transparency</strong> and{" "}
-                        <strong>trust</strong>.
-                      </p>
 
-                      {/* Price Input */}
-                      <label className="form-label fw-semibold small mb-1">
-                        Enter Price
+                {selectedCategory !== null && selectedSubCategory && !isAlreadyFound && (
+                  <>
+                    {/* Info Alert */}
+                    <div
+                      className="alert d-flex align-items-center mb-3"
+                      style={{
+                        backgroundColor: "rgba(102, 126, 234, 0.1)",
+                        border: "1px solid rgba(102, 126, 234, 0.2)",
+                        borderRadius: "10px",
+                        padding: "12px",
+                      }}
+                    >
+                      <i className="fas fa-info-circle text-primary me-2"></i>
+                      <small style={{ color: "#667eea" }}>
+                        Set price for <strong>{selectedSubCategory}</strong> to build trust with customers
+                      </small>
+                    </div>
+
+                    {/* Price Input */}
+                    <div className="mb-3">
+                      <label className="form-label fw-semibold small text-muted mb-2">
+                        <i className="fas fa-tag me-2"></i>
+                        Price (PKR)
                       </label>
                       <input
                         type="number"
-                        className="form-control form-control-sm "
-                        placeholder="E.g. 200"
+                        className="form-control"
+                        placeholder="Enter price (e.g., 500)"
                         value={price}
                         onChange={(e) => setPrice(e.target.value)}
+                        style={{ borderRadius: "10px" }}
                       />
+                    </div>
 
-                      <p className="fw-bold mt-2">
-                        Recommended Price{" "}
-                        <i className="fa-solid fa-lightbulb text-warning"></i>
-                      </p>
-
+                    {/* Recommended Prices */}
+                    <div className="mb-3">
+                      <label className="form-label fw-semibold small d-flex align-items-center mb-2">
+                        <i className="fas fa-lightbulb text-warning me-2"></i>
+                        Recommended Prices
+                      </label>
                       {recommendedPrice?.length > 0 ? (
-                        <div className="d-flex flex-wrap gap-2 mb-2">
-                          {recommendedPrice?.map((price, index) => (
+                        <div className="d-flex flex-wrap gap-2">
+                          {recommendedPrice?.map((recPrice, index) => (
                             <button
                               key={index}
-                              className=" btn btn-outline-primary"
-                              onClick={() => setPrice(price)}
+                              className="btn btn-sm btn-outline-primary"
+                              onClick={() => setPrice(recPrice)}
+                              style={{ borderRadius: "8px" }}
                             >
-                              {price} PKR
+                              Rs. {recPrice}
                             </button>
                           ))}
                         </div>
                       ) : (
-                        <>
-                          <p className="mb-3 mt-0 text-primary fw-bold text-center">
-                            {isFindingRecomendedPrice ? (
-                              <>Finding Recommended Price...</>
-                            ) : (
-                              <>
-                                No Recommended Price Found
-                                <i class="fa-solid fa-face-frown ms-1"></i>
-                              </>
-                            )}
-                          </p>
-                        </>
+                        <div
+                          className="text-center py-2"
+                          style={{
+                            backgroundColor: "#f8f9fa",
+                            borderRadius: "8px",
+                            fontSize: "0.85rem",
+                          }}
+                        >
+                          {isFindingRecomendedPrice ? (
+                            <>
+                              <span className="spinner-border spinner-border-sm me-2"></span>
+                              Finding prices...
+                            </>
+                          ) : (
+                            <span className="text-muted">
+                              <i className="fas fa-exclamation-circle me-1"></i>
+                              No recommended prices available
+                            </span>
+                          )}
+                        </div>
                       )}
+                    </div>
 
-                       <label className="mt-2 mb-2">
-                  <input
-                    type="checkbox"
-                    className="form-check-input me-2"
-                    checked={isVariablePricing}
-                    onChange={() => toggleVariable("add")}
-                  />
-                  Variable Pricing (Depends on work)
-                </label>
+                    {/* Variable Pricing */}
+                    <div className="mb-3">
+                      <div
+                        className="form-check p-3"
+                        style={{
+                          backgroundColor: "#f8f9fa",
+                          borderRadius: "10px",
+                        }}
+                      >
+                        <input
+                          type="checkbox"
+                          className="form-check-input"
+                          id="variablePricing"
+                          checked={isVariablePricing}
+                          onChange={() => toggleVariable("add")}
+                          style={{ cursor: "pointer" }}
+                        />
+                        <label
+                          className="form-check-label"
+                          htmlFor="variablePricing"
+                          style={{ cursor: "pointer", fontSize: "0.9rem" }}
+                        >
+                          <i className="fas fa-chart-line text-warning me-2"></i>
+                          Variable Pricing (Price depends on work scope)
+                        </label>
+                      </div>
+                    </div>
 
-                      {/* Description Input */}
-                      <label className="form-label fw-semibold small mb-1">
-                        Description
+                    {/* Description */}
+                    <div className="mb-3">
+                      <label className="form-label fw-semibold small text-muted mb-2">
+                        <i className="fas fa-align-left me-2"></i>
+                        Description (Optional)
                       </label>
                       <textarea
-                        className="form-control form-control-sm"
+                        className="form-control"
                         rows="2"
-                        placeholder="E.g. This price is for 1kg gas"
+                        placeholder="E.g., Price is for standard service"
                         value={description}
                         onChange={(e) => setDescription(e.target.value)}
+                        style={{ borderRadius: "10px" }}
                       ></textarea>
+                    </div>
+                  </>
+                )}
+              </div>
+
+              {/* Footer */}
+              <div className="modal-footer border-0" style={{ padding: "0 1.5rem 1.5rem" }}>
+                <button
+                  className="btn btn-light"
+                  onClick={() => {
+                    setIsAddServiceModal(false);
+                    resetValues();
+                  }}
+                  style={{ borderRadius: "10px", minWidth: "100px" }}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="btn btn-primary"
+                  disabled={!(selectedCategory && selectedSubCategory && price) || serviceAddLoading}
+                  onClick={handleAddNewService}
+                  style={{ borderRadius: "10px", minWidth: "120px" }}
+                >
+                  {serviceAddLoading ? (
+                    <>
+                      <span className="spinner-border spinner-border-sm me-2"></span>
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <i className="fas fa-save me-2"></i>
+                      Save Service
                     </>
                   )}
-                </div>
-                <div>
-                  {/* Button */}
-                  <button
-                    className="btn btn-primary mt-2 w-100 rounded-pill fw-semibold"
-                    hidden={!(selectedCategory && selectedSubCategory && price)}
-                    onClick={handleAddNewService}
-                  >
-                    {serviceAddLoading ? (
-                      <>
-                        <span
-                          className="spinner-border spinner-border-sm me-2"
-                          role="status"
-                          aria-hidden="true"
-                        ></span>
-                        <span>Saving...</span>
-                      </>
-                    ) : (
-                      <>
-                        <i class="fa-solid fa-screwdriver-wrench me-2"></i>
-                        Save New Service
-                      </>
-                    )}
-                  </button>
-                </div>
+                </button>
               </div>
             </div>
           </div>
@@ -457,123 +604,172 @@ useEffect(() => {
       )}
       {
         isEditServiceModalOpen && (
-              <div
-          className="modal fade show d-block"
-          tabIndex="-1"
-          style={{
-            backgroundColor: "rgba(0, 0, 0, 0.6)",
-            backdropFilter: "blur(3px)",
-          }}
-        >
-          <div className="modal-dialog modal-sm modal-dialog-centered">
-            <div className="modal-content shadow-sm border-0 rounded-4">
-              {/* Header */}
-              <div
-                className="modal-header text-white py-2 px-3"
-                style={{ backgroundColor: "#0d6efd" }}
-              >
-                <h6 className="modal-title m-0">
-                  <i class="fa-solid fa-pen-to-square me-2"></i>Edit Service
-                </h6>
-                <button
-                  type="button"
-                  className="btn-close btn-close-white"
-                  onClick={() => {
-                    setIsEditServiceModal(false);
-                    resetValues();
-                  }}
-                ></button>
-              </div>
+          <div
+            className="modal fade show d-block"
+            tabIndex="-1"
+            style={{
+              backgroundColor: "rgba(0, 0, 0, 0.5)",
+              backdropFilter: "blur(4px)",
+            }}
+          >
+            <div className="modal-dialog modal-dialog-centered" style={{ maxWidth: "500px" }}>
+              <div className="modal-content border-0" style={{ borderRadius: "16px" }}>
+                {/* Header */}
+                <div
+                  className="modal-header border-0 pb-0"
+                  style={{ padding: "1.5rem 1.5rem 0.5rem" }}
+                >
+                  <h5 className="modal-title fw-bold" style={{ color: "#2c3e50" }}>
+                    <i className="fa-solid fa-pen-to-square text-primary me-2"></i>
+                    Edit Service
+                  </h5>
+                  <button
+                    type="button"
+                    className="btn-close"
+                    onClick={() => {
+                      setIsEditServiceModal(false);
+                      resetValues();
+                    }}
+                  ></button>
+                </div>
 
-              {/* Body */}
-              <div className="modal-body text-center p-4">
-                <div>
-                  {selectedService !== null  && (
+                {/* Body */}
+                <div className="modal-body" style={{ padding: "1.5rem" }}>
+                  {selectedService !== null && (
                     <>
-                      <p className="text-center mb-3">
-                        Set price of{" "}
-                        <strong>
-                          {selectedService?.category} ({selectedService?.subCategory.name})
-                        </strong>{" "}
-                        for <strong>transparency</strong> and{" "}
-                        <strong>trust</strong>.
-                      </p>
+                      {/* Service Info */}
+                      <div
+                        className="alert d-flex align-items-center mb-3"
+                        style={{
+                          backgroundColor: "rgba(102, 126, 234, 0.1)",
+                          border: "1px solid rgba(102, 126, 234, 0.2)",
+                          borderRadius: "10px",
+                          padding: "12px",
+                        }}
+                      >
+                        <i className="fas fa-info-circle text-primary me-2"></i>
+                        <small style={{ color: "#667eea" }}>
+                          Editing <strong>{selectedService?.subCategory.name}</strong> in{" "}
+                          <strong>{selectedService?.category}</strong>
+                        </small>
+                      </div>
 
                       {/* Price Input */}
-                      <label className="form-label fw-semibold small mb-1">
-                        Enter Price
-                      </label>
-                      <input
-                        type="number"
-                        className="form-control form-control-sm "
-                        placeholder="E.g. 200"
-                        value={price ||selectedService?.subCategory.price}
-                        onChange={(e) => setPrice(e.target.value)}
-                      />
+                      <div className="mb-3">
+                        <label className="form-label fw-semibold small text-muted mb-2">
+                          <i className="fas fa-tag me-2"></i>
+                          Price (PKR)
+                        </label>
+                        <input
+                          type="number"
+                          className="form-control"
+                          placeholder="Enter price"
+                          value={price || selectedService?.subCategory.price}
+                          onChange={(e) => setPrice(e.target.value)}
+                          style={{ borderRadius: "10px" }}
+                        />
+                      </div>
 
-                      <p className="fw-bold mt-2">
-                        Recommended Price{" "}
-                        <i className="fa-solid fa-lightbulb text-warning"></i>
-                      </p>
-
-                      {recommendedPrice?.length > 0 ? (
-                        <div className="d-flex flex-wrap gap-2 mb-2">
-                          {recommendedPrice?.map((price, index) => (
-                            <button
-                              key={index}
-                              className=" btn btn-outline-primary"
-                              onClick={() => setPrice(price)}
-                            >
-                              {price} PKR
-                            </button>
-                          ))}
-                        </div>
-                      ) : (
-                        <>
-                          <p className="mb-3 mt-0 text-primary fw-bold text-center">
+                      {/* Recommended Prices */}
+                      <div className="mb-3">
+                        <label className="form-label fw-semibold small d-flex align-items-center mb-2">
+                          <i className="fas fa-lightbulb text-warning me-2"></i>
+                          Recommended Prices
+                        </label>
+                        {recommendedPrice?.length > 0 ? (
+                          <div className="d-flex flex-wrap gap-2">
+                            {recommendedPrice?.map((recPrice, index) => (
+                              <button
+                                key={index}
+                                className="btn btn-sm btn-outline-primary"
+                                onClick={() => setPrice(recPrice)}
+                                style={{ borderRadius: "8px" }}
+                              >
+                                Rs. {recPrice}
+                              </button>
+                            ))}
+                          </div>
+                        ) : (
+                          <div
+                            className="text-center py-2"
+                            style={{
+                              backgroundColor: "#f8f9fa",
+                              borderRadius: "8px",
+                              fontSize: "0.85rem",
+                            }}
+                          >
                             {isFindingRecomendedPrice ? (
-                              <>Finding Recommended Price...</>
-                            ) : (
                               <>
-                                No Recommended Price Found
-                                <i class="fa-solid fa-face-frown ms-1"></i>
+                                <span className="spinner-border spinner-border-sm me-2"></span>
+                                Finding prices...
                               </>
+                            ) : (
+                              <span className="text-muted">
+                                <i className="fas fa-exclamation-circle me-1"></i>
+                                No recommended prices available
+                              </span>
                             )}
-                          </p>
-                        </>
-                      )}
+                          </div>
+                        )}
+                      </div>
 
-                        <label className="mt-2 mb-2">
-                  <input
-                    type="checkbox"
-                    className="form-check-input me-2"
-                    checked={selectedService?.subCategory.isVariablePricing === true}
-                    onChange={()=>toggleVariable("edit")}
-                  />
-                  Variable Pricing (Depends on work)
-                </label>
-
+                      {/* Variable Pricing */}
+                      <div className="mb-3">
+                        <div
+                          className="form-check p-3"
+                          style={{
+                            backgroundColor: "#f8f9fa",
+                            borderRadius: "10px",
+                          }}
+                        >
+                          <input
+                            type="checkbox"
+                            className="form-check-input"
+                            id="editVariablePricing"
+                            checked={selectedService?.subCategory.isVariablePricing === true}
+                            onChange={() => toggleVariable("edit")}
+                            style={{ cursor: "pointer" }}
+                          />
+                          <label
+                            className="form-check-label"
+                            htmlFor="editVariablePricing"
+                            style={{ cursor: "pointer", fontSize: "0.9rem" }}
+                          >
+                            <i className="fas fa-chart-line text-warning me-2"></i>
+                            Variable Pricing (Price depends on work scope)
+                          </label>
+                        </div>
+                      </div>
                     </>
                   )}
                 </div>
-                <div>
-                  {/* Button */}
+
+                {/* Footer */}
+                <div className="modal-footer border-0" style={{ padding: "0 1.5rem 1.5rem" }}>
                   <button
-                    className="btn btn-primary mt-2 w-100 rounded-pill fw-semibold"
-                    onClick={()=>handleEditAndDeleteService("edit",selectedService)}
+                    className="btn btn-light"
+                    onClick={() => {
+                      setIsEditServiceModal(false);
+                      resetValues();
+                    }}
+                    style={{ borderRadius: "10px", minWidth: "100px" }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    className="btn btn-primary"
+                    onClick={() => handleEditAndDeleteService("edit", selectedService)}
+                    disabled={serviceAddLoading}
+                    style={{ borderRadius: "10px", minWidth: "120px" }}
                   >
                     {serviceAddLoading ? (
                       <>
-                        <span
-                          className="spinner-border spinner-border-sm me-2"
-                          role="status"
-                          aria-hidden="true"
-                        ></span>
-                        <span>Updating...</span>
+                        <span className="spinner-border spinner-border-sm me-2"></span>
+                        Updating...
                       </>
                     ) : (
                       <>
-                        <i class="fa-solid fa-cloud-arrow-up me-2"></i>
+                        <i className="fas fa-save me-2"></i>
                         Update Service
                       </>
                     )}
@@ -582,7 +778,6 @@ useEffect(() => {
               </div>
             </div>
           </div>
-        </div>
         )
       }
     </div>

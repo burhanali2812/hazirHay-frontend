@@ -1,6 +1,7 @@
 import React from "react";
-
+import { useNavigate } from "react-router-dom";
 const UnauthorizedPage = () => {
+  const navigate = useNavigate();
   return (
   <div className="container">
       <div
@@ -44,9 +45,9 @@ const UnauthorizedPage = () => {
         <button
           className="btn btn-dark px-4 py-2 rounded-3"
           style={{ fontSize: "15px" }}
-          onClick={() => window.history.back()}
+          onClick={() => navigate("/login")}
         >
-          Go Back
+          Login Again
         </button>
       </div>
     </div>
