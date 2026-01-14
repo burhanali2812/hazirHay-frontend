@@ -208,21 +208,7 @@ function ViewLocalShop() {
                     <div className="me-2">
                       <i className="fas fa-envelope text-danger"></i>
                     </div>
-                    <div className="flex-grow-1">
-                      <small
-                        className="text-muted d-block"
-                        style={{ fontSize: "11px" }}
-                      >
-                        Email Address
-                      </small>
-                      <a
-                        href={`mailto:${shop.email}`}
-                        className="text-decoration-none text-dark fw-medium text-break"
-                        style={{ fontSize: "13px" }}
-                      >
-                        {shop.email}
-                      </a>
-                    </div>
+                   
                   </div>
                 </div>
               </div>

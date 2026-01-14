@@ -9,7 +9,6 @@ import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import successAudio from "../sounds/success.mp3";
 import { useAppContext } from "../context/AppContext";
 
-
 function Signup() {
   const { getAllUser, getAllShopKepper } = useAppContext();
   const role = localStorage.getItem("role");
@@ -25,9 +24,30 @@ function Signup() {
     confirmPassword: "",
   });
   const [isChecked, setIsChecked] = useState(false);
-    const [isAgrree, setIsAgree] = useState(false);
+  const [isAgrree, setIsAgree] = useState(false);
   const [loading, setLoading] = useState(false);
   const [successAnimation, setSuccessAnimation] = useState(false);
+
+  // Load saved form data from localStorage on component mount
+  useEffect(() => {
+    const savedFormData = localStorage.getItem("signupFormData");
+    if (savedFormData) {
+      try {
+        const parsedData = JSON.parse(savedFormData);
+        setFormData({
+          ...parsedData,
+          profilePicture: null, // Can't persist file objects in localStorage
+        });
+      } catch (error) {
+        console.error("Error loading saved form data:", error);
+      }
+    }
+
+    const savedIsAgree = localStorage.getItem("signupIsAgree");
+    if (savedIsAgree === "true") {
+      setIsAgree(true);
+    }
+  }, []);
 
   const handleChange = async (e) => {
     const { name, files, value } = e.target;
@@ -53,7 +73,20 @@ function Signup() {
         }
       }
     } else {
-      setFormData({ ...formData1, [name]: value });
+      const updatedFormData = { ...formData1, [name]: value };
+      setFormData(updatedFormData);
+
+      // Save to localStorage (excluding profilePicture as it can't be serialized)
+      const dataToSave = {
+        name: updatedFormData.name,
+        email: updatedFormData.email,
+        contact: updatedFormData.contact,
+        cnic: updatedFormData.cnic,
+        address: updatedFormData.address,
+        password: updatedFormData.password,
+        confirmPassword: updatedFormData.confirmPassword,
+      };
+      localStorage.setItem("signupFormData", JSON.stringify(dataToSave));
     }
   };
 
@@ -124,12 +157,13 @@ function Signup() {
       setLoading(false);
       return;
     }
-if (!isAgrree) {
-  toast.error("You must agree to the Privacy Policy and Terms & Conditions");
-  setLoading(false);
-  return;
-}
-
+    if (!isAgrree) {
+      toast.error(
+        "You must agree to the Privacy Policy and Terms & Conditions"
+      );
+      setLoading(false);
+      return;
+    }
 
     const finalRole = role === "user" ? "user" : "shopKepper";
 
@@ -142,7 +176,6 @@ if (!isAgrree) {
     formData.append("address", formData1.address);
     formData.append("role", finalRole);
     formData.append("profilePicture", formData1.profilePicture);
-    
 
     try {
       const response = await axios.post(
@@ -154,10 +187,13 @@ if (!isAgrree) {
       if (response.status === 200) {
         if (response.data?.user?.id) {
           localStorage.setItem("userId", response.data.user.id);
-          
         } else {
           console.warn("No user ID returned from backend");
         }
+
+        // Clear saved form data after successful signup
+        localStorage.removeItem("signupFormData");
+        localStorage.removeItem("signupIsAgree");
 
         if (role === "user") {
           setSuccessAnimation(true);
@@ -167,15 +203,14 @@ if (!isAgrree) {
           setTimeout(() => navigate("/shop"), 300);
         }
       }
-    }  catch (error) {
-  const backendMessage =
-    error.response?.data?.message ||
-    error.response?.data?.error ||
-    error.message;
+    } catch (error) {
+      const backendMessage =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message;
 
-  toast.error(backendMessage || "Something went wrong");
-}
- finally {
+      toast.error(backendMessage || "Something went wrong");
+    } finally {
       setLoading(false);
     }
   };
@@ -279,7 +314,9 @@ if (!isAgrree) {
             onChange={handleChange}
             required
           />
-          <label htmlFor="nameInput">Name<span className="text-danger">*</span></label>
+          <label htmlFor="nameInput">
+            Name<span className="text-danger">*</span>
+          </label>
         </div>
 
         <div className="form-floating mb-3">
@@ -293,7 +330,9 @@ if (!isAgrree) {
             onChange={handleChange}
             required
           />
-          <label htmlFor="emailInput">Email<span className="text-danger">*</span></label>
+          <label htmlFor="emailInput">
+            Email<span className="text-danger">*</span>
+          </label>
         </div>
 
         <div className="form-floating mb-3">
@@ -307,7 +346,9 @@ if (!isAgrree) {
             onChange={handleChange}
             required
           />
-          <label htmlFor="contactInput">Contact<span className="text-danger">*</span></label>
+          <label htmlFor="contactInput">
+            Contact<span className="text-danger">*</span>
+          </label>
         </div>
         {role === "shopKepper" ? (
           <div className="form-floating mb-3">
@@ -321,7 +362,9 @@ if (!isAgrree) {
               onChange={handleChange}
               required
             />
-            <label htmlFor="cnicInput">CNIC# (without dashes)<span className="text-danger">*</span></label>
+            <label htmlFor="cnicInput">
+              CNIC# (without dashes)<span className="text-danger">*</span>
+            </label>
           </div>
         ) : (
           ""
@@ -338,10 +381,10 @@ if (!isAgrree) {
             style={{ height: "100px" }}
             required
           ></textarea>
-          <label htmlFor="addressInput">Address<span className="text-danger">*</span></label>
+          <label htmlFor="addressInput">
+            Address<span className="text-danger">*</span>
+          </label>
         </div>
-
-    
 
         <div className="form-floating  mb-2">
           <input
@@ -354,7 +397,9 @@ if (!isAgrree) {
             onChange={handleChange}
             required
           />
-          <label htmlFor="passwordInput">Password<span className="text-danger">*</span></label>
+          <label htmlFor="passwordInput">
+            Password<span className="text-danger">*</span>
+          </label>
         </div>
 
         <div className="form-floating mb-2">
@@ -368,7 +413,9 @@ if (!isAgrree) {
             onChange={handleChange}
             required
           />
-          <label htmlFor="confirmPasswordInput">Confirm Password<span className="text-danger">*</span></label>
+          <label htmlFor="confirmPasswordInput">
+            Confirm Password<span className="text-danger">*</span>
+          </label>
         </div>
         <div className="form-check mb-3 mx-1">
           <input
@@ -383,16 +430,36 @@ if (!isAgrree) {
           </label>
         </div>
 
-               <div className="form-check mb-3 mx-1">
+        <div className="form-check mb-3 mx-1">
           <input
             type="checkbox"
             className="form-check-input"
             id="exampleCheck"
             checked={isAgrree}
-            onChange={(e) => setIsAgree(e.target.checked)}
+            onChange={(e) => {
+              const checked = e.target.checked;
+              setIsAgree(checked);
+              localStorage.setItem("signupIsAgree", checked.toString());
+            }}
           />
           <label className="form-check-label" htmlFor="exampleCheck">
-            I agree to the <Link to="/privacyPolicies" className="fw-bold" style={{textDecoration : "none"}}>Privacy Policy</Link> & <Link href="/privacyPolicies" className="fw-bold" style={{textDecoration : "none"}}>Terms</Link>.
+            I agree to the{" "}
+            <Link
+              to="/privacyPolicies"
+              className="fw-bold"
+              style={{ textDecoration: "none" }}
+            >
+              Privacy Policy
+            </Link>{" "}
+            &{" "}
+            <Link
+              href="/privacyPolicies"
+              className="fw-bold"
+              style={{ textDecoration: "none" }}
+            >
+              Terms
+            </Link>
+            .
           </label>
         </div>
 
@@ -423,8 +490,7 @@ if (!isAgrree) {
             type="submit"
             className="btn btn-primary w-100 fw-bold"
             disabled={loading}
-           onClick={handleSubmit}
-      
+            onClick={handleSubmit}
           >
             {loading ? (
               <>

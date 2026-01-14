@@ -4,6 +4,7 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import { useAppContext } from "../context/AppContext";
 import imageCompression from "browser-image-compression";
+import { useCheckBlockedStatus } from "../components/useCheckBlockedStatus";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -43,6 +44,14 @@ function Local_Shop_Dashboard() {
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
 
+  
+    useCheckBlockedStatus(token);
+    useEffect(() => {
+      if (!user?.isVerified) {
+        navigate("/shopKepper/sh&un&Ve&ri&fi&ed@sh@op$");
+      }
+    });
+
   // Generate sample daily clicks data (last 7 days)
   const generateDailyClicksData = useMemo(() => {
     const days = [];
@@ -73,7 +82,6 @@ function Local_Shop_Dashboard() {
     description: "",
     shopAddress: "",
     phone: "",
-    email: "",
   });
   const [services, setServices] = useState([]);
   const [newService, setNewService] = useState("");
@@ -107,7 +115,7 @@ function Local_Shop_Dashboard() {
           description: shop.description || "",
           shopAddress: shop.shopAddress || "",
           phone: shop.phone || "",
-          email: shop.email || "",
+
         });
         setServices(shop.services || []);
         setLocation({
@@ -507,7 +515,6 @@ function Local_Shop_Dashboard() {
       ["shopName", "Shop Name", "text", "fa-store"],
       ["position", "Position/Type", "text", "fa-briefcase"],
       ["phone", "Phone", "text", "fa-phone"],
-      ["email", "Email", "email", "fa-envelope"],
       ["shopAddress", "Address", "text", "fa-map-marker-alt"],
     ],
     []
@@ -518,7 +525,6 @@ function Local_Shop_Dashboard() {
       ["Shop Name", shopInfo.shopName, "fa-store"],
       ["Position/Type", shopInfo.position, "fa-briefcase"],
       ["Phone", shopInfo.phone, "fa-phone"],
-      ["Email", shopInfo.email, "fa-envelope"],
       ["Address", shopInfo.shopAddress, "fa-map-marker-alt"],
     ],
     [shopInfo]
@@ -875,17 +881,7 @@ function Local_Shop_Dashboard() {
                           </div>
                         </div>
                       </div>
-                      <div className="col-md-6">
-                        <div className="d-flex align-items-start gap-2">
-                          <i className="fas fa-envelope text-primary mt-1"></i>
-                          <div>
-                            <div className="text-muted">Email</div>
-                            <div className="fw-semibold text-dark text-break">
-                              {shopData?.email || "-"}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
+                    
                       <div className="col-md-6">
                         <div className="d-flex align-items-start gap-2">
                           <i className="fas fa-phone text-primary mt-1"></i>

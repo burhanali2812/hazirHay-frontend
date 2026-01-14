@@ -32,7 +32,7 @@ function ShopForm() {
   const [longitude, setLongitude] = useState(73.0479);
   const [areaName, setAreaName] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
-  const [selectedSubCategory, setSelectedSubCategory] = useState({});
+  const [selectedSubCategory, setSelectedSubCategory] = useState("");
   const [selectedServices, setSelectedServices] = useState([]);
   const [coordinates, setCoordinates] = useState([]);
   const [locationName, setLocationName] = useState("");
@@ -43,6 +43,10 @@ function ShopForm() {
   const [isVariablePricing, setIsVariablePricing] = useState(false);
   const [price, setPrice] = useState("");
   const [description, setDescription] = useState("");
+  const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
+  const [showSubCategoryDropdown, setShowSubCategoryDropdown] = useState(false);
+  const [categorySearch, setCategorySearch] = useState("");
+  const [subCategorySearch, setSubCategorySearch] = useState("");
 
   const lid = localStorage.getItem("userId");
   const ShopKepperId = location?.state?.id || null;
@@ -199,8 +203,8 @@ function ShopForm() {
   }, []);
 
   const handleSelectSubCat = () => {
-    if(price === ""){
-      toast.error("Price cannot be empty!")
+    if (price === "") {
+      toast.error("Price cannot be empty!");
       return;
     }
     const subCat = {
@@ -311,6 +315,34 @@ function ShopForm() {
     setSelectedCategory(e.target.value);
     setSelectedSubCategory("");
   };
+
+  // Filter categories based on search
+  const filteredCategories = services.filter((cat) =>
+    cat.category.toLowerCase().includes(categorySearch.toLowerCase())
+  );
+
+  // Filter subcategories based on search
+  const filteredSubCategories = selectedCategory
+    ? services
+        .find((cat) => cat.category === selectedCategory)
+        ?.subcategories.filter((sub) =>
+          sub.toLowerCase().includes(subCategorySearch.toLowerCase())
+        ) || []
+    : [];
+
+  const handleCategorySelect = (category) => {
+    setSelectedCategory(category);
+    setSelectedSubCategory("");
+    setShowCategoryDropdown(false);
+    setCategorySearch("");
+  };
+
+  const handleSubCategorySelect = (subCategory) => {
+    setSelectedSubCategory(subCategory);
+    setShowSubCategoryDropdown(false);
+    setSubCategorySearch("");
+    setPriceModal(true);
+  };
   function LocationPicker({ onLocationSelect }) {
     useMapEvents({
       click(e) {
@@ -353,10 +385,10 @@ function ShopForm() {
     setIsVariablePricing(!isVariablePricing);
   };
 
-  const logOutAndGoMain =()=>{
+  const logOutAndGoMain = () => {
     localStorage.clear();
-    navigate("/")
-  }
+    navigate("/");
+  };
 
   return (
     <div className="container ">
@@ -505,36 +537,143 @@ function ShopForm() {
         </p>
 
         <div>
-          <select
-            className="form-select mb-3"
-            value={selectedCategory}
-            onChange={handleCategoryChange}
-          >
-            <option value="">Select Category</option>
-            {services.map((cat, index) => (
-              <option key={index} value={cat.category}>
-                {cat.category}
-              </option>
-            ))}
-          </select>
-          <select
-            className="form-select mb-3"
-            value={selectedSubCategory}
-            onChange={(e) => {
-              setSelectedSubCategory(e.target.value);
-              setPriceModal(true);
-            }}
-            disabled={!selectedCategory}
-          >
-            <option value="">Select Sub-category</option>
-            {services
-              .find((cat) => cat.category === selectedCategory)
-              ?.subcategories.map((sub, index) => (
-                <option key={index} value={sub}>
-                  {sub}
-                </option>
-              ))}
-          </select>
+          {/* Category Dropdown with Search */}
+          <div className="mb-3 position-relative">
+            <button
+              type="button"
+              className="form-control text-start d-flex justify-content-between align-items-center"
+              style={{ height: "45px", cursor: "pointer" }}
+              onClick={() => setShowCategoryDropdown(!showCategoryDropdown)}
+            >
+              <span>{selectedCategory || "Select Category"}</span>
+              <i
+                className={`fa-solid fa-chevron-${
+                  showCategoryDropdown ? "up" : "down"
+                }`}
+              ></i>
+            </button>
+
+            {showCategoryDropdown && (
+              <div
+                className="card position-absolute w-100 shadow-lg"
+                style={{ zIndex: 1000, maxHeight: "400px", overflowY: "auto" }}
+              >
+                <div className="card-body p-0">
+                  {/* Search Input */}
+                  <div className="p-3 border-bottom sticky-top bg-white">
+                    <div className="input-group">
+                      <span className="input-group-text">
+                        <i className="fa-solid fa-search"></i>
+                      </span>
+                      <input
+                        type="text"
+                        className="form-control"
+                        placeholder="Search categories..."
+                        value={categorySearch}
+                        onChange={(e) => setCategorySearch(e.target.value)}
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Category List */}
+                  <div className="list-group list-group-flush">
+                    {filteredCategories.length > 0 ? (
+                      filteredCategories.map((cat, index) => (
+                        <button
+                          key={index}
+                          type="button"
+                          className={`list-group-item list-group-item-action ${
+                            selectedCategory === cat.category ? "active" : ""
+                          }`}
+                          onClick={() => handleCategorySelect(cat.category)}
+                        >
+                          <i className="fa-solid fa-tag me-2"></i>
+                          {cat.category}
+                        </button>
+                      ))
+                    ) : (
+                      <div className="text-center text-muted py-4">
+                        <i className="fa-solid fa-search fa-2x mb-2"></i>
+                        <p className="mb-0">No categories found</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Sub-Category Dropdown with Search */}
+          <div className="mb-3 position-relative">
+            <button
+              type="button"
+              className="form-control text-start d-flex justify-content-between align-items-center"
+              style={{ height: "45px", cursor: "pointer" }}
+              onClick={() =>
+                selectedCategory &&
+                setShowSubCategoryDropdown(!showSubCategoryDropdown)
+              }
+              disabled={!selectedCategory}
+            >
+              <span>{selectedSubCategory || "Select Sub-category"}</span>
+              <i
+                className={`fa-solid fa-chevron-${
+                  showSubCategoryDropdown ? "up" : "down"
+                }`}
+              ></i>
+            </button>
+
+            {showSubCategoryDropdown && selectedCategory && (
+              <div
+                className="card position-absolute w-100 shadow-lg"
+                style={{ zIndex: 1000, maxHeight: "400px", overflowY: "auto" }}
+              >
+                <div className="card-body p-0">
+                  {/* Search Input */}
+                  <div className="p-3 border-bottom sticky-top bg-white">
+                    <div className="input-group">
+                      <span className="input-group-text">
+                        <i className="fa-solid fa-search"></i>
+                      </span>
+                      <input
+                        type="text"
+                        className="form-control"
+                        placeholder="Search sub-categories..."
+                        value={subCategorySearch}
+                        onChange={(e) => setSubCategorySearch(e.target.value)}
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Sub-Category List */}
+                  <div className="list-group list-group-flush">
+                    {filteredSubCategories.length > 0 ? (
+                      filteredSubCategories.map((sub, index) => (
+                        <button
+                          key={index}
+                          type="button"
+                          className={`list-group-item list-group-item-action ${
+                            selectedSubCategory === sub ? "active" : ""
+                          }`}
+                          onClick={() => handleSubCategorySelect(sub)}
+                        >
+                          <i className="fa-solid fa-list me-2"></i>
+                          {sub}
+                        </button>
+                      ))
+                    ) : (
+                      <div className="text-center text-muted py-4">
+                        <i className="fa-solid fa-search fa-2x mb-2"></i>
+                        <p className="mb-0">No sub-categories found</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         <h4 className="fw-bold text-center mb-2" style={{ color: "#ff6600" }}>
@@ -559,7 +698,7 @@ function ShopForm() {
                 </th>
                 <th scope="col">Price</th>
                 <th scope="col" className="text-nowrap">
-                  Variable Pricing
+                  Fixed Price?
                 </th>
               </tr>
             </thead>
@@ -576,12 +715,7 @@ function ShopForm() {
                     <td>{sub.subCategory.name}</td>
                     <td>{sub.subCategory.price}</td>
                     <td className="text-center">
-                      <input
-                        type="checkbox"
-                        className="form-checkbox"
-                        disabled={true} 
-                        checked={sub.subCategory.isVariablePricing || false}
-                      />
+                      {sub.subCategory.isVariablePricing ? "No" : "Yes"}
                     </td>
                   </tr>
                 ))
@@ -603,7 +737,8 @@ function ShopForm() {
 
           <p className="text-secondary mb-3">
             To activate your shop on Hazir Hay, please send the one-time
-            registration fee (Valid for 1 Year) and upload the payment screenshot below.
+            registration fee (Valid for 1 Year) and upload the payment
+            screenshot below.
           </p>
 
           <div className="p-3 rounded" style={{ background: "#f8f9fa" }}>
@@ -854,7 +989,7 @@ function ShopForm() {
                   type="number"
                   className="form-control form-control-sm "
                   placeholder="Enter starting minimum amount"
-                  style={{height : "40px", fontSize : "16px"}}
+                  style={{ height: "40px", fontSize: "16px" }}
                   value={price}
                   onChange={(e) => setPrice(e.target.value)}
                 />
@@ -934,8 +1069,6 @@ function ShopForm() {
           </div>
         </div>
       )}
-
-       
     </div>
   );
 }
