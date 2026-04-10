@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback, useMemo, use } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
@@ -33,7 +33,8 @@ ChartJS.register(
 );
 
 function Local_Shop_Dashboard() {
-  const { user, logout } = useAppContext();
+    const user = JSON.parse(localStorage.getItem("user"));
+  const {  logout } = useAppContext();
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
 
@@ -48,6 +49,7 @@ function Local_Shop_Dashboard() {
     useCheckBlockedStatus(token);
     useEffect(() => {
       if (!user?.isVerified) {
+        console.log("User not verified, redirecting...", user);
         navigate("/shopKepper/sh&un&Ve&ri&fi&ed@sh@op$");
       }
     });
